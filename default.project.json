@@ -1,0 +1,33 @@
+{
+  "name": "Plum's Tycoon Kit",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "$ignoreUnknownInstances": true,
+      "Data": {
+        "$path": "src/shared/data"
+      },
+      "Packages": {
+        "$path": "packages"
+      },
+      "Common": {
+        "$path": "src/shared/common"
+      },
+      "Components": {
+        "$path": "src/shared/components"
+      }
+    },
+    "ServerScriptService": {
+      "Server": {
+        "$path": "src/server"
+      }
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "Client": {
+          "$path": "src/client"
+        }
+      }
+    }
+  }
+}
