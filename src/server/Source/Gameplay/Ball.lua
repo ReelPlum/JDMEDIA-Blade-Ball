@@ -14,13 +14,14 @@ local Ball = {}
 Ball.__index = Ball
 
 local BALLHITDISTANCE = 1
-local BUFFERTIME = 10 / 1000 --in seconds
+local BUFFERTIME = 100 / 1000 --in seconds
 local BALLRADIUS = 2
 
 function Ball.new(spawnCFrame: CFrame, model: PVInstance, currentGame)
 	local self = setmetatable({}, Ball)
 
 	self.Janitor = janitor.new()
+	self.BallJanitor = self.Janitor:Add(janitor.new())
 
 	self.Model = model
 	self.SpawnPosition = spawnCFrame
@@ -29,12 +30,11 @@ function Ball.new(spawnCFrame: CFrame, model: PVInstance, currentGame)
 	self.Position = Vector3.new(0, 0, 0)
 	self.Velocity = Vector3.new(0, 0, 0)
 	self.Acceleration = Vector3.new(0, 0, 0)
+	self.Impulse = Vector3.new(1, 2, 0)
 
 	self.BufferStarted = false
 	self.Target = nil
 	self.Speed = 1
-
-	self.HitBuffer = 0 --Players get .1 seconds to hit ball before killed to balance out bad internet connections and desync.
 
 	self.Signals = {
 		Destroying = self.Janitor:Add(signal.new()),
@@ -47,13 +47,25 @@ function Ball.new(spawnCFrame: CFrame, model: PVInstance, currentGame)
 	return self
 end
 
+function Ball:CreateBall()
+	self.BallJanitor:Cleanup()
+
+	self.BallModel = self.BallJanitor:Add(self.Model:Clone())
+	self.BallModel.Parent = workspace
+end
+
 function Ball:Respawn()
 	--Respawns ball at spawn
-	self.Position = self.SpawnPosition
+	self.Position = self.SpawnPosition.Position
 	self.Velocity = Vector3.new(0, 0, 0)
 	self.Acceleration = Vector3.new(0, 0, 0)
+	self.Speed = 1
+
+	self:SetImpulse(Vector3.new(math.random(-2, 2), math.random(0, 2), math.random(-2, 2)))
 
 	self:RandomTarget(self.Game.Users)
+
+	self:CreateBall()
 end
 
 function Ball:SetTarget(user)
@@ -65,21 +77,36 @@ function Ball:SetTarget(user)
 end
 
 function Ball:Update(dt)
+	if not self.BallModel then
+		return
+	end
+
 	--Updates position etc. for ball
-	self.Acceleration = self:GetDirectionalVector().Unit * self.Speed
-	self.Velocity += self.Acceleration * dt
+	if not self.BufferStarted then
+		self.Acceleration = self:GetDirectionalVector().Unit * self.Speed
+
+		self.Velocity = (self.Acceleration + self.Impulse).Unit * self.Speed
+	end
 
 	local newPosition = self.Position + self.Velocity
 	self:CheckForHit(newPosition)
+
 	self.Position = newPosition
 
+	self.Impulse /= 1 + (1.25 * dt)
+
 	--Render at new position
+	self.BallModel.CFrame = CFrame.new(self.Position, self.Position + self.Acceleration)
 end
 
 local function GetPointOnLine(a, b, p)
 	local heading = (b - a)
 	local magnitudeMax = heading.magnitude
 	heading = heading.Unit
+
+	if magnitudeMax <= 0 then
+		magnitudeMax = 0.001
+	end
 
 	local lhs = p - a
 	local dotP = lhs:Dot(heading)
@@ -135,17 +162,17 @@ end
 function Ball:GetDirectionalVector(): Vector3
 	--Gets vector facing towards target from ball
 	if not self.Target then
-		return math.huge
+		return Vector3.new()
 	end
 
 	local character = self.Target.Player.Character
 	if not character then
-		return math.huge
+		return Vector3.new()
 	end
 
 	local rootPart = character:FindFirstChild("HumanoidRootPart")
 	if not rootPart then
-		return math.huge
+		return Vector3.new()
 	end
 
 	return (rootPart.CFrame.Position - self.Position)
@@ -184,9 +211,14 @@ function Ball:Hit(user, cameraLookVector)
 
 	--Make user hit ball
 	local mixedLookVector, characterLookVector = GetMixedLookVector(user, cameraLookVector)
-	self.Velocity = self:GetImpulse(mixedLookVector)
+	self:SetImpulse(self:GetImpulse(mixedLookVector))
 
+	self.Speed += 0.05
 	self:GetNextTarget(self.Game.Users, characterLookVector)
+end
+
+function Ball:SetImpulse(impulse)
+	self.Impulse = impulse
 end
 
 function Ball:GetImpulse(mixedLookVector): Vector3
