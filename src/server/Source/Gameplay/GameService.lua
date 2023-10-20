@@ -25,26 +25,29 @@ local IntermissionTime = 30
 
 function GameService:KnitStart()
 	--Start game loop here
-	task.spawn(function()
-		while true do
-			--Cooldown
-			task.wait(CooldownTime)
+	local CurrentGame = Game.new(nil, CFrame.new(), { MaxPlayers = Players.MaxPlayers })
+	CurrentGame:Start()
 
-			--Vote
-			task.wait(VotingTime)
-			local ChosenMap = nil
-			--Intermission
-			task.wait(IntermissionTime)
+	-- task.spawn(function()
+	-- 	while true do
+	-- 		--Cooldown
+	-- 		task.wait(CooldownTime)
 
-			--Start game
-			local currentGame = Game.new(ChosenMap, CFrame.new(), { MaxPlayers = Players.MaxPlayers })
-			currentGame:Start()
+	-- 		--Vote
+	-- 		task.wait(VotingTime)
+	-- 		local ChosenMap = nil
+	-- 		--Intermission
+	-- 		task.wait(IntermissionTime)
 
-			currentGame.Signals.Ended:Wait()
+	-- 		--Start game
+	-- 		local currentGame = Game.new(ChosenMap, CFrame.new(), { MaxPlayers = Players.MaxPlayers })
+	-- 		currentGame:Start()
 
-			--And so it continues
-		end
-	end)
+	-- 		currentGame.Signals.Ended:Wait()
+
+	-- 		--And so it continues
+	-- 	end
+	-- end)
 end
 
 function GameService:KnitInit() end

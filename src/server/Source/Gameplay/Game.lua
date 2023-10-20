@@ -39,6 +39,10 @@ function Game.new(map: Folder, location: CFrame, gameSettings: GameSettings)
 	return self
 end
 
+function Game:UserHit(user)
+	--Called when ball hits user
+end
+
 function Game:GetRandomUser()
 	--Returns random user in game
 end
@@ -60,6 +64,19 @@ function Game:LeaveMultiple(users)
 end
 
 function Game:Start()
+	task.wait(5)
+
+	local UserService = knit.GetService("UserService")
+	local users = UserService:GetUsers()
+	local usersList = {}
+	for _, user in users do
+		table.insert(usersList, user)
+	end
+	self.Users = usersList
+
+	local BallService = knit.GetService("BallService")
+	BallService:CreateNewBall(CFrame.new(0, 10, 0), self)
+
 	--Starts game with players
 
 	--Check for when showdown starts
