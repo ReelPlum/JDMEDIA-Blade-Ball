@@ -34,6 +34,7 @@ function Game.new(map: Folder, location: CFrame, gameSettings: GameSettings)
 
 		ShowdownStarted = self.Janitor:Add(signal.new()),
 		Ended = self.Janitor:Add(signal.new()),
+		UserJoined = self.Janitor:Add(signal.new()),
 	}
 
 	return self
@@ -49,6 +50,13 @@ end
 
 function Game:Join(user)
 	--Adds user to game
+	if table.find(self.Users, user) then
+		return
+	end
+
+	table.insert(self.Users, user)
+
+	self.Signals.UserJoined:Fire()
 end
 
 function Game:JoinMultiple(users)
@@ -64,9 +72,15 @@ function Game:LeaveMultiple(users)
 end
 
 function Game:Start()
-	task.wait(5)
-
 	local UserService = knit.GetService("UserService")
+
+	UserService.Signals.UserAdded:Connect(function(user)
+		self:Join(user)
+	end)
+	if #self.Users <= 0 then
+		self.Signals.UserJoined:Wait()
+	end
+
 	local users = UserService:GetUsers()
 	local usersList = {}
 	for _, user in users do

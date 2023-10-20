@@ -13,7 +13,7 @@ local janitor = require(ReplicatedStorage.Packages.Janitor)
 local Ball = {}
 Ball.__index = Ball
 
-local BALLHITDISTANCE = 1
+local BALLHITDISTANCE = 20
 local BUFFERTIME = 100 / 1000 --in seconds
 local BALLRADIUS = 2
 
@@ -85,7 +85,7 @@ function Ball:Update(dt)
 	if not self.BufferStarted then
 		self.Acceleration = self:GetDirectionalVector().Unit * self.Speed
 
-		self.Velocity = (self.Acceleration + self.Impulse).Unit * self.Speed
+		self.Velocity = self.Acceleration + self.Impulse
 	end
 
 	local newPosition = self.Position + self.Velocity
@@ -93,25 +93,34 @@ function Ball:Update(dt)
 
 	self.Position = newPosition
 
-	self.Impulse /= 1 + (1.25 * dt)
+	self.Impulse /= 1 + (2 * dt)
 
 	--Render at new position
 	self.BallModel.CFrame = CFrame.new(self.Position, self.Position + self.Acceleration)
 end
 
 local function GetPointOnLine(a, b, p)
-	local heading = (b - a)
-	local magnitudeMax = heading.magnitude
-	heading = heading.Unit
+	local success, msg, msg2 = pcall(function()
+		local heading = (b - a)
+		local magnitudeMax = heading.magnitude
+		heading = heading.Unit
 
-	if magnitudeMax <= 0 then
-		magnitudeMax = 0.001
+		if magnitudeMax ~= magnitudeMax then
+			magnitudeMax = 1
+		end
+
+		local lhs = p - a
+		local dotP = lhs:Dot(heading)
+		dotP = math.clamp(dotP, 0, magnitudeMax)
+		return a + heading * dotP, magnitudeMax
+	end)
+
+	if success then
+		return msg
 	end
 
-	local lhs = p - a
-	local dotP = lhs:Dot(heading)
-	dotP = math.clamp(dotP, 0, magnitudeMax)
-	return a + heading * dotP
+	warn("erorr")
+	return Vector3.new()
 end
 
 function Ball:CheckForHit(newPosition)
@@ -185,40 +194,47 @@ end
 local function GetMixedLookVector(user, cameraLookVector: Vector3): Vector3
 	local character = user.Player.Character
 	if not character then
-		return Vector3.new(cameraLookVector.X, 0, 0), Vector3.new()
+		return Vector3.new(0, cameraLookVector.Y, 0), Vector3.new()
 	end
 
 	local rootPart = character:FindFirstChild("HumanoidRootPart")
 	if not rootPart then
-		return Vector3.new(cameraLookVector.X, 0, 0), Vector3.new()
+		return Vector3.new(0, cameraLookVector.Y, 0), Vector3.new()
 	end
 
 	local characterLookVector = rootPart.CFrame.lookVector
 
-	return Vector3.new(cameraLookVector.X, characterLookVector.Y, characterLookVector.Z), characterLookVector
+	return Vector3.new(characterLookVector.X, cameraLookVector.Y, characterLookVector.Z), characterLookVector
 end
 
-function Ball:Hit(user, cameraLookVector)
+function Ball:Hit(user, cameraLookVector, characterLookVector)
 	if not (self.Target == user) then
 		return
 	end
 
+	warn("Trying hit")
+
 	--Check distance
 	local distance = self:GetDistanceToTarget()
-	if distance < BALLHITDISTANCE then
+	if distance > BALLHITDISTANCE then
+		warn(distance)
 		return
 	end
 
 	--Make user hit ball
-	local mixedLookVector, characterLookVector = GetMixedLookVector(user, cameraLookVector)
+	local mixedLookVector = GetMixedLookVector(user, cameraLookVector)
 	self:SetImpulse(self:GetImpulse(mixedLookVector))
 
 	self.Speed += 0.05
 	self:GetNextTarget(self.Game.Users, characterLookVector)
+
+	warn("Successfully hit")
 end
 
 function Ball:SetImpulse(impulse)
-	self.Impulse = impulse
+	--Maybe have impulse boosts from a perk / weapons
+
+	self.Impulse = impulse.Unit * Vector3.new(self.Speed * 1.25, self.Speed * 2, self.Speed * 1.25)
 end
 
 function Ball:GetImpulse(mixedLookVector): Vector3
@@ -226,7 +242,7 @@ function Ball:GetImpulse(mixedLookVector): Vector3
 	--Used on hit
 
 	--A mixed lookVector is a lookVector that has the x value of the camera and the y and z from the player. This makes it possible to shoot the ball upwards.
-	local impulse = mixedLookVector.Unit * self.Speed
+	local impulse = mixedLookVector.Unit
 	return impulse
 end
 
@@ -250,6 +266,10 @@ function Ball:GetNextTarget(users, lookVector)
 	--Gets next target.
 	local highestDot, currentTarget = -math.huge, nil
 	for _, user in users do
+		if user == self.Target then
+			continue
+		end
+
 		local dot = DotUser(user, lookVector, self.Position)
 		if dot > highestDot then
 			highestDot = dot
@@ -274,6 +294,8 @@ end
 function Ball:Pause() end
 
 function Ball:Destroy()
+	self.Destroyed = true
+
 	self.Signals.Destroying:Fire()
 	self.Janitor:Destroy()
 	self = nil

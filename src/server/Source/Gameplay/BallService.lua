@@ -13,6 +13,8 @@ local janitor = require(ReplicatedStorage.Packages.Janitor)
 
 local BallClass = require(script.Parent.Ball)
 
+local HITCOOLDOWN = 1
+
 local BallService = knit.CreateService({
 	Name = "BallService",
 	Client = {},
@@ -21,6 +23,31 @@ local BallService = knit.CreateService({
 
 local CurrentBall = nil
 
+function BallService.Client:HitBall(player, cameraLookVector: Vector3, characterLookVector: Vector3)
+	local UserService = knit.GetService("UserService")
+	local user = UserService:WaitForUser(player)
+
+	if not cameraLookVector then
+		return
+	end
+
+	if not characterLookVector then
+		return
+	end
+
+	if not typeof(cameraLookVector) == "Vector3" then
+		return
+	end
+	if not typeof(characterLookVector) == "Vector3" then
+		return
+	end
+
+	cameraLookVector = cameraLookVector.Unit
+	characterLookVector = characterLookVector.Unit
+
+	BallService:HitBall(user, cameraLookVector, characterLookVector)
+end
+
 function BallService:CreateNewBall(location: CFrame, currentGame)
 	--Creates new ball at the given location.
 	--It also destroys the old ball
@@ -28,18 +55,40 @@ function BallService:CreateNewBall(location: CFrame, currentGame)
 	CurrentBall:Respawn()
 end
 
-function BallService:HitBall(user, cameraLookVector)
+local function CheckUsersCooldown(user)
+	if not user.LastHit then
+		return true
+	end
+
+	return tick() - user.LastHit >= HITCOOLDOWN
+end
+
+function BallService:HitBall(user, cameraLookVector, characterLookVector)
 	--Hits ball. Based on camera & character lookVector
+	if not CheckUsersCooldown(user) then
+		return false
+	end
+
+	user.LastHit = tick()
+
+	--Hit here
+	CurrentBall:Hit(user, cameraLookVector, characterLookVector)
+	return true
 end
 
 function BallService:DespawnBall()
 	--Despawns current bladeball
+	CurrentBall:Destroy()
+	CurrentBall = nil
 end
 
 function BallService:KnitStart()
 	--Loop updating ball
 	RunService.Heartbeat:Connect(function(deltaTime)
 		if not CurrentBall then
+			return
+		end
+		if CurrentBall.Destroyed then
 			return
 		end
 
