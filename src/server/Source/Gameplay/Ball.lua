@@ -17,7 +17,7 @@ local BALLHITDISTANCE = 20
 local BUFFERTIME = 100 / 1000 --in seconds
 local BALLRADIUS = 2
 
-function Ball.new(spawnCFrame: CFrame, model: PVInstance, currentGame)
+function Ball.new(spawnCFrame: CFrame, model: PVInstance, targetCallback: () -> { any })
 	local self = setmetatable({}, Ball)
 
 	self.Janitor = janitor.new()
@@ -25,7 +25,7 @@ function Ball.new(spawnCFrame: CFrame, model: PVInstance, currentGame)
 
 	self.Model = model
 	self.SpawnPosition = spawnCFrame
-	self.Game = currentGame
+	self.TargetCallback = targetCallback
 
 	self.Position = Vector3.new(0, 0, 0)
 	self.Velocity = Vector3.new(0, 0, 0)
@@ -35,6 +35,10 @@ function Ball.new(spawnCFrame: CFrame, model: PVInstance, currentGame)
 	self.BufferStarted = false
 	self.Target = nil
 	self.Speed = 1
+	self.LastTarget = nil
+
+	self.Hits = {}
+	self.Kills = {}
 
 	self.Signals = {
 		Destroying = self.Janitor:Add(signal.new()),
@@ -60,10 +64,11 @@ function Ball:Respawn()
 	self.Velocity = Vector3.new(0, 0, 0)
 	self.Acceleration = Vector3.new(0, 0, 0)
 	self.Speed = 1
+	self.LastTarget = nil
 
 	self:SetImpulse(Vector3.new(math.random(-2, 2), math.random(0, 2), math.random(-2, 2)))
 
-	self:RandomTarget(self.Game.Users)
+	self:RandomTarget(self.TargetCallback())
 
 	self:CreateBall()
 end
@@ -71,6 +76,8 @@ end
 function Ball:SetTarget(user)
 	--Sets target for ball
 	self.BufferStarted = false
+
+	self.LastTarget = self.Target
 
 	self.Target = user
 	self.Signals.TargetChanged:Fire(user)
@@ -100,27 +107,18 @@ function Ball:Update(dt)
 end
 
 local function GetPointOnLine(a, b, p)
-	local success, msg, msg2 = pcall(function()
-		local heading = (b - a)
-		local magnitudeMax = heading.magnitude
-		heading = heading.Unit
+	local heading = (b - a)
+	local magnitudeMax = heading.magnitude
+	heading = heading.Unit
 
-		if magnitudeMax ~= magnitudeMax then
-			magnitudeMax = 1
-		end
-
-		local lhs = p - a
-		local dotP = lhs:Dot(heading)
-		dotP = math.clamp(dotP, 0, magnitudeMax)
-		return a + heading * dotP, magnitudeMax
-	end)
-
-	if success then
-		return msg
+	if magnitudeMax ~= magnitudeMax then
+		magnitudeMax = 1
 	end
 
-	warn("erorr")
-	return Vector3.new()
+	local lhs = p - a
+	local dotP = lhs:Dot(heading)
+	dotP = math.clamp(dotP, 0, magnitudeMax)
+	return a + heading * dotP, magnitudeMax
 end
 
 function Ball:CheckForHit(newPosition)
@@ -134,7 +132,7 @@ function Ball:CheckForHit(newPosition)
 		return
 	end
 
-	local character = self.Target.Player.Character
+	local character = self.Target.Character
 	if not character then
 		return
 	end
@@ -163,8 +161,16 @@ function Ball:CheckForHit(newPosition)
 		end
 
 		--Kill
-		self.Game:UserHit(self.Target)
+		self.Signals.HitTarget:Fire(self.Target)
 		self:Respawn()
+
+		if self.LastTarget then
+			if not self.Kills[self.LastTarget] then
+				self.Kills[self.LastTarget] = 0
+			end
+
+			self.Kills[self.LastTarget] += 1
+		end
 	end)
 end
 
@@ -174,7 +180,7 @@ function Ball:GetDirectionalVector(): Vector3
 		return Vector3.new()
 	end
 
-	local character = self.Target.Player.Character
+	local character = self.Target.Character
 	if not character then
 		return Vector3.new()
 	end
@@ -192,7 +198,7 @@ function Ball:GetDistanceToTarget(): number
 end
 
 local function GetMixedLookVector(user, cameraLookVector: Vector3): Vector3
-	local character = user.Player.Character
+	local character = user.Character
 	if not character then
 		return Vector3.new(0, cameraLookVector.Y, 0), Vector3.new()
 	end
@@ -226,28 +232,18 @@ function Ball:Hit(user, cameraLookVector, characterLookVector)
 	self:SetImpulse(self:GetImpulse(mixedLookVector))
 
 	self.Speed += 0.05
-	self:GetNextTarget(self.Game.Users, characterLookVector)
+	self:GetNextTarget(self.TargetCallback(), characterLookVector)
 
-	warn("Successfully hit")
-end
+	self.Signals.Hit:Fire(user)
 
-function Ball:SetImpulse(impulse)
-	--Maybe have impulse boosts from a perk / weapons
-
-	self.Impulse = impulse.Unit * Vector3.new(self.Speed * 1.25, self.Speed * 2, self.Speed * 1.25)
-end
-
-function Ball:GetImpulse(mixedLookVector): Vector3
-	--Returns impulse from the given mixedLookVector.
-	--Used on hit
-
-	--A mixed lookVector is a lookVector that has the x value of the camera and the y and z from the player. This makes it possible to shoot the ball upwards.
-	local impulse = mixedLookVector.Unit
-	return impulse
+	if not self.Hits[user] then
+		self.Hits[user] = 0
+	end
+	self.Hits[user] += 1
 end
 
 local function DotUser(user, lookVector, ballPosition): number
-	local character = user.Player.Character
+	local character = user.Character
 	if not character then
 		return math.huge
 	end
@@ -260,6 +256,19 @@ local function DotUser(user, lookVector, ballPosition): number
 	local ballToCharacter = (rootPart.CFrame.Position - ballPosition).Unit
 
 	return ballToCharacter:Dot(lookVector)
+end
+
+function Ball:SetImpulse(impulse)
+	self.Impulse = impulse.Unit * Vector3.new(self.Speed * 1.25, self.Speed * 2, self.Speed * 1.25)
+end
+
+function Ball:GetImpulse(mixedLookVector): Vector3
+	--Returns impulse from the given mixedLookVector.
+	--Used on hit
+
+	--A mixed lookVector is a lookVector that has the x value of the camera and the y and z from the player. This makes it possible to shoot the ball upwards.
+	local impulse = mixedLookVector.Unit
+	return impulse
 end
 
 function Ball:GetNextTarget(users, lookVector)
@@ -287,11 +296,13 @@ function Ball:GetNextTarget(users, lookVector)
 end
 
 function Ball:RandomTarget(users)
+	if #users <= 0 then
+		return
+	end
+
 	--Choses random target for ball
 	self:SetTarget(users[math.random(1, #users)])
 end
-
-function Ball:Pause() end
 
 function Ball:Destroy()
 	self.Destroyed = true

@@ -5,6 +5,7 @@ Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local HttpService = game:GetService("HttpService")
 local SocialService = game:GetService("SocialService")
 
 local knit = require(ReplicatedStorage.Packages.Knit)
@@ -23,6 +24,8 @@ function Game.new(map: Folder, location: CFrame, gameSettings: GameSettings)
 
 	self.Janitor = janitor.new()
 
+	self.Id = HttpService:GenerateGUID(false)
+
 	self.Map = map
 	self.Location = location
 	self.Settings = gameSettings
@@ -35,21 +38,44 @@ function Game.new(map: Folder, location: CFrame, gameSettings: GameSettings)
 		ShowdownStarted = self.Janitor:Add(signal.new()),
 		Ended = self.Janitor:Add(signal.new()),
 		UserJoined = self.Janitor:Add(signal.new()),
+		UserLeft = self.Janitor:Add(signal.new()),
 	}
+
+	local UserService = knit.GetService("UserService")
+	UserService.Signals.UserRemoving:Connect(function(user)
+		self:Leave(user)
+	end)
 
 	return self
 end
 
-function Game:UserHit(user)
-	--Called when ball hits user
+function Game:ReturnUserToLobby(user)
+	--Returns user to the lobby
 end
 
-function Game:GetRandomUser()
-	--Returns random user in game
+function Game:SpawnUserOnMap(user)
+	--Spawns user on map
+end
+
+function Game:UserHit(user)
+	--Called when ball hits user.
+	--Teleport user back to spawn
+	self:ReturnUserToLobby(user)
+
+	--Make user leave game
+	self:Leave(user)
+end
+
+function Game:GetUsers()
+	return self.Users
 end
 
 function Game:Join(user)
 	--Adds user to game
+	if #self.Users + 1 > self.Settings.MaxPlayers then
+		return
+	end
+
 	if table.find(self.Users, user) then
 		return
 	end
@@ -59,51 +85,81 @@ function Game:Join(user)
 	self.Signals.UserJoined:Fire()
 end
 
-function Game:JoinMultiple(users)
-	--Makes multiple users join
-end
-
 function Game:Leave(user)
 	--Removes user from game
-end
+	if not table.find(self.Users, user) then
+		return
+	end
 
-function Game:LeaveMultiple(users)
-	--Makes multiple users leave
+	local reward = 0
+	if self.StartTime then
+		--Reward user for kills
+		if self.Ball.Hits[user] then
+			reward += self.Ball.Hits[user] * 0.25
+		end
+
+		if self.Ball.Kills[user] then
+			reward += self.Ball.Kills[user] * 25
+		end
+
+		--Reward user for survival time & ball hits
+		reward += tick() - self.StartTime * 0.05
+	end
+	--Add reward to users cash
+	--Give user experience reward
+
+	--If showdown then save showndown streak
+
+	--Remove user
+	table.remove(self.Users, table.find(self.Users, user))
+	self.Signals.UserLeft:Fire()
+
+	if #self.Users == 2 then
+		self:Showdown()
+		return
+	end
+	if #self.Users == 1 then
+		self:End()
+		return
+	end
 end
 
 function Game:Start()
-	local UserService = knit.GetService("UserService")
-
-	UserService.Signals.UserAdded:Connect(function(user)
-		self:Join(user)
-	end)
-	if #self.Users <= 0 then
-		self.Signals.UserJoined:Wait()
-	end
-
-	local users = UserService:GetUsers()
-	local usersList = {}
-	for _, user in users do
-		table.insert(usersList, user)
-	end
-	self.Users = usersList
+	self.StartTime = tick()
 
 	local BallService = knit.GetService("BallService")
-	BallService:CreateNewBall(CFrame.new(0, 10, 0), self)
+	self.Ball = BallService:CreateNewBall(CFrame.new(0, 10, 0), self)
 
-	--Starts game with players
-
-	--Check for when showdown starts
-
-	--Check when all players but one is left
+	self.Janitor:Add(self.Ball.Signals.HitTarget:Connect(function(user)
+		self:UserHit(user)
+	end))
 end
 
-function Game:Freeze()
-	--Freezes game and all players playing
+function Game:Showdown()
+	--Starts showdown for game
+
+	--Setup showdown stats
+
+	--Count showdown streak
+	self.Janitor:Add(self.Ball.Signals.Hit:Connect(function()
+		--Save to streak
+	end))
 end
 
 function Game:End()
 	--Ends game
+	local winner = self.Users[1]
+
+	--Reward winner with extra reward
+
+	--Save win to winners stats
+
+	--Remove everything from game
+	local BallService = knit.GetService("BallService")
+	BallService:DespawnBall()
+
+	self:Leave(winner)
+	self:Destroy()
 end
 
 function Game:Destroy()

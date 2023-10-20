@@ -51,8 +51,12 @@ end
 function BallService:CreateNewBall(location: CFrame, currentGame)
 	--Creates new ball at the given location.
 	--It also destroys the old ball
-	CurrentBall = BallClass.new(location, ReplicatedStorage.Ball, currentGame)
+	CurrentBall = BallClass.new(location, ReplicatedStorage.Ball, function()
+		return currentGame:GetUsers()
+	end)
 	CurrentBall:Respawn()
+
+	return CurrentBall
 end
 
 local function CheckUsersCooldown(user)
@@ -65,6 +69,10 @@ end
 
 function BallService:HitBall(user, cameraLookVector, characterLookVector)
 	--Hits ball. Based on camera & character lookVector
+	if not CurrentBall then
+		return
+	end
+
 	if not CheckUsersCooldown(user) then
 		return false
 	end

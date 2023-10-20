@@ -30,9 +30,17 @@ function User.new(player)
 		FirstJoin = self.Janitor:Add(signal.new()),
 	}
 
+	self:Init()
 	self:LoadData()
 
 	return self
+end
+
+function User:Init()
+	self.Character = self.Player.Character
+	self.Janitor:Add(self.Player.CharacterAdded:Connect(function(character)
+		self.Character = character
+	end))
 end
 
 function User:LoadData()
