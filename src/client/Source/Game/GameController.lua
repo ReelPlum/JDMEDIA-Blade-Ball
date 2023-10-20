@@ -1,0 +1,21 @@
+--[[
+GameController
+2023, 10, 20
+Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
+]]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local knit = require(ReplicatedStorage.Packages.Knit)
+local signal = require(ReplicatedStorage.Packages.Signal)
+
+local GameController = knit.CreateController({
+	Name = "GameController",
+	Signals = {},
+})
+
+function GameController:KnitStart() end
+
+function GameController:KnitInit() end
+
+return GameController
