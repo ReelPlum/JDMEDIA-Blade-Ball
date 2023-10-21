@@ -5,23 +5,28 @@ Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local HttpService = game:GetService("HttpService")
 
 local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
+local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
+
 local Ball = {}
 Ball.__index = Ball
 
-local BALLHITDISTANCE = 20
-local BUFFERTIME = 100 / 1000 --in seconds
-local BALLRADIUS = 2
+local BALLHITDISTANCE = GeneralSettings.Game.Ball.HitRadius
+local BUFFERTIME = GeneralSettings.Game.Ball.BufferTime --in seconds
+local BALLRADIUS = GeneralSettings.Game.Ball.KillRadius
 
 function Ball.new(spawnCFrame: CFrame, model: PVInstance, targetCallback: () -> { any })
 	local self = setmetatable({}, Ball)
 
 	self.Janitor = janitor.new()
 	self.BallJanitor = self.Janitor:Add(janitor.new())
+
+	self.Id = HttpService:GenerateGUID(false)
 
 	self.Model = model
 	self.SpawnPosition = spawnCFrame
@@ -34,7 +39,7 @@ function Ball.new(spawnCFrame: CFrame, model: PVInstance, targetCallback: () -> 
 
 	self.BufferStarted = false
 	self.Target = nil
-	self.Speed = 1
+	self.Speed = GeneralSettings.Game.Ball.StartSpeed
 	self.LastTarget = nil
 
 	self.Hits = {}
@@ -48,6 +53,8 @@ function Ball.new(spawnCFrame: CFrame, model: PVInstance, targetCallback: () -> 
 		HitTarget = self.Janitor:Add(signal.new()),
 	}
 
+	self:CreateBall()
+
 	return self
 end
 
@@ -55,6 +62,11 @@ function Ball:CreateBall()
 	self.BallJanitor:Cleanup()
 
 	self.BallModel = self.BallJanitor:Add(self.Model:Clone())
+
+	self.BallModel:SetAttribute("Id", self.Id)
+	self.BallModel:AddTag("Ball")
+	self.BallModel:PivotTo(self.SpawnPosition)
+
 	self.BallModel.Parent = workspace
 end
 
@@ -63,14 +75,20 @@ function Ball:Respawn()
 	self.Position = self.SpawnPosition.Position
 	self.Velocity = Vector3.new(0, 0, 0)
 	self.Acceleration = Vector3.new(0, 0, 0)
-	self.Speed = 1
+	self.Speed = GeneralSettings.Game.Ball.StartSpeed
 	self.LastTarget = nil
 
-	self:SetImpulse(Vector3.new(math.random(-2, 2), math.random(0, 2), math.random(-2, 2)))
+	local impulseRange = GeneralSettings.Game.Ball.ImpulseRange
+
+	self:SetImpulse(
+		Vector3.new(
+			math.random(impulseRange.X.Min, impulseRange.X.Max),
+			math.random(impulseRange.Y.Min, impulseRange.Y.Max),
+			math.random(impulseRange.Z.Min, impulseRange.Z.Max)
+		)
+	)
 
 	self:RandomTarget(self.TargetCallback())
-
-	self:CreateBall()
 end
 
 function Ball:SetTarget(user)
@@ -88,6 +106,10 @@ function Ball:Update(dt)
 		return
 	end
 
+	if not self.Target then
+		return
+	end
+
 	--Updates position etc. for ball
 	if not self.BufferStarted then
 		self.Acceleration = self:GetDirectionalVector().Unit * self.Speed
@@ -102,8 +124,12 @@ function Ball:Update(dt)
 
 	self.Impulse /= 1 + (2 * dt)
 
+	if self.Position.Y - BALLRADIUS <= 0 then
+		self.Impulse += Vector3.new(0, 10, 0) * dt * self.Speed
+	end
+
 	--Render at new position
-	self.BallModel.CFrame = CFrame.new(self.Position, self.Position + self.Acceleration)
+	self.BallModel:PivotTo(CFrame.new(self.Position, self.Position + self.Acceleration))
 end
 
 local function GetPointOnLine(a, b, p)
@@ -170,7 +196,10 @@ function Ball:CheckForHit(newPosition)
 			end
 
 			self.Kills[self.LastTarget] += 1
+
+			--Get last targets kill animation
 		end
+		--Play kill animation
 	end)
 end
 
@@ -236,6 +265,9 @@ function Ball:Hit(user, cameraLookVector, characterLookVector)
 
 	self.Signals.Hit:Fire(user)
 
+	--Play hit animation here
+
+	--Count hits by user on ball
 	if not self.Hits[user] then
 		self.Hits[user] = 0
 	end

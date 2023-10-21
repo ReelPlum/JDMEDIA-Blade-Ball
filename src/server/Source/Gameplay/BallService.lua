@@ -13,11 +13,15 @@ local janitor = require(ReplicatedStorage.Packages.Janitor)
 
 local BallClass = require(script.Parent.Ball)
 
-local HITCOOLDOWN = 1
+local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
+
+local HITCOOLDOWN = GeneralSettings.Game.Cooldowns.Hit
 
 local BallService = knit.CreateService({
 	Name = "BallService",
-	Client = {},
+	Client = {
+		TargetChanged = knit.CreateSignal(),
+	},
 	Signals = {},
 })
 
@@ -51,10 +55,19 @@ end
 function BallService:CreateNewBall(location: CFrame, currentGame)
 	--Creates new ball at the given location.
 	--It also destroys the old ball
+	BallService:DespawnBall()
+
 	CurrentBall = BallClass.new(location, ReplicatedStorage.Ball, function()
 		return currentGame:GetUsers()
 	end)
-	CurrentBall:Respawn()
+	CurrentBall.Signals.TargetChanged:Connect(function(target)
+		BallService.Client.TargetChanged:FireAll(CurrentBall.Id, target.Character)
+	end)
+
+	task.spawn(function()
+		task.wait(2)
+		CurrentBall:Respawn()
+	end)
 
 	return CurrentBall
 end
@@ -86,6 +99,10 @@ end
 
 function BallService:DespawnBall()
 	--Despawns current bladeball
+	if not CurrentBall then
+		return
+	end
+
 	CurrentBall:Destroy()
 	CurrentBall = nil
 end

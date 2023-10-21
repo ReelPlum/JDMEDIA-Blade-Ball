@@ -69,6 +69,14 @@ function User:LoadData()
 	end)
 end
 
+function User:WaitForDataLoaded()
+	if not self.DataLoaded then
+		self.Signals.DataLoaded:Wait()
+	end
+
+	return true
+end
+
 function User:Destroy()
 	self.Signals.Destroying:Fire()
 	self.Janitor:Destroy()

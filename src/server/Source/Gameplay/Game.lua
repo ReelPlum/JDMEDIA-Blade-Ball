@@ -12,6 +12,8 @@ local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
+local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
+
 local Game = {}
 Game.__index = Game
 
@@ -51,6 +53,8 @@ end
 
 function Game:ReturnUserToLobby(user)
 	--Returns user to the lobby
+	local GameService = knit.GetService("GameService")
+	GameService:TeleportUserToLobby(user)
 end
 
 function Game:SpawnUserOnMap(user)
@@ -80,6 +84,12 @@ function Game:Join(user)
 		return
 	end
 
+	if user.Game then
+		warn("User already in game...")
+		return
+	end
+
+	user.Game = self
 	table.insert(self.Users, user)
 
 	self.Signals.UserJoined:Fire()
@@ -91,28 +101,50 @@ function Game:Leave(user)
 		return
 	end
 
-	local reward = 0
+	local CurrencyService = knit.GetService("CurrencyService")
+
+	local rewards = {}
 	if self.StartTime then
 		--Reward user for kills
-		if self.Ball.Hits[user] then
-			reward += self.Ball.Hits[user] * 0.25
-		end
+		for currency, data in GeneralSettings.Game.Rewards.Currency do
+			rewards[currency] = 0
 
-		if self.Ball.Kills[user] then
-			reward += self.Ball.Kills[user] * 25
-		end
+			if self.Ball.Hits[user] then
+				rewards[currency] += self.Ball.Hits[user] * data.Hit
+			end
 
-		--Reward user for survival time & ball hits
-		reward += tick() - self.StartTime * 0.05
+			if self.Ball.Kills[user] then
+				rewards[currency] += self.Ball.Kills[user] * data.Kill
+			end
+
+			rewards[currency] += (tick() - self.StartTime) * data.Second
+		end
 	end
 	--Add reward to users cash
-	--Give user experience reward
+	for currency, reward in rewards do
+		CurrencyService:GiveCurrency(user, currency, reward)
+	end
 
 	--If showdown then save showndown streak
+	local StatsService = knit.GetService("StatsService")
+	StatsService:IncrementStat(user, "Showdowns", 1)
 
 	--Remove user
+	user.Game = nil
 	table.remove(self.Users, table.find(self.Users, user))
+
 	self.Signals.UserLeft:Fire()
+
+	local GameService = knit.GetService("GameService")
+	--Update players in game property
+	GameService.Client.PlayersInGame:SetFor(user.Player, nil)
+	local users = {}
+	for _, userInGame in self.Users do
+		table.insert(users, userInGame.Player.UserId)
+	end
+	for _, userInGame in self.Users do
+		GameService.Client.PlayersInGame:SetFor(userInGame.Player, users)
+	end
 
 	if #self.Users == 2 then
 		self:Showdown()
@@ -133,6 +165,10 @@ function Game:Start()
 	self.Janitor:Add(self.Ball.Signals.HitTarget:Connect(function(user)
 		self:UserHit(user)
 	end))
+
+	for _, user in self.Users do
+		self:SpawnUserOnMap(user)
+	end
 end
 
 function Game:Showdown()
@@ -140,7 +176,7 @@ function Game:Showdown()
 
 	--Setup showdown stats
 
-	--Count showdown streak
+	--Count showdown ball hit streak
 	self.Janitor:Add(self.Ball.Signals.Hit:Connect(function()
 		--Save to streak
 	end))
@@ -151,13 +187,26 @@ function Game:End()
 	local winner = self.Users[1]
 
 	--Reward winner with extra reward
+	local CurrencyService = knit.GetService("CurrencyService")
+
+	for currency, data in GeneralSettings.Game.Rewards.Currency do
+		CurrencyService:GiveCurrency(winner, currency, data.Win)
+	end
 
 	--Save win to winners stats
+	local StatsService = knit.GetService("StatsService")
+	StatsService:IncrementStat(winner, "Wins", 1)
+
+	--Annouce winner
+	local GameService = knit.GetService("GameService")
+	GameService.Client.GameWon:FireAll(self.Id, winner.Player.UserId)
 
 	--Remove everything from game
 	local BallService = knit.GetService("BallService")
 	BallService:DespawnBall()
 
+	--Wait a little before destroying game fully. Give the winner a chance for a victory dance!
+	task.wait(5)
 	self:Leave(winner)
 	self:Destroy()
 end

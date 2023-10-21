@@ -7,4 +7,7 @@ Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 return {
 	JoinDate = DateTime.now().UnixTimestamp,
 	FirstJoin = true,
+
+	Currencies = {},
+	Stats = {},
 }

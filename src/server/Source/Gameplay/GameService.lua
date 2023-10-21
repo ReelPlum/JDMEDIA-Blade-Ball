@@ -14,11 +14,14 @@ local janitor = require(ReplicatedStorage.Packages.Janitor)
 
 local Game = require(script.Parent.Game)
 
+local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
+
 local GameService = knit.CreateService({
 	Name = "GameService",
 	Client = {
 		Time = knit.CreateProperty(0),
 		Title = knit.CreateProperty(""),
+		PlayersInGame = knit.CreateProperty(nil),
 
 		GameWon = knit.CreateSignal(),
 	},
@@ -27,33 +30,69 @@ local GameService = knit.CreateService({
 
 local currentGame = nil
 local votedMap = nil
+local nextMap = nil
 
-local MINUSERS = 2
+local currentVote = nil
+
+local MINUSERS = GeneralSettings.Game.MinimumPlayers
 
 local GameSections = {
 	[0] = {
 		Title = "Waiting for players...",
 		CheckUsers = true,
+		OnStart = function()
+			if currentVote then
+				currentVote:End()
+				currentVote:Destroy()
+				currentVote = nil
+			end
+		end,
 	},
 	{ --Cooldown
 		Title = "Cooldown",
-		Time = 1,
+		Time = GeneralSettings.Game.GameTimes.CoolDown,
 		CheckUsers = true,
+		OnStart = function()
+			currentGame = nil
+			votedMap = nil
+		end,
 	},
 	{ --Voting
 		Title = "Voting",
-		Time = 1,
+		Time = GeneralSettings.Game.GameTimes.Voting,
 		CheckUsers = true,
 		OnStart = function()
 			--Start voting
+			if nextMap then
+				--A map has already been set
+				votedMap = nextMap
+
+				return
+			end
+
+			--Start vote
+			local VotingService = knit.GetService("VotingService")
+			currentVote = VotingService:StartVote({ --Get all maps and an image of them here
+				[1] = 1,
+			})
 
 			return
 		end,
 	},
 	{ --Intermission
 		Title = "Intermission",
-		Time = 1,
+		Time = GeneralSettings.Game.GameTimes.Intermission,
 		CheckUsers = true,
+		OnStart = function()
+			if currentVote then
+				votedMap = currentVote:End()
+
+				currentVote:Destroy()
+				currentVote = nil
+			end
+
+			--Announce next map to clients
+		end,
 		OnEnd = function()
 			local UserService = knit.GetService("UserService")
 
@@ -87,7 +126,27 @@ local GameSections = {
 			return #currentGame:GetUsers() < 2
 		end,
 	},
+	{ --Last stand
+		Title = "Victory",
+		CheckUsers = false,
+		Check = function()
+			--Check when winner is found
+			return #currentGame:GetUsers() < 1
+		end,
+	},
 }
+
+function GameService:TeleportUserToLobby(user)
+	--Teleports user back to the lobby
+end
+
+function GameService:SpawnUserOnMap(user)
+	--Spawns user on map
+end
+
+function GameService:SetNextMap(map)
+	--Sets next map to the given map
+end
 
 function GameService:KnitStart()
 	local UserService = knit.GetService("UserService")
@@ -111,7 +170,7 @@ function GameService:KnitStart()
 		local section = GameSections[index]
 
 		GameService.Client.Title:Set(section.Title)
-		if section.OnStart and dontFireEvents then
+		if section.OnStart then
 			section.OnStart()
 		end
 	end
@@ -153,8 +212,9 @@ function GameService:KnitStart()
 				newSection(0, true)
 				return
 			end
-			if currentSection == 0 then
+			if currentSection == 0 and checkForUsers() then
 				newSection(1)
+				return
 			end
 		end
 
