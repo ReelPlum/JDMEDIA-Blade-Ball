@@ -49,7 +49,7 @@ function BallService.Client:HitBall(player, cameraLookVector: Vector3, character
 	cameraLookVector = cameraLookVector.Unit
 	characterLookVector = characterLookVector.Unit
 
-	BallService:HitBall(user, cameraLookVector, characterLookVector)
+	return BallService:HitBall(user, cameraLookVector, characterLookVector)
 end
 
 function BallService:CreateNewBall(location: CFrame, currentGame)
@@ -83,14 +83,27 @@ end
 function BallService:HitBall(user, cameraLookVector, characterLookVector)
 	--Hits ball. Based on camera & character lookVector
 	if not CurrentBall then
-		return
+		return false
 	end
 
 	if not CheckUsersCooldown(user) then
 		return false
 	end
 
+	if not user.Character then
+		return false
+	end
+	if not user.Character:IsDescendantOf(workspace) then
+		return false
+	end
+
 	user.LastHit = tick()
+
+	--Play hit animation here
+
+	--Play slash sound here
+	local SoundService = knit.GetService("SoundService")
+	SoundService:PlaySoundOnPart(ReplicatedStorage.Assets.Sounds.Block, user.Character)
 
 	--Hit here
 	CurrentBall:Hit(user, cameraLookVector, characterLookVector)

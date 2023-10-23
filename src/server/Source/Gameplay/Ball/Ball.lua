@@ -200,6 +200,10 @@ function Ball:CheckForHit(newPosition)
 			--Get last targets kill animation
 		end
 		--Play kill animation
+
+		--Play kill sound
+		local SoundService = knit.GetService("SoundService")
+		SoundService:PlaySoundOnPart(ReplicatedStorage.Assets.Sounds.BallKill, self.Target.Character)
 	end)
 end
 
@@ -265,7 +269,9 @@ function Ball:Hit(user, cameraLookVector, characterLookVector)
 
 	self.Signals.Hit:Fire(user)
 
-	--Play hit animation here
+	--Play hit sound
+	local SoundService = knit.GetService("SoundService")
+	SoundService:PlaySoundOnPart(ReplicatedStorage.Assets.Sounds.BallHit, self.BallModel)
 
 	--Count hits by user on ball
 	if not self.Hits[user] then

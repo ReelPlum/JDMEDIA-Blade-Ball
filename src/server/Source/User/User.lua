@@ -10,6 +10,8 @@ local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
+local ExtendedCharacter = require(script.Parent.ExtendedCharacter)
+
 local User = {}
 User.__index = User
 
@@ -23,6 +25,8 @@ function User.new(player)
 	self.LoadingData = false
 	self.DataLoaded = false
 	self.Data = nil
+
+	self.ExtendedCharacter = self.Janitor:Add(ExtendedCharacter.new(self))
 
 	self.Signals = {
 		Destroying = self.Janitor:Add(signal.new()),

@@ -25,6 +25,7 @@ local BallController = knit.CreateController({
 })
 
 local highlights = {}
+local particles = {}
 
 local function GetBall(id: string): PVInstance | nil
 	for _, ball in CollectionService:GetTagged("Ball") do
@@ -77,12 +78,28 @@ function BallController:KnitStart()
 			return
 		end
 
-		local highlight = highlights[ball]
-		if not highlight then
+		if not highlights[ball] then
 			highlights[ball] = CreateHighlight()
+
+			highlights[ball].Destroying:Connect(function()
+				highlights[ball] = nil
+			end)
 		end
 
 		highlights[ball].Adornee = target
+
+		if not particles[ball] then
+			particles[ball] = ReplicatedStorage.Assets.VFX.TargetEmitter:Clone()
+
+			particles[ball].Destroying:Connect(function()
+				particles[ball] = nil
+			end)
+		end
+		if target:IsA("Model") then
+			particles[ball].Parent = target.PrimaryPart
+		else
+			particles[ball].Parent = target
+		end
 
 		BallController.Signals.BallChangedTarget:Fire(ball, target)
 
@@ -116,12 +133,14 @@ function BallController:KnitStart()
 			)
 		end
 
-		if not highlights[ball] then
-			return
+		if highlights[ball] then
+			highlights[ball]:Destroy()
+			highlights[ball] = nil
 		end
-
-		highlights[ball]:Destroy()
-		highlights[ball] = nil
+		if particles[ball] then
+			particles[ball]:Destroy()
+			particles[ball] = nil
+		end
 	end)
 end
 
