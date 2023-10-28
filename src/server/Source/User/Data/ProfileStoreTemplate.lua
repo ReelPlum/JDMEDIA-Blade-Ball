@@ -10,4 +10,6 @@ return {
 
 	Currencies = {},
 	Stats = {},
+	Inventory = {},
+	Equipped = {},
 }

@@ -32,7 +32,9 @@ function BodyService:EquipOnBodyPart(character, bodypart, item)
 		return
 	end
 
-	local clone = item:Clone()
+	local j = janitor.new()
+
+	local clone = j:Add(item:Clone())
 	clone.Parent = character
 
 	local offset = CFrame.new(0, 0, 0)
@@ -40,7 +42,7 @@ function BodyService:EquipOnBodyPart(character, bodypart, item)
 		offset = clone:FindFirstChild("Offset").CFrame
 	end
 
-	local constraint = Instance.new("WeldConstraint")
+	local constraint = j:Add(Instance.new("WeldConstraint"))
 	constraint.Parent = BP
 	constraint.Part0 = BP
 
@@ -53,6 +55,8 @@ function BodyService:EquipOnBodyPart(character, bodypart, item)
 
 		constraint.Part1 = clone
 	end
+
+	return j
 end
 
 function BodyService:KnitStart() end

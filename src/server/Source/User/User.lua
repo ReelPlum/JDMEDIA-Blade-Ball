@@ -12,6 +12,8 @@ local janitor = require(ReplicatedStorage.Packages.Janitor)
 
 local ExtendedCharacter = require(script.Parent.ExtendedCharacter)
 
+local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
+
 local User = {}
 User.__index = User
 
@@ -66,6 +68,12 @@ function User:LoadData()
 			--Players first join!
 			self.Signals.FirstJoin:Fire()
 			self.Data.FirstJoin = false
+
+			--Give items
+			local ItemService = knit.GetService("ItemService")
+			for _, item in GeneralSettings.User.StartItems do
+				ItemService:GiveItemToInventory(self.Data.Inventory, item)
+			end
 		end
 
 		self.DataLoaded = true

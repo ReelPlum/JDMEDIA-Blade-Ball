@@ -22,6 +22,8 @@ function ExtendedCharacter.new(user)
 	self.User = user
 	self.Character = user.Character
 
+	self.EquippedKnife = nil
+
 	self.Signals = {
 		Destroying = self.Janitor:Add(signal.new()),
 	}
@@ -50,13 +52,33 @@ function ExtendedCharacter:ListenToCharacter()
 		return
 	end
 
+	local EquipmentService = knit.GetService("EquipmentService")
+	self:EquipKnife(EquipmentService:GetEquippedItemOfType(self.User, "Knife"))
+end
+
+function ExtendedCharacter:EquipKnife(knife)
+	if self.EquippedKnife then
+		self.EquippedKnife:Destroy()
+	end
+
 	--Create knife on hip
-	local EquippedKnife = ReplicatedStorage.Assets.Models.Knives.DefaultKnife
+	local ItemService = knife.GetService("ItemService")
+	local data = ItemService:GetItem(knife)
+
+	if not data then
+		warn("Could not find item "..knife)
+		return
+	end
+
+	local EquippedKnifeModel = data.Model
+
+	if not EquippedKnifeModel then
+		warn(knife.. " did not have a model")
+		return
+	end
 
 	local BodyService = knit.GetService("BodyService")
-	BodyService:EquipOnBodyPart(self.Character, "LowerTorso", EquippedKnife)
-
-	--
+	self.EquippedKnife = BodyService:EquipOnBodyPart(self.Character, "LowerTorso", EquippedKnifeModel)
 end
 
 function ExtendedCharacter:Destroy()

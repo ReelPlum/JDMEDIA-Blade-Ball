@@ -9,5 +9,6 @@ return {
         ItemType = "Test",
         Model = nil,
         Rarity = nil,
+        
     }
 }

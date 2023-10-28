@@ -7,6 +7,23 @@ Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 return {
 	MainCurrency = "Cash", --The main currency used in the game.
 
+	User = {
+		StartItems = {
+
+		},
+		DefaultEquippedItems = {
+
+		},
+		StartCurrency = {
+			{
+				Currency = "Cash",
+				Amount = 10,
+			}
+		},
+		StartExperience = 0,
+		StartRebirth = 0,
+	},
+
 	Game = {
 		MinimumPlayers = 2,
 		Rewards = { --Rewards rewarded to players for doing each action
