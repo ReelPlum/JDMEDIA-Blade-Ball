@@ -16,6 +16,22 @@ local AnimationService = knit.CreateService({
 	Signals = {},
 })
 
+function AnimationService:PlayDeflectAnimation(user, animation)
+	--Plays deflect animation on user
+	if not user.Player.Character then
+		return
+	end
+
+	--Get equipped knife
+	local EquipmentService = knit.GetService("EquipmentService")
+	local knife = EquipmentService:GetEquippedItemOfType(user, "Knife")
+
+	local ItemService = knit.GetService("ItemService")
+	local data = ItemService:GetItemData(knife)
+
+	require(ReplicatedStorage.Common.Animations[data.Animation])(user)
+end
+
 function AnimationService:KnitStart() end
 
 function AnimationService:KnitInit() end

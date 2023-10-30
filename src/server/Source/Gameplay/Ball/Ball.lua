@@ -41,6 +41,7 @@ function Ball.new(spawnCFrame: CFrame, model: PVInstance, targetCallback: () -> 
 	self.Target = nil
 	self.Speed = GeneralSettings.Game.Ball.StartSpeed
 	self.LastTarget = nil
+	self.LastHit = 0
 
 	self.Hits = {}
 	self.Kills = {}
@@ -77,6 +78,7 @@ function Ball:Respawn()
 	self.Acceleration = Vector3.new(0, 0, 0)
 	self.Speed = GeneralSettings.Game.Ball.StartSpeed
 	self.LastTarget = nil
+	self.LastHit = 0
 
 	local impulseRange = GeneralSettings.Game.Ball.ImpulseRange
 
@@ -101,7 +103,7 @@ function Ball:SetTarget(user)
 	self.Signals.TargetChanged:Fire(user)
 end
 
-function Ball:Update(dt)
+function Ball:Update(dt, accelerationSet)
 	if not self.BallModel then
 		return
 	end
@@ -111,25 +113,63 @@ function Ball:Update(dt)
 	end
 
 	--Updates position etc. for ball
-	if not self.BufferStarted then
+	if not self.BufferStarted and tick() - self.LastHit > 0.25 then
 		self.Acceleration = self:GetDirectionalVector().Unit * self.Speed
+		self.Velocity = (self.Acceleration + self.Impulse)
 
-		self.Velocity = self.Acceleration + self.Impulse
+		self.Impulse /= 1 + (2 * dt)
 	end
 
-	local newPosition = self.Position + self.Velocity
-	self:CheckForHit(newPosition)
+	if GeneralSettings.Game.Ball.Collisions then
+		local t = {}
 
-	self.Position = newPosition
+		local raycastParams = RaycastParams.new()
+		raycastParams.FilterDescendantsInstances = t
+		raycastParams.CollisionGroup = GeneralSettings.Game.Ball.CollisionGroup
 
-	self.Impulse /= 1 + (2 * dt)
+		local rayResult = workspace:Raycast(self.Position, self.Velocity * dt, raycastParams)
 
-	if self.Position.Y - BALLRADIUS <= 0 then
-		self.Impulse += Vector3.new(0, 10, 0) * dt * self.Speed
+		if rayResult and rayResult.Position and rayResult.Normal then
+			--Calculate collision deflect.
+			self.LastHit = tick()
+
+			local position = self.Position + self.Velocity.Unit * rayResult.Distance
+
+			local dist = (position - self.Position).Magnitude
+			local percentage = (dist / dt) / self.Speed
+
+			local reflect = (self.Velocity.Unit - (2 * self.Velocity.Unit:Dot(rayResult.Normal) * rayResult.Normal))
+			self:CheckForHit(position)
+
+			reflect += Vector3.new(math.random(-1, 1), math.random(-1, 1), math.random(-1, 1)) / 10
+
+			self.Position = position
+			self.Velocity = reflect * self.Velocity.Magnitude
+			self.Impulse = reflect * self.Velocity.Magnitude
+
+			self:Update(dt * percentage)
+			return
+		else
+			local newPosition = self.Position + self.Velocity * dt
+			self:CheckForHit(newPosition)
+
+			self.Position = newPosition
+		end
+	else
+		local newPosition = self.Position + self.Velocity * dt
+		self:CheckForHit(newPosition)
+
+		self.Position = newPosition
 	end
+
+	self.BallModel.Mesh.Scale = Vector3.new(1, 1, 1 + math.max(self.Velocity.Magnitude / self.Speed - 1, 0))
+
+	-- if self.Position.Y - BALLRADIUS <= 0 then
+	-- 	self.Impulse += Vector3.new(0, 10, 0) * dt * self.Speed
+	-- end
 
 	--Render at new position
-	self.BallModel:PivotTo(CFrame.new(self.Position, self.Position + self.Acceleration))
+	self.BallModel:PivotTo(CFrame.new(self.Position, self.Position + self.Velocity * dt))
 end
 
 local function GetPointOnLine(a, b, p)
@@ -138,7 +178,7 @@ local function GetPointOnLine(a, b, p)
 	heading = heading.Unit
 
 	if magnitudeMax ~= magnitudeMax then
-		magnitudeMax = 1
+		return nil
 	end
 
 	local lhs = p - a
@@ -171,6 +211,9 @@ function Ball:CheckForHit(newPosition)
 
 	local pointOnLine = GetPointOnLine(self.Position, newPosition, pos)
 	--Check distance between point and actual position
+	if not pointOnLine then
+		return
+	end
 
 	if (pointOnLine - pos).Magnitude > BALLRADIUS then
 		return
@@ -264,7 +307,7 @@ function Ball:Hit(user, cameraLookVector, characterLookVector)
 	local mixedLookVector = GetMixedLookVector(user, cameraLookVector)
 	self:SetImpulse(self:GetImpulse(mixedLookVector))
 
-	self.Speed += 0.05
+	self.Speed += 1
 	self:GetNextTarget(self.TargetCallback(), characterLookVector)
 
 	self.Signals.Hit:Fire(user)
@@ -272,6 +315,10 @@ function Ball:Hit(user, cameraLookVector, characterLookVector)
 	--Play hit sound
 	local SoundService = knit.GetService("SoundService")
 	SoundService:PlaySoundOnPart(ReplicatedStorage.Assets.Sounds.BallHit, self.BallModel)
+
+	--Play hit animation
+	local AnimationService = knit.GetService("AnimationService")
+	AnimationService:PlayDeflectAnimation(user, ReplicatedStorage.Assets.Animations.DefaultDeflect)
 
 	--Count hits by user on ball
 	if not self.Hits[user] then
@@ -297,7 +344,7 @@ local function DotUser(user, lookVector, ballPosition): number
 end
 
 function Ball:SetImpulse(impulse)
-	self.Impulse = impulse.Unit * Vector3.new(self.Speed * 1.25, self.Speed * 2, self.Speed * 1.25)
+	self.Impulse = impulse.Unit * Vector3.new(self.Speed * 2, self.Speed * 3, self.Speed * 2)
 end
 
 function Ball:GetImpulse(mixedLookVector): Vector3

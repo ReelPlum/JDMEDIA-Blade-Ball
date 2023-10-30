@@ -9,10 +9,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 
-local HitIndicatorUI = ReplicatedStorage.Assets.UI.HitIndicator
-
-local HitIndicatorClass = script.Parent.Modules.HitIndicator
-
 local UIController = knit.CreateController({
 	Name = "UIController",
 	Signals = {},
@@ -34,7 +30,7 @@ function UIController:KnitStart() end
 
 function UIController:KnitInit()
 	--Register all UI here
-	UIController:RegisterUI(HitIndicatorClass, HitIndicatorUI)
+	self:RegisterUI(script.Parent.Modules.IndicatorList, ReplicatedStorage.Assets.UI.IndicatorList)
 end
 
 return UIController

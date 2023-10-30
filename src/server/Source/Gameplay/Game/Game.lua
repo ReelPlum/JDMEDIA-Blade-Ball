@@ -13,6 +13,7 @@ local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
 local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
+local MapData = require(ReplicatedStorage.Data.MapData)
 
 local Game = {}
 Game.__index = Game
@@ -48,6 +49,8 @@ function Game.new(map: Folder, location: CFrame, gameSettings: GameSettings)
 		self:Leave(user)
 	end)
 
+	self:CreateMap()
+
 	return self
 end
 
@@ -68,6 +71,29 @@ function Game:UserHit(user)
 
 	--Make user leave game
 	self:Leave(user)
+end
+
+function Game:CreateMap()
+	--Creates the map for the game.
+	local data = MapData[self.Map]
+	if not data then
+		warn("Could not find map " .. self.Map)
+		return
+	end
+
+	if not data.Model:FindFirstChild("BallSpawn") then
+		warn("Ball Spawn was not found for map " .. self.Map)
+		return
+	end
+
+	if not data.Model.PrimaryPart then
+		warn("No primarypart was found for map " .. self.Map .. " this may bring problems in the future...")
+	end
+
+	--Create map and position it.
+	self.CurrentMap = self.Janitor:Add(data.Model:Clone())
+	self.CurrentMap:PivotTo(self.Location)
+	self.CurrentMap.Parent = workspace
 end
 
 function Game:GetUsers()
@@ -91,6 +117,9 @@ function Game:Join(user)
 
 	user.Game = self
 	table.insert(self.Users, user)
+
+	local GameService = knit.GetService("GameService")
+	GameService.Client.InGame:SetFor(user.Player, self.Id)
 
 	self.Signals.UserJoined:Fire()
 end
@@ -138,6 +167,8 @@ function Game:Leave(user)
 	local GameService = knit.GetService("GameService")
 	--Update players in game property
 	GameService.Client.PlayersInGame:SetFor(user.Player, nil)
+	GameService.Client.InGame:SetFor(user.Player, nil)
+
 	local users = {}
 	for _, userInGame in self.Users do
 		table.insert(users, userInGame.Player.UserId)
@@ -160,7 +191,7 @@ function Game:Start()
 	self.StartTime = tick()
 
 	local BallService = knit.GetService("BallService")
-	self.Ball = BallService:CreateNewBall(CFrame.new(0, 10, 0), self)
+	self.Ball = BallService:CreateNewBall(self.CurrentMap.BallSpawn.CFrame, self)
 
 	self.Janitor:Add(self.Ball.Signals.HitTarget:Connect(function(user)
 		self:UserHit(user)

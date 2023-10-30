@@ -22,6 +22,7 @@ local GameService = knit.CreateService({
 		Time = knit.CreateProperty(0),
 		Title = knit.CreateProperty(""),
 		PlayersInGame = knit.CreateProperty(nil),
+		InGame = knit.CreateProperty(nil),
 
 		GameWon = knit.CreateSignal(),
 	},
@@ -92,12 +93,16 @@ local GameSections = {
 			end
 
 			--Announce next map to clients
+
+			--Create game
+			--currentGame = Game.new(votedMap, CFrame.new(0, 0, 0), { MaxPlayers = Players.MaxPlayers })
+
+			currentGame = Game.new("TestMap", CFrame.new(0, 0, 0), { MaxPlayers = Players.MaxPlayers })
 		end,
 		OnEnd = function()
 			local UserService = knit.GetService("UserService")
 
 			--Start a game
-			currentGame = Game.new(votedMap, CFrame.new(0, 0, 0), { MaxPlayers = Players.MaxPlayers })
 			for _, user in UserService:GetUsers() do
 				if user.AFK then
 					continue

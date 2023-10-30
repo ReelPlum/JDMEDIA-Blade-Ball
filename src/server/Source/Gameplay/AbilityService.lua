@@ -29,7 +29,7 @@ function AbilityService.Client:UseAbility(player, cameraLookVector, characterLoo
 
 	user:WaitForDataLoaded()
 
-	AbilityService:ExecuteAbility(user, user.Data.EquippedAbility, cameraLookVector, characterLookVector)
+	return AbilityService:ExecuteAbility(user, cameraLookVector, characterLookVector)
 end
 
 local function CheckCooldown(user)
@@ -40,20 +40,28 @@ local function CheckCooldown(user)
 	return tick() - user.LastAbilityUse >= GeneralSettings.Game.Cooldowns.Ability
 end
 
-function AbilityService:ExecuteAbility(user, ability, cameraLookVector, characterLookVector)
+function AbilityService:ExecuteAbility(user, cameraLookVector, characterLookVector)
 	--Executes ability for user.
-	if not abilities[ability] then
-		warn("Failed to find ability " .. ability)
-		return
+	if not CheckCooldown(user) then
+		return false
 	end
 
-	if not CheckCooldown(user) then
-		return
+	local EquipmentService = knit.GetService("EquipmentService")
+	local ability = EquipmentService:GetEquippedItemOfType(user, "Ability")
+
+	if not ability then
+		warn("Users equipped ability was nil")
+		return false
+	end
+	if not abilities[ability] then
+		warn(ability .. " was not found")
+		return false
 	end
 
 	user.LastAbilityUse = tick()
 	--Use ability
 	abilities[ability].Execute(user, cameraLookVector, characterLookVector)
+	return true
 end
 
 function AbilityService:KnitStart() end

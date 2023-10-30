@@ -10,9 +10,12 @@ local Players = game:GetService("Players")
 local CollectionService = game:GetService("CollectionService")
 
 local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
 
 local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
+
+local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
 
 local BallController = knit.CreateController({
 	Name = "BallController",

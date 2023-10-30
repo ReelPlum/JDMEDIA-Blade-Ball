@@ -20,7 +20,7 @@ function ExtendedCharacter.new(user)
 	self.CharacterJanitor = self.Janitor:Add(janitor.new())
 
 	self.User = user
-	self.Character = user.Character
+	self.Character = user.Player.Character
 
 	self.EquippedKnife = nil
 
@@ -35,13 +35,26 @@ end
 
 function ExtendedCharacter:Init()
 	if self.User.Character then
-		self.Character = self.User.Character
+		self.Character = self.User.Player.Character
 		self:ListenToCharacter()
 	end
 
 	self.Janitor:Add(self.User.Player.CharacterAdded:Connect(function(character)
 		self.Character = character
 		self:ListenToCharacter()
+	end))
+
+	local EquipmentService = knit.GetService("EquipmentService")
+	self.Janitor:Add(EquipmentService.Signals.ItemEquipped:Connect(function(user, itemType)
+		if user ~= self.User then
+			return
+		end
+
+		if itemType ~= "Knife" then
+			return
+		end
+
+		self:EquipKnife()
 	end))
 end
 
@@ -52,33 +65,42 @@ function ExtendedCharacter:ListenToCharacter()
 		return
 	end
 
-	local EquipmentService = knit.GetService("EquipmentService")
-	self:EquipKnife(EquipmentService:GetEquippedItemOfType(self.User, "Knife"))
+	self:EquipKnife()
 end
 
-function ExtendedCharacter:EquipKnife(knife)
+function ExtendedCharacter:EquipKnife()
+	local EquipmentService = knit.GetService("EquipmentService")
+	local knife = EquipmentService:GetEquippedItemOfType(self.User, "Knife")
+
+	if not self.Character then
+		return
+	end
 	if self.EquippedKnife then
-		self.EquippedKnife:Destroy()
+		self.EquippedKnife:Cleanup()
 	end
 
 	--Create knife on hip
-	local ItemService = knife.GetService("ItemService")
-	local data = ItemService:GetItem(knife)
+	local ItemService = knit.GetService("ItemService")
+	local data = ItemService:GetItemData(knife)
 
 	if not data then
-		warn("Could not find item "..knife)
 		return
 	end
 
 	local EquippedKnifeModel = data.Model
 
 	if not EquippedKnifeModel then
-		warn(knife.. " did not have a model")
+		warn(knife .. " did not have a model")
 		return
 	end
 
-	local BodyService = knit.GetService("BodyService")
-	self.EquippedKnife = BodyService:EquipOnBodyPart(self.Character, "LowerTorso", EquippedKnifeModel)
+	local equipModule = script.KnifeEquips:FindFirstChild(data.KnifeType)
+	if not equipModule then
+		warn("could not find knifetype " .. data.KnifeType)
+		return
+	end
+
+	self.EquippedKnife = self.CharacterJanitor:Add(require(equipModule).Equip(self.Character, EquippedKnifeModel))
 end
 
 function ExtendedCharacter:Destroy()

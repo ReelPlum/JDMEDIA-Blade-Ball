@@ -22,44 +22,8 @@ local ClientController = knit.CreateController({
 	Signals = {},
 })
 
-function ClientController:HitBall()
-	local BallService = knit.GetService("BallService")
-	local UIController = knit.GetController("UIController")
-
-	local HitIndicator = UIController:GetUI("HitIndicator")
-
-	local character = LocalPlayer.Character
-	if not character then
-		return
-	end
-	local rootPart = character:FindFirstChild("HumanoidRootPart")
-	if not rootPart then
-		return
-	end
-
-	BallService:HitBall(Camera.CFrame.LookVector, rootPart.CFrame.LookVector):andThen(function(success)
-		if not success then
-			return
-		end
-		HitIndicator:SetCooldown(GeneralSettings.Game.Cooldowns.Hit)
-	end)
-end
-
 function ClientController:KnitStart()
-	--Start controls
-
 	--Just simple testing
-	local BallService = knit.GetService("BallService")
-
-	UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
-		if gameProcessedEvent then
-			return
-		end
-
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			ClientController:HitBall()
-		end
-	end)
 end
 
 function ClientController:KnitInit() end

@@ -9,16 +9,18 @@ return {
 
 	User = {
 		StartItems = {
-
+			"TestItem",
+			"DefaultTag",
 		},
 		DefaultEquippedItems = {
-
+			"TestItem",
+			"DefaultTag",
 		},
 		StartCurrency = {
 			{
 				Currency = "Cash",
 				Amount = 10,
-			}
+			},
 		},
 		StartExperience = 0,
 		StartRebirth = 0,
@@ -53,7 +55,7 @@ return {
 			Ability = 1, --The cool down for abilities
 		},
 		Ball = {
-			StartSpeed = 1,
+			StartSpeed = 30,
 			ImpulseRange = {
 				X = NumberRange.new(-2, 2),
 				Y = NumberRange.new(0, 2),
@@ -62,6 +64,8 @@ return {
 			HitRadius = 20,
 			KillRadius = 2,
 			BufferTime = 100 / 1000, --Seconds
+			Collisions = true,
+			CollisionGroup = "Ball",
 		},
 	},
 }
