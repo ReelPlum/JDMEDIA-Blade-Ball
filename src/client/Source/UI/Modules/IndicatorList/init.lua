@@ -59,7 +59,7 @@ function IndicatorList:Init()
 	local InputController = knit.GetController("InputController")
 
 	self.Frame = self.UI:WaitForChild("Frame")
-	if self.UI:FindFirstChild(InputController.Platform) then
+	if InputController.Platform and self.UI:FindFirstChild(InputController.Platform) then
 		self.Frame = self.UI:FindFirstChild(InputController.Platform)
 	end
 

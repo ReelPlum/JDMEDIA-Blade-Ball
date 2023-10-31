@@ -231,7 +231,7 @@ function Ball:CheckForHit(newPosition)
 
 		--Kill
 		self.Signals.HitTarget:Fire(self.Target)
-		self:Respawn()
+		--self:Respawn()
 
 		if self.LastTarget then
 			if not self.Kills[self.LastTarget] then

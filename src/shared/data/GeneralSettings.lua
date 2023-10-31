@@ -11,10 +11,12 @@ return {
 		StartItems = {
 			"TestItem",
 			"DefaultTag",
+			"Dash",
 		},
 		DefaultEquippedItems = {
 			"TestItem",
 			"DefaultTag",
+			"Dash",
 		},
 		StartCurrency = {
 			{
@@ -33,14 +35,14 @@ return {
 				["Cash"] = {
 					Win = 50,
 					Kill = 5,
-					Hit = 0.25,
-					Second = 0.05,
+					Hit = 0.05,
+					Second = 0.001,
 				},
 				["Experience"] = {
 					Win = 50,
 					Kill = 5,
-					Hit = 0.25,
-					Second = 0.05,
+					Hit = 0.001,
+					Second = 0.0001,
 				},
 			},
 		},

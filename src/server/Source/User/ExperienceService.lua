@@ -38,9 +38,35 @@ function ExperienceService:GetUsersExperienceLevel(user)
 	--Gets users experience level
 	local CurrencyService = knit.GetService("CurrencyService")
 	local experience = CurrencyService:GetCurrency(user, "Experience")
+
+	local level = GetMatchingLevel(experience)
+
+	local currentLevel = ExperienceService.Client.Level:GetFor(user.Player)
+	if currentLevel == level then
+		return
+	end
+
+	ExperienceService.Client.Level:SetFor(user.Player, level)
 end
 
-function ExperienceService:KnitStart() end
+function ExperienceService:KnitStart()
+	local CurrencyService = knit.GetService("CurrencyService")
+	local UserService = knit.GetService("UserService")
+
+	CurrencyService.Signals.UsersCurrenciesChanged:Connect(function(user, currency)
+		if currency == "Experience" then
+			self:GetUsersExperienceLevel(user)
+		end
+	end)
+
+	for _, user in UserService:GetUsers() do
+		self:GetUsersExperienceLevel(user)
+	end
+
+	UserService.Signals.UserAdded:Connect(function(user)
+		self:GetUsersExperienceLevel(user)
+	end)
+end
 
 function ExperienceService:KnitInit() end
 

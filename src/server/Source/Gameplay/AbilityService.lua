@@ -58,10 +58,12 @@ function AbilityService:ExecuteAbility(user, cameraLookVector, characterLookVect
 		return false
 	end
 
-	user.LastAbilityUse = tick()
 	--Use ability
-	abilities[ability].Execute(user, cameraLookVector, characterLookVector)
-	return true
+	local finished = abilities[ability].Execute(user, cameraLookVector, characterLookVector)
+	if finished then
+		user.LastAbilityUse = tick()
+	end
+	return finished
 end
 
 function AbilityService:KnitStart() end

@@ -19,6 +19,9 @@ local CacheController = knit.CreateController({
 
 function CacheController:KnitStart()
 	local UserTagService = knit.GetService("UserTagService")
+	local ItemService = knit.GetService("ItemService")
+	local EquipmentService = knit.GetService("EquipmentService")
+	local CurrencyService = knit.GetService("CurrencyService")
 
 	UserTagService.UserTags:Observe(function(tags)
 		self.Cache.Tags = tags

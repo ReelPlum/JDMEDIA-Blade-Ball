@@ -8,6 +8,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 return {
 	["TestItem"] = {
+		DisplayName = "Test",
 		ItemType = "Knife",
 		Rarity = nil,
 
@@ -17,7 +18,16 @@ return {
 		KnifeType = "Single", --Single or Dual.
 	},
 
+	["Dash"] = {
+		DisplayName = "Test",
+		ItemType = "Ability",
+		Rarity = nil,
+
+		--Item type specific
+	},
+
 	["DeveloperTag"] = {
+		DisplayName = "Test",
 		ItemType = "Tag",
 		Rarity = nil,
 
@@ -27,6 +37,7 @@ return {
 	},
 
 	["DefaultTag"] = {
+		DisplayName = "Test",
 		ItemType = "Tag",
 		Rarity = nil,
 

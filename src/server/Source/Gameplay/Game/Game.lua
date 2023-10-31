@@ -60,8 +60,32 @@ function Game:ReturnUserToLobby(user)
 	GameService:TeleportUserToLobby(user)
 end
 
-function Game:SpawnUserOnMap(user)
+function Game:SpawnUserOnMap(user, n)
 	--Spawns user on map
+	local _, size = self.CurrentMap:GetBoundingBox()
+
+	local r = math.min(size.X, size.Z) / 2
+
+	local deg = 360 / #self.Users
+
+	local character = user.Character
+	if not character then
+		return
+	end
+
+	local pos = (CFrame.new(self.CurrentMap.PrimaryPart.Position) * CFrame.Angles(0, math.rad(deg * n), 0) * CFrame.new(
+		0,
+		0,
+		-r / 2
+	)).Position
+	--Create ray
+
+	character.HumanoidRootPart.CFrame = CFrame.new(
+		pos
+			+ Vector3.new(self.CurrentMap.PrimaryPart.Size.Y / 2, 0)
+			+ Vector3.new(0, character.HumanoidRootPart.Size.Y / 2, 0)
+			+ Vector3.new(0, character.Humanoid.HipHeight, 0)
+	)
 end
 
 function Game:UserHit(user)
@@ -70,7 +94,12 @@ function Game:UserHit(user)
 	self:ReturnUserToLobby(user)
 
 	--Make user leave game
-	self:Leave(user)
+	local isFinished = self:Leave(user)
+	if isFinished then
+		return
+	end
+
+	self.Ball:Respawn()
 end
 
 function Game:CreateMap()
@@ -92,7 +121,7 @@ function Game:CreateMap()
 
 	--Create map and position it.
 	self.CurrentMap = self.Janitor:Add(data.Model:Clone())
-	self.CurrentMap:PivotTo(self.Location)
+	--self.CurrentMap:PivotTo(self.Location)
 	self.CurrentMap.Parent = workspace
 end
 
@@ -183,7 +212,7 @@ function Game:Leave(user)
 	end
 	if #self.Users == 1 then
 		self:End()
-		return
+		return true
 	end
 end
 
@@ -197,8 +226,8 @@ function Game:Start()
 		self:UserHit(user)
 	end))
 
-	for _, user in self.Users do
-		self:SpawnUserOnMap(user)
+	for n, user in self.Users do
+		self:SpawnUserOnMap(user, n)
 	end
 end
 
@@ -238,6 +267,7 @@ function Game:End()
 
 	--Wait a little before destroying game fully. Give the winner a chance for a victory dance!
 	task.wait(5)
+	self:ReturnUserToLobby(winner)
 	self:Leave(winner)
 	self:Destroy()
 end

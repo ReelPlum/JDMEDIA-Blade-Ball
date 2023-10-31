@@ -97,7 +97,7 @@ local GameSections = {
 			--Create game
 			--currentGame = Game.new(votedMap, CFrame.new(0, 0, 0), { MaxPlayers = Players.MaxPlayers })
 
-			currentGame = Game.new("TestMap", CFrame.new(0, 0, 0), { MaxPlayers = Players.MaxPlayers })
+			currentGame = Game.new("BasicMap", CFrame.new(0, 0, 0), { MaxPlayers = Players.MaxPlayers })
 		end,
 		OnEnd = function()
 			local UserService = knit.GetService("UserService")
@@ -143,6 +143,7 @@ local GameSections = {
 
 function GameService:TeleportUserToLobby(user)
 	--Teleports user back to the lobby
+	user.Player:LoadCharacter()
 end
 
 function GameService:SpawnUserOnMap(user)
