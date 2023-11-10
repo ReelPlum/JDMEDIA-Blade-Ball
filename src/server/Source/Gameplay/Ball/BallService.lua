@@ -25,9 +25,9 @@ local BallService = knit.CreateService({
 	Signals = {},
 })
 
-local CurrentBall = nil
+local Balls = {}
 
-function BallService.Client:HitBall(player, cameraLookVector: Vector3, characterLookVector: Vector3)
+function BallService.Client:HitBall(player, id, cameraLookVector: Vector3, characterLookVector: Vector3)
 	local UserService = knit.GetService("UserService")
 	local user = UserService:WaitForUser(player)
 
@@ -49,27 +49,30 @@ function BallService.Client:HitBall(player, cameraLookVector: Vector3, character
 	cameraLookVector = cameraLookVector.Unit
 	characterLookVector = characterLookVector.Unit
 
-	return BallService:HitBall(user, cameraLookVector, characterLookVector)
+	return BallService:HitBall(user, id, cameraLookVector, characterLookVector)
 end
 
 function BallService:CreateNewBall(location: CFrame, currentGame)
 	--Creates new ball at the given location.
 	--It also destroys the old ball
-	BallService:DespawnBall()
-
-	CurrentBall = BallClass.new(location, ReplicatedStorage.Ball, function()
+	-- CurrentBall = BallClass.new(location, ReplicatedStorage.Ball, function()
+	-- 	return currentGame:GetUsers()
+	-- end)
+	local ball = BallClass.new(location, ReplicatedStorage.Ball, function()
 		return currentGame:GetUsers()
 	end)
-	CurrentBall.Signals.TargetChanged:Connect(function(target)
-		BallService.Client.TargetChanged:FireAll(CurrentBall.Id, target.Character)
+	Balls[ball.Id] = ball
+
+	ball.Signals.TargetChanged:Connect(function(target)
+		BallService.Client.TargetChanged:FireAll(ball.Id, target.Character)
 	end)
 
 	task.spawn(function()
 		task.wait(2)
-		CurrentBall:Respawn()
+		ball:Respawn()
 	end)
 
-	return CurrentBall
+	return ball
 end
 
 local function CheckUsersCooldown(user)
@@ -80,10 +83,11 @@ local function CheckUsersCooldown(user)
 	return tick() - user.LastHit >= HITCOOLDOWN
 end
 
-function BallService:HitBall(user, cameraLookVector, characterLookVector)
+function BallService:HitBall(user, id, cameraLookVector, characterLookVector)
 	--Hits ball. Based on camera & character lookVector
-	if not CurrentBall then
-		return false
+	local ball = Balls[id]
+	if not ball then
+		return
 	end
 
 	if not CheckUsersCooldown(user) then
@@ -106,31 +110,33 @@ function BallService:HitBall(user, cameraLookVector, characterLookVector)
 	SoundService:PlaySoundOnPart(ReplicatedStorage.Assets.Sounds.Block, user.Character)
 
 	--Hit here
-	CurrentBall:Hit(user, cameraLookVector, characterLookVector)
+	ball:Hit(user, cameraLookVector, characterLookVector)
 	return true
 end
 
-function BallService:DespawnBall()
+function BallService:DespawnBall(id)
 	--Despawns current bladeball
-	if not CurrentBall then
+	if not Balls[id] then
 		return
 	end
 
-	CurrentBall:Destroy()
-	CurrentBall = nil
+	Balls[id]:Destroy()
+	Balls[id] = nil
 end
 
 function BallService:KnitStart()
 	--Loop updating ball
 	RunService.Heartbeat:Connect(function(deltaTime)
-		if not CurrentBall then
-			return
-		end
-		if CurrentBall.Destroyed then
-			return
-		end
+		for _, ball in Balls do
+			if not ball then
+				return
+			end
+			if ball.Destroyed then
+				return
+			end
 
-		CurrentBall:Update(deltaTime)
+			ball:Update(deltaTime)
+		end
 	end)
 end
 

@@ -23,6 +23,16 @@ local UserService = knit.CreateService({
 
 local Users = {}
 
+function UserService.Client:Ready(player)
+	local user = UserService:WaitForUser(player)
+
+	user.Ready = true
+end
+
+function UserService:ListenForUserLeave(user)
+	return user.Signals.Destroying
+end
+
 function UserService:WaitForUser(player: Player)
 	local user = UserService:GetUserFromPlayer(player)
 	if not user then

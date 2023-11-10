@@ -29,6 +29,11 @@ function AnimationService:PlayDeflectAnimation(user, animation)
 	local ItemService = knit.GetService("ItemService")
 	local data = ItemService:GetItemData(knife)
 
+	--Spawn dust effect in
+
+	--Spawn slash effect in
+
+	--Play sound for knife if a sound is attached
 	require(ReplicatedStorage.Common.Animations[data.Animation])(user)
 end
 

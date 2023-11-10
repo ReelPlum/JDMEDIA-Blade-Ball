@@ -60,6 +60,7 @@ end
 
 function ExtendedCharacter:ListenToCharacter()
 	self.CharacterJanitor:Cleanup()
+	self.EquippedKnife = nil
 
 	if not self.Character then
 		return
@@ -100,7 +101,8 @@ function ExtendedCharacter:EquipKnife()
 		return
 	end
 
-	self.EquippedKnife = self.CharacterJanitor:Add(require(equipModule).Equip(self.Character, EquippedKnifeModel))
+	local knf = require(equipModule).Equip(self.Character, EquippedKnifeModel)
+	self.EquippedKnife = self.CharacterJanitor:Add(knf)
 end
 
 function ExtendedCharacter:Destroy()

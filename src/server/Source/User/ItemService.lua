@@ -4,8 +4,8 @@ ItemService
 Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 ]]
 
-local ReplicatedStorage = game:GetService('ReplicatedStorage')
-local Players = game:GetService('Players')
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
 
 local knit = require(ReplicatedStorage.Packages.Knit)
@@ -15,219 +15,397 @@ local janitor = require(ReplicatedStorage.Packages.Janitor)
 local ItemData = require(ReplicatedStorage.Data.ItemData)
 
 local ItemService = knit.CreateService({
-    Name = 'ItemService',
-    Client = {
-        Inventory = knit.CreateProperty({}),
-    },
-    Signals = {
-    },
+	Name = "ItemService",
+	Client = {
+		Inventory = knit.CreateProperty({}),
+	},
+	Signals = {},
 })
 
+local InventoryCache = {}
+local InventoryChangeSignals = {}
+
 function ItemService:GetItemData(item)
-    return ItemData[item]
+	return ItemData[item]
+end
+
+function ItemService:GetDataFromId(inventory, id)
+	if not inventory[id] then
+		return
+	end
+
+	return inventory[id]
 end
 
 function ItemService:GetItemFromId(inventory, id)
-    if not inventory[id] then
-        return
-    end
+	if not inventory[id] then
+		return
+	end
 
-    return inventory[id].Item
+	return inventory[id].Item
 end
 
-function ItemService:CreateData(item)
-    --Creates data for item
-    return HttpService:GenerateGUID(false), {
-        Item = item,
-        Date = DateTime.now().UnixTimestamp,
-    }
+function ItemService:TransferItemToInventory(inventory, itemId, data)
+	if inventory[itemId] then
+		warn("Inventory already had a item with the id " .. itemId)
+		return
+	end
+
+	inventory[itemId] = data
+end
+
+function ItemService:TransferMultipleItemsToInventory(inventory, items)
+	for id, data in items do
+		inventory[id] = data
+	end
+end
+
+function ItemService:RemoveItemWithIdFromInventory(inventory, itemId)
+	inventory[itemId] = nil
+end
+
+function ItemService:RemoveMultipleItemsWithIdFromInventory(inventory, ids)
+	for _, id in ids do
+		inventory[id] = nil
+	end
+end
+
+function ItemService:GetMetadataFromItem(data)
+	if not data.Metadata then
+		return {}
+	end
+
+	return data.Metadata
+end
+
+function ItemService:CreateData(item, metadata)
+	--Creates data for item
+	return HttpService:GenerateGUID(false),
+		{
+			Item = item,
+			Date = DateTime.now().UnixTimestamp,
+			Metadata = metadata or {},
+		}
 end
 
 function ItemService:InventoryHasItem(inventory, item)
-    if not ItemService:GetOneItemFromInventory(inventory, item) then
-        return false
-    end
+	if not ItemService:GetOneItemFromInventory(inventory, item) then
+		return false
+	end
 
-    return true
+	return true
 end
 
-function ItemService:GiveItemToInventory(inventory, item)
-    --Check if item exists
-    if not ItemData[item] then
-        return nil
-    end
+function ItemService:GiveItemToInventory(inventory, item, metadata)
+	--Check if item exists
+	if not ItemData[item] then
+		return nil
+	end
 
-    local id, data = ItemService:CreateData(item)
+	local id, data = ItemService:CreateData(item, metadata)
 
-    inventory[id] = data
+	inventory[id] = data
 
-    return inventory
+	return inventory
 end
 
 function ItemService:TakeItemFromInventory(inventory, item)
-    if not ItemService:InventoryHasItem(inventory) then
-        return nil
-    end
+	if not ItemService:InventoryHasItem(inventory) then
+		return nil
+	end
 
-    local id = ItemService:GetOneItemFromInventory(inventory, item)
-    inventory[id] = nil
-    return inventory
+	local id = ItemService:GetOneItemFromInventory(inventory, item)
+	inventory[id] = nil
+	return inventory
 end
 
 function ItemService:GetAllItemsFromInventory(inventory, item)
-    local items = {}
+	local items = {}
 
-    for id, data in inventory do
-        if data.Item == item then
-            items[id] = data
-        end
-    end
+	for id, data in inventory do
+		if data.Item == item then
+			items[id] = data
+		end
+	end
 
-    return items
+	return items
 end
 
 function ItemService:GetOneItemFromInventory(inventory, item)
-    for id, data in inventory do
-        if data.Item == item then
-            return id, data
-        end
-    end
+	for id, data in inventory do
+		if data.Item == item then
+			return id, data
+		end
+	end
 
-    return nil
+	return nil
 end
 
 function ItemService:GetOneItemOfTypeFromInventory(inventory, itemType)
-    --return ItemService:GetAllItemsOfTypeFromInventory(inventory, itemType)[1]
-    for id, data in inventory do
-        local item = ItemService:GetDataForItem(data.Item)
-        if (not item) then
-            continue
-        end
+	--return ItemService:GetAllItemsOfTypeFromInventory(inventory, itemType)[1]
+	for id, data in inventory do
+		local item = ItemService:GetDataForItem(data.Item)
+		if not item then
+			continue
+		end
 
-        if not (item.ItemType == itemType) then
-            continue
-        end
+		if not (item.ItemType == itemType) then
+			continue
+		end
 
-        return id, data
-    end
+		return id, data
+	end
 
-    return nil
+	return nil
 end
 
 function ItemService:GetAllItemsOfRarity(inventory, rarity)
-    local items = {}
+	local items = {}
 
-    for id, data in inventory do
-        local item = ItemService:GetDataForItem(data.Item)
-        if not item then
-            continue
-        end
+	for id, data in inventory do
+		local item = ItemService:GetDataForItem(data.Item)
+		if not item then
+			continue
+		end
 
-        if not (item.Rarity == rarity) then
-            continue
-        end
+		if not (item.Rarity == rarity) then
+			continue
+		end
 
-        items[id] = data
-    end
+		items[id] = data
+	end
 
-    return items
+	return items
 end
 
 function ItemService:GetOneItemOfRarity(inventory, rarity)
-    for id, data in inventory do
-        local item = ItemService:GetDataForItem(data.Item)
-        if not item then
-            continue
-        end
+	for id, data in inventory do
+		local item = ItemService:GetDataForItem(data.Item)
+		if not item then
+			continue
+		end
 
-        if not (item.Rarity == rarity) then
-            continue
-        end
+		if not (item.Rarity == rarity) then
+			continue
+		end
 
-        return id, data
-    end
+		return id, data
+	end
 
-    return nil
+	return nil
+end
+
+function ItemService:GetAllItemsOfSeason(inventory, season)
+	local items = {}
+
+	for id, data in inventory do
+		local item = ItemService:GetDataForItem(data.Item)
+		if not item then
+			continue
+		end
+
+		if not (item.Season == season) then
+			continue
+		end
+
+		items[id] = data
+	end
+
+	return items
+end
+
+function ItemService:GetOneItemOfSeason(inventory, season)
+	for id, data in inventory do
+		local item = ItemService:GetDataForItem(data.Item)
+		if not item then
+			continue
+		end
+
+		if not (item.Season == season) then
+			continue
+		end
+
+		return id, data
+	end
+
+	return nil
 end
 
 function ItemService:GetDataForItem(item)
-    return ItemData[item]
+	return ItemData[item]
 end
 
 function ItemService:GetOneItemOfUser(user, item)
-    user:WaitForDataLoaded()
+	user:WaitForDataLoaded()
 
-    return ItemService:GetOneItemFromInventory(user.Data.Inventory, item)
+	return ItemService:GetOneItemFromInventory(ItemService:GetUsersInventory(user), item)
 end
 
 function ItemService:GetAllItemsOfUser(user, item)
-    user:WaitForDataLoaded()
+	user:WaitForDataLoaded()
 
-    return ItemService:GetAllItemsFromInventory(user.Data.Inventory, item)
+	return ItemService:GetAllItemsFromInventory(ItemService:GetUsersInventory(user), item)
 end
 
 function ItemService:GetAllItemsOfRarityFromUser(user, rarity)
-    user:WaitForDataLoaded()
+	user:WaitForDataLoaded()
 
-    return ItemService:GetAllItemsOfRarity(user.Data.Inventory, rarity)
+	return ItemService:GetAllItemsOfRarity(ItemService:GetUsersInventory(user), rarity)
 end
 
 function ItemService:GetOneItemOfRarityFromUser(user, rarity)
-    user:WaitForDataLoaded()
+	user:WaitForDataLoaded()
 
-    return ItemService:GetOneItemOfRarity(user.Data.Inventory, rarity)
+	return ItemService:GetOneItemOfRarity(ItemService:GetUsersInventory(user), rarity)
 end
 
 function ItemService:GetAllItemsOfTypeFromUser(user, itemType)
-    user:WaitForDataLoaded()
+	user:WaitForDataLoaded()
 
-    return ItemService:GetAllItemsFromInventory(user.Data.Inventory, itemType)
+	return ItemService:GetAllItemsFromInventory(ItemService:GetUsersInventory(user), itemType)
 end
 
 function ItemService:GetOneItemOfTypeFromUser(user, itemType)
-    user:WaitForDataLoaded()
+	user:WaitForDataLoaded()
 
-    return ItemService:GetOneItemOfTypeFromInventory(user.Data.Inventory, itemType)
+	return ItemService:GetOneItemOfTypeFromInventory(ItemService:GetUsersInventory(user), itemType)
+end
+
+function ItemService:GetAllItemsOfSeasonFromUser(user, season)
+	user:WaitForDataLoaded()
+
+	return ItemService:GetAllItemsOfSeason(ItemService:GetUsersInventory(user), season)
+end
+
+function ItemService:GetOneItemOfSeasonFromUser(user, season)
+	user:WaitForDataLoaded()
+
+	return ItemService:GetOneItemOfSeason(ItemService:GetUsersInventory(user), season)
 end
 
 function ItemService:UserHasItem(user, item)
-    user:WaitForDataLoaded()
+	user:WaitForDataLoaded()
 
-    return ItemService:InventoryHasItem(user.Data.Inventory, item)
+	return ItemService:InventoryHasItem(ItemService:GetUsersInventory(user), item)
 end
 
-function ItemService:GiveUserItem(user, item)
-    user:WaitForDataLoaded()
+function ItemService:GiveUserItem(user, item, metadata)
+	user:WaitForDataLoaded()
 
-    ItemService:GiveItemToInventory(user.Data.Inventory, item)
+	local inventory = ItemService:GetUsersInventory(user)
+	ItemService:GiveItemToInventory(inventory, item, metadata)
 
-    ItemService:SyncInventory(user)
+	ItemService:SaveInventory(user, inventory)
+	ItemService:SyncInventory(user)
 end
 
 function ItemService:TakeItemFromUser(user, item)
-    user:WaitForDataLoaded()
+	user:WaitForDataLoaded()
 
-    ItemService:TakeItemFromInventory(user.Data.Inventory, item)
+	if user.Locked then
+		user.Signals.Unlocked:Wait()
+	end
 
-    ItemService:SyncInventory(user)
+	local inventory = ItemService:GetUsersInventory(user)
+	ItemService:TakeItemFromInventory(inventory, item)
+
+	ItemService:SaveInventory(user, inventory)
+	ItemService:SyncInventory(user)
 end
 
 function ItemService:GetUsersItemFromId(user, id)
-    user:WaitForDataLoaded()
+	user:WaitForDataLoaded()
 
-    return ItemService:GetItemFromId(user.Data.Inventory, id)
+	return ItemService:GetItemFromId(ItemService:GetUsersInventory(user), id)
+end
+
+function ItemService:GetUsersDataFromId(user, id)
+	user:WaitForDataLoaded()
+
+	return ItemService:GetDataFromId(ItemService:GetUsersInventory(user), id)
+end
+
+function ItemService:TransferItemToUsersInventory(user, itemId, data)
+	local inventory = ItemService:GetUsersInventory(user)
+	ItemService:TransferItemToInventory(inventory, itemId, data)
+
+	self:SaveInventory(user, inventory)
+	self:SyncInventory(user)
+end
+
+function ItemService:TransferMultipleItemsToUsersInventory(user, items)
+	local inventory = ItemService:GetUsersInventory(user)
+	ItemService:TransferMultipleItemsToInventory(inventory, items)
+
+	self:SaveInventory(user, inventory)
+	self:SyncInventory(user)
+end
+
+function ItemService:RemoveItemWithIdFromUsersInventory(user, itemId)
+	local inventory = ItemService:GetUsersInventory(user)
+	ItemService:RemoveItemWithIdFromInventory(inventory, itemId)
+
+	self:SaveInventory(user, inventory)
+	self:SyncInventory(user)
+end
+
+function ItemService:RemoveMultipleItemsWithIdFromUsersInventory(user, ids)
+	local inventory = ItemService:GetUsersInventory(user)
+	ItemService:RemoveMultipleItemsWithIdFromInventory(inventory, ids)
+
+	self:SaveInventory(user, inventory)
+	self:SyncInventory(user)
+end
+
+function ItemService:GetUsersInventory(user)
+	if InventoryCache[user] then
+		return InventoryCache[user]
+	end
+
+	if not user.Data.Inventory then
+		return {}
+	end
+
+	local DataCompressionService = knit.GetService("DataCompressionService")
+
+	local inv = HttpService:JSONDecode(DataCompressionService:DecompressData(user.Data.Inventory))
+
+	InventoryCache[user] = inv
+	return inv
+end
+
+function ItemService:SaveInventory(user, inventory)
+	local DataCompressionService = knit.GetService("DataCompressionService")
+
+	user.Data.Inventory = DataCompressionService:CompressData(HttpService:JSONEncode(inventory))
 end
 
 function ItemService:SyncInventory(user)
-    user:WaitForDataLoaded()
+	user:WaitForDataLoaded()
 
-    ItemService.Client.Inventory:SetFor(user.Player, user.Data.Inventory)
+	InventoryChangeSignals[user]:Fire()
+	ItemService.Client.Inventory:SetFor(user.Player, ItemService:GetUsersInventory(user))
+end
+
+function ItemService:ListenForUserInventoryChange(user)
+	return InventoryChangeSignals[user]
 end
 
 function ItemService:KnitStart()
+	local UserService = knit.GetService("UserService")
+
+	UserService.Signals.UserAdded:Connect(function(user)
+		InventoryChangeSignals[user] = signal.new()
+	end)
+
+	UserService.Signals.UserRemoving:Connect(function(user)
+		InventoryCache[user] = nil
+
+		InventoryChangeSignals[user]:Destroy()
+		InventoryChangeSignals[user] = nil
+	end)
 end
 
-function ItemService:KnitInit()
-end
+function ItemService:KnitInit() end
 
 return ItemService

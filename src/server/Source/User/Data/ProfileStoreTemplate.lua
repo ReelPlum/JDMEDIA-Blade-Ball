@@ -8,8 +8,11 @@ return {
 	JoinDate = DateTime.now().UnixTimestamp,
 	FirstJoin = true,
 
-	Currencies = {},
-	Stats = {},
-	Inventory = {},
-	Equipped = {},
+	Subscriptions = {}, --Users active subscriptions for their last play session.
+	PurchaseHistory = {}, --All developer product purchases made by user
+
+	Currencies = {}, --Users currencies
+	Stats = {}, --Users stats
+	Inventory = nil, --Users inventory with all their items
+	Equipped = {}, --Users equipped items
 }

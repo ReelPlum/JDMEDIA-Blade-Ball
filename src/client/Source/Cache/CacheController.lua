@@ -13,6 +13,9 @@ local CacheController = knit.CreateController({
 	Name = "CacheController",
 	Signals = {
 		TagsUpdated = signal.new(),
+		EquipmentChanged = signal.new(),
+		CurrenciesChanged = signal.new(),
+		InventoryChanged = signal.new(),
 	},
 	Cache = {},
 })
@@ -26,6 +29,21 @@ function CacheController:KnitStart()
 	UserTagService.UserTags:Observe(function(tags)
 		self.Cache.Tags = tags
 		self.Signals.TagsUpdated:Fire(tags)
+	end)
+
+	ItemService.Inventory:Observe(function(inventory)
+		self.Cache.Inventory = inventory
+		self.Signals.InventoryChanged:Fire(inventory)
+	end)
+
+	EquipmentService.EquippedItems:Observe(function(items)
+		self.Cache.Equipment = items
+		self.Signals.EquipmentChanged:Fire(items)
+	end)
+
+	CurrencyService.Currency:Observe(function(currencies)
+		self.Cache.Currencies = currencies
+		self.Signals.CurrenciesChanged:Fire(currencies)
 	end)
 end
 

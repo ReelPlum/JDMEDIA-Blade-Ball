@@ -9,6 +9,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
+local cmdr = require(ReplicatedStorage.Packages.Cmdr)
 
 local AdminService = knit.CreateService({
 	Name = "AdminService",
@@ -18,6 +19,11 @@ local AdminService = knit.CreateService({
 
 function AdminService:KnitStart() end
 
-function AdminService:KnitInit() end
+function AdminService:KnitInit()
+	--Initialize CMDR
+	cmdr:RegisterHooksIn(script.Parent.Hooks)
+	cmdr:RegisterTypesIn(script.Parent.Types)
+	cmdr:RegisterCommandsIn(script.Parent.Commands)
+end
 
 return AdminService

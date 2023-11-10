@@ -7,8 +7,9 @@ Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local janitor = require(ReplicatedStorage.Packages.Janitor)
+local knit = require(ReplicatedStorage.Packages.Knit)
 
-local force = 14000
+local force = 2500
 
 return {
 	DisplayName = "Dash",
@@ -72,22 +73,25 @@ return {
 		local attachment = j:Add(Instance.new("Attachment"))
 		attachment.Parent = rootPart
 
-		local m = 0
-		for _, i in character:GetDescendants() do
-			if i:IsA("BasePart") then
-				m += i:GetMass()
-			end
-		end
+		local m = rootPart.AssemblyMass
 
-		local vectorForce = j:Add(Instance.new("VectorForce"))
-		vectorForce.Parent = rootPart
-		vectorForce.RelativeTo = Enum.ActuatorRelativeTo.World
-		vectorForce.Attachment0 = attachment
-		vectorForce.Force = moveDirection.Unit * Vector3.new(force, 0, force)
+		-- local vectorForce = j:Add(Instance.new("VectorForce"))
+		-- vectorForce.Parent = rootPart
+		-- vectorForce.RelativeTo = Enum.ActuatorRelativeTo.World
+		-- vectorForce.Attachment0 = attachment
+		-- vectorForce.Force = moveDirection.Unit * Vector3.new(force, 0, force)
+
+		--humanoid:ChangeState(Enum.HumanoidStateType.Freefall)
+		--humanoid.PlatformStand = true
+		--local force = m * 25
+
+		local ClientPhysicsService = knit.GetService("ClientPhysicsService")
+		ClientPhysicsService:ApplyImpulseOnCharacter(user, moveDirection.Unit * Vector3.new(force, 0, force))
 
 		task.spawn(function()
 			task.wait(0.25)
 			track:Stop()
+			--humanoid.PlatformStand = false
 			j:Destroy()
 		end)
 

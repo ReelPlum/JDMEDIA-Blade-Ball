@@ -22,7 +22,8 @@ local DataService = knit.CreateService({
 })
 
 local KeyPrefix = "Player_"
-local DataStoreName = "PlayerData"
+local DataStoreName = "PlayerData-Testing"
+--local DataStoreName = "PlayerData-Live"
 
 local PlayerProfileStore = profileservice.GetProfileStore(DataStoreName, profileStoreTemplate)
 local LoadedPlayerProfiles = {}
@@ -57,7 +58,14 @@ function DataService:RequestData(player: Player)
 end
 
 function DataService:KnitStart()
+	local UserService = knit.GetService("UserService")
+
 	Players.PlayerRemoving:Connect(function(player)
+		local user = UserService:WaitForUser(player)
+		if user.Locked then
+			user.Signals.Unlocked:Wait()
+		end
+
 		if LoadedPlayerProfiles[player.UserId] then
 			LoadedPlayerProfiles[player.UserId]:Release()
 			LoadedPlayerProfiles[player.UserId] = nil

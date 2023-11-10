@@ -7,6 +7,8 @@ Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local HttpService = game:GetService("HttpService")
 
+local Debris = game:GetService("Debris")
+
 local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
@@ -79,6 +81,7 @@ function Ball:Respawn()
 	self.Speed = GeneralSettings.Game.Ball.StartSpeed
 	self.LastTarget = nil
 	self.LastHit = 0
+	self.BallModel.Parent = workspace
 
 	local impulseRange = GeneralSettings.Game.Ball.ImpulseRange
 
@@ -127,11 +130,27 @@ function Ball:Update(dt, accelerationSet)
 		raycastParams.FilterDescendantsInstances = t
 		raycastParams.CollisionGroup = GeneralSettings.Game.Ball.CollisionGroup
 
+		--local rayResult = workspace:Spherecast(self.Position, BALLRADIUS, self.Velocity * dt, raycastParams)
 		local rayResult = workspace:Raycast(self.Position, self.Velocity * dt, raycastParams)
 
 		if rayResult and rayResult.Position and rayResult.Normal then
 			--Calculate collision deflect.
 			self.LastHit = tick()
+
+			--Create hit effect
+			task.spawn(function()
+				local dust = self.Janitor:Add(ReplicatedStorage.Assets.VFX.Dust:Clone())
+				dust.Parent = workspace
+				dust.Position = rayResult.Position
+
+				task.wait()
+				dust.Effect:Emit(15)
+				local sound = self.Janitor:Add(ReplicatedStorage.Assets.Sounds.BallGroundHit:Clone())
+				sound.Parent = dust
+				sound:Play()
+
+				Debris:AddItem(dust, dust.Effect.Lifetime.Max + 1)
+			end)
 
 			local position = self.Position + self.Velocity.Unit * rayResult.Distance
 
@@ -224,7 +243,7 @@ function Ball:CheckForHit(newPosition)
 		self.BufferStarted = true
 		local target = self.Target
 
-		task.wait(BUFFERTIME)
+		task.wait(target.Player:GetNetworkPing() * 1.25)
 		if not (self.Target == target) then
 			return
 		end
@@ -232,6 +251,7 @@ function Ball:CheckForHit(newPosition)
 		--Kill
 		self.Signals.HitTarget:Fire(self.Target)
 		--self:Respawn()
+		self.BallModel.Parent = ReplicatedStorage
 
 		if self.LastTarget then
 			if not self.Kills[self.LastTarget] then
@@ -307,7 +327,7 @@ function Ball:Hit(user, cameraLookVector, characterLookVector)
 	local mixedLookVector = GetMixedLookVector(user, cameraLookVector)
 	self:SetImpulse(self:GetImpulse(mixedLookVector))
 
-	self.Speed += 1
+	self.Speed *= 1.05
 	self:GetNextTarget(self.TargetCallback(), characterLookVector)
 
 	self.Signals.Hit:Fire(user)

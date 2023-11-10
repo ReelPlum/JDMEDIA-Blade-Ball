@@ -16,12 +16,11 @@ local PreloadController = knit.CreateController({
 	Signals = {},
 })
 
-function PreloadController:KnitStart()
-	ContentProvider:PreloadAsync(ReplicatedStorage.Assets:GetDescendants(), function()
-		warn("⭐Successfully preloaded " .. #ReplicatedStorage.Assets:GetDescendants() .. " assets!⭐")
-	end)
-end
+function PreloadController:KnitStart() end
 
-function PreloadController:KnitInit() end
+function PreloadController:KnitInit()
+	ContentProvider:PreloadAsync(ReplicatedStorage.Assets:GetDescendants(), function() end)
+	warn("⭐Successfully preloaded " .. #ReplicatedStorage.Assets:GetDescendants() .. " assets!⭐")
+end
 
 return PreloadController

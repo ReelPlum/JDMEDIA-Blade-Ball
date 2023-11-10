@@ -15,6 +15,15 @@ local janitor = require(ReplicatedStorage.Packages.Janitor)
 local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
 local MapData = require(ReplicatedStorage.Data.MapData)
 
+local Gamemodes = {}
+for _, gamemode in script.Parent.Gamemodes:GetChildren() do
+	if not gamemode:IsA("ModuleScript") then
+		continue
+	end
+
+	table.insert(Gamemodes, require(gamemode))
+end
+
 local Game = {}
 Game.__index = Game
 
@@ -219,12 +228,14 @@ end
 function Game:Start()
 	self.StartTime = tick()
 
-	local BallService = knit.GetService("BallService")
-	self.Ball = BallService:CreateNewBall(self.CurrentMap.BallSpawn.CFrame, self)
+	--Choose random gamemode
+	local chosenGamemode = Gamemodes[math.random(1, #Gamemodes)]
 
-	self.Janitor:Add(self.Ball.Signals.HitTarget:Connect(function(user)
-		self:UserHit(user)
-	end))
+	--Tell clients what gamemode was chosen
+	local GameService = knit.GetService("GameService")
+	GameService.Client.CurrentGamemode:Set(chosenGamemode.Name)
+
+	chosenGamemode.Run(self)
 
 	for n, user in self.Users do
 		self:SpawnUserOnMap(user, n)
@@ -233,6 +244,14 @@ end
 
 function Game:Showdown()
 	--Starts showdown for game
+
+	if GeneralSettings.SystemMessages.OnShowdown then
+		local ChatService = knit.GetService("ChatService")
+		ChatService:SendSystemMessage(
+			`{self.Users[1].Player.DisplayName} & {self.Users[2].Player.DisplayName} have entered showdown!`,
+			Color3.fromRGB(255, 145, 19)
+		)
+	end
 
 	--Setup showdown stats
 
@@ -263,7 +282,12 @@ function Game:End()
 
 	--Remove everything from game
 	local BallService = knit.GetService("BallService")
-	BallService:DespawnBall()
+	BallService:DespawnBall(self.Ball.Id)
+
+	if GeneralSettings.SystemMessages.OnGameWin then
+		local ChatService = knit.GetService("ChatService")
+		ChatService:SendSystemMessage(`{winner.Player.DisplayName} won the game!`, Color3.fromRGB(0, 255, 0))
+	end
 
 	--Wait a little before destroying game fully. Give the winner a chance for a victory dance!
 	task.wait(5)
@@ -273,6 +297,9 @@ function Game:End()
 end
 
 function Game:Destroy()
+	local GameService = knit.GetService("GameService")
+	GameService.Client.CurrentGamemode:Set(nil)
+
 	self.Signals.Destroying:Fire()
 	self.Janitor:Destroy()
 	self = nil

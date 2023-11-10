@@ -19,11 +19,26 @@ local ChatController = knit.CreateController({
 	Signals = {},
 })
 
+function ChatController:SendSystemMessage(message, color)
+	TextChatService.TextChannels.RBXGeneral:DisplaySystemMessage(
+		`<font color="rgb({math.floor(color.R * 255)},{math.floor(color.G * 255)},{math.floor(color.B * 255)})">{message}</font>`
+	)
+end
+
 function ChatController:KnitStart()
 	local CacheController = knit.GetController("CacheController")
+	local ChatService = knit.GetService("ChatService")
+
+	ChatService.SendMessage:Connect(function(message, color)
+		ChatController:SendSystemMessage(message, color)
+	end)
 
 	TextChatService.OnIncomingMessage = function(msg)
 		local Properties = Instance.new("TextChatMessageProperties")
+
+		if not msg.TextSource then
+			return
+		end
 
 		if not msg.TextSource.UserId then
 			return Properties

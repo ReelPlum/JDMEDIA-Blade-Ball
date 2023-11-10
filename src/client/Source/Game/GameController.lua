@@ -23,6 +23,7 @@ local GameController = knit.CreateController({
 function GameController:HitBall()
 	local BallService = knit.GetService("BallService")
 	local UIController = knit.GetController("UIController")
+	local BallController = knit.GetController("BallController")
 
 	local HitIndicator = UIController:GetUI("IndicatorList"):GetElement("Deflect")
 
@@ -35,7 +36,9 @@ function GameController:HitBall()
 		return
 	end
 
-	BallService:HitBall(Camera.CFrame.LookVector, rootPart.CFrame.LookVector):andThen(function(success)
+	local _, ballId = BallController:GetNearestBall(rootPart.CFrame.Position)
+
+	BallService:HitBall(ballId, Camera.CFrame.LookVector, rootPart.CFrame.LookVector):andThen(function(success)
 		if not success then
 			return
 		end

@@ -11,9 +11,14 @@ return {
 		DisplayName = "Test",
 		ItemType = "Knife",
 		Rarity = nil,
+		Season = "Test",
+
+		Tags = {
+			"Test", --Used to describe item. Can be used to filter in items etc. at a later data
+		},
 
 		--Item type specific
-		Model = ReplicatedStorage.Assets.Models.Knives.Universe,
+		Model = ReplicatedStorage.Assets.Models.Knives.DefaultKnife,
 		Animation = "DefaultSingleDeflect",
 		KnifeType = "Single", --Single or Dual.
 	},
@@ -22,6 +27,11 @@ return {
 		DisplayName = "Test",
 		ItemType = "Ability",
 		Rarity = nil,
+		Season = "Test",
+
+		Tags = {
+			"Test",
+		},
 
 		--Item type specific
 	},
@@ -30,6 +40,11 @@ return {
 		DisplayName = "Test",
 		ItemType = "Tag",
 		Rarity = nil,
+		Season = "Test",
+
+		Tags = {
+			"Test",
+		},
 
 		--Item type specific
 		Color = Color3.fromRGB(226, 139, 26),
@@ -40,6 +55,11 @@ return {
 		DisplayName = "Test",
 		ItemType = "Tag",
 		Rarity = nil,
+		Season = "Test",
+
+		Tags = {
+			"Test",
+		},
 
 		--Item type specific
 		Color = nil,

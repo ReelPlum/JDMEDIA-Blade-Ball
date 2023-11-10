@@ -23,6 +23,7 @@ local GameService = knit.CreateService({
 		Title = knit.CreateProperty(""),
 		PlayersInGame = knit.CreateProperty(nil),
 		InGame = knit.CreateProperty(nil),
+		CurrentGamemode = knit.CreateProperty(nil),
 
 		GameWon = knit.CreateSignal(),
 	},
@@ -107,6 +108,9 @@ local GameSections = {
 				if user.AFK then
 					continue
 				end
+				if not user.Ready then
+					continue
+				end
 
 				currentGame:Join(user)
 			end
@@ -187,6 +191,9 @@ function GameService:KnitStart()
 		for _, user in UserService:GetUsers() do
 			--Check AFK
 			if user.AFK then
+				continue
+			end
+			if not user.Ready then
 				continue
 			end
 

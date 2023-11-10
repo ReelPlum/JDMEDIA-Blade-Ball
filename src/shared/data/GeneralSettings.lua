@@ -26,6 +26,9 @@ return {
 		},
 		StartExperience = 0,
 		StartRebirth = 0,
+		Trade = {
+			AcceptanceTime = 5, --Time till trade completes when both players accept trade
+		}
 	},
 
 	Game = {
@@ -69,5 +72,12 @@ return {
 			Collisions = true,
 			CollisionGroup = "Ball",
 		},
+	},
+
+	SystemMessages = {
+		OnGamePassPurchase = true,
+		OnDeveloperProductPurchase = true,
+		OnGameWin = true,
+		OnShowdown = true,
 	},
 }

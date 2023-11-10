@@ -47,6 +47,11 @@ function UserTagService:KnitStart()
 		self:UpdateUsersTag(user)
 	end)
 
+	UserService.Signals.UserRemoving:Connect(function(user)
+		Cache[user.Player.UserId] = nil
+		UserTagService.Client.UserTags:Set(Cache)
+	end)
+
 	EquipmentService.Signals.ItemEquipped:Connect(function(user, itemType)
 		if itemType ~= "Tag" then
 			return

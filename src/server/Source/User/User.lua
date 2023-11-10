@@ -15,6 +15,7 @@ local ExtendedCharacter = require(script.Parent.ExtendedCharacter)
 local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
 
 local User = {}
+User.ClassName = "User"
 User.__index = User
 
 function User.new(player)
@@ -24,6 +25,7 @@ function User.new(player)
 
 	self.Player = player
 
+	self.Ready = false
 	self.LoadingData = false
 	self.DataLoaded = false
 	self.Data = nil
@@ -34,6 +36,8 @@ function User.new(player)
 		Destroying = self.Janitor:Add(signal.new()),
 		DataLoaded = self.Janitor:Add(signal.new()),
 		FirstJoin = self.Janitor:Add(signal.new()),
+		Locked = self.Janitor:Add(signal.new()),
+		Unlocked = self.Janitor:Add(signal.new()),
 	}
 
 	self:Init()
@@ -71,9 +75,15 @@ function User:LoadData()
 
 			--Give items
 			local ItemService = knit.GetService("ItemService")
+			local inventory = ItemService:GetUsersInventory(self)
+
 			for _, item in GeneralSettings.User.StartItems do
-				ItemService:GiveItemToInventory(self.Data.Inventory, item)
+				ItemService:GiveItemToInventory(inventory, item, {
+					Untradeable = true,
+				})
 			end
+
+			ItemService:SaveInventory(self, inventory)
 		end
 
 		self.DataLoaded = true
@@ -89,7 +99,29 @@ function User:WaitForDataLoaded()
 	return true
 end
 
+function User:Lock(bool)
+	if bool == nil then
+		bool = not self.Locked
+	end
+
+	if self.Locked == bool then
+		return
+	end
+
+	self.Locked = bool
+
+	if bool then
+		self.Signals.Locked:Fire()
+	else
+		self.Signals.Unlocked:Fire()
+	end
+end
+
 function User:Destroy()
+	if self.Locked then
+		self.Signals.Unlocked:Wait()
+	end
+
 	self.Signals.Destroying:Fire()
 	self.Janitor:Destroy()
 	self = nil

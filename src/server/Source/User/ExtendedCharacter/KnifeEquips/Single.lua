@@ -15,7 +15,9 @@ function module.Equip(character, model)
 	local BodyService = knit.GetService("BodyService")
 	local j = janitor.new()
 
-	j:Add(BodyService:EquipOnBodyPart(character, "LowerTorso", model, model.EquipOffset.Value, "EquippedKnife"))
+	local knf = BodyService:EquipOnBodyPart(character, "LowerTorso", model, model.EquipOffset.Value, "EquippedKnife")
+
+	j:Add(knf)
 
 	return j
 end

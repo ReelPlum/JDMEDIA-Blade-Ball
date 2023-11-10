@@ -55,15 +55,22 @@ return function(user)
 
 		holsteredKnife.Parent = ReplicatedStorage
 		local BodyService = knit.GetService("BodyService")
-		j:Add(
-			BodyService:EquipOnBodyPart(
-				user.Player.Character,
-				"RightHand",
-				EquippedKnifeModel,
-				EquippedKnifeModel.HandleOffset.Value,
-				"HittingKnife"
-			)
+		local jan, knf = BodyService:EquipOnBodyPart(
+			user.Player.Character,
+			"RightHand",
+			EquippedKnifeModel,
+			EquippedKnifeModel.HandleOffset.Value,
+			"HittingKnife"
 		)
+		j:Add(jan)
+
+		print("Hit")
+		for _, i in knf:GetDescendants() do
+			if i:IsA("Trail") then
+				print("Enabled")
+				i.Enabled = true
+			end
+		end
 	end)
 
 	track:GetMarkerReachedSignal("Swing"):Connect(function()

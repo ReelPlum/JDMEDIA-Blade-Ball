@@ -12,7 +12,7 @@ local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
-local GamePassData = require(ReplicatedStorage.Data.GamePassData)
+local GamePassData = require(ReplicatedStorage.Data.Monetization.GamePassData)
 
 local GamePassService = knit.CreateService({
 	Name = "GamePassService",

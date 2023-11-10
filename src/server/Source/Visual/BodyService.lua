@@ -89,7 +89,7 @@ function BodyService:EquipOnBodyPart(character, bodypart, item, offset, name)
 		constraint.Part1 = clone
 	end
 
-	return j
+	return j, clone
 end
 
 function BodyService:KnitStart() end

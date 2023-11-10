@@ -14,6 +14,20 @@ local CurrencyController = knit.CreateController({
 	Signals = {},
 })
 
+function CurrencyController:GetCurrencies()
+	local CacheController = knit.GetController("CacheController")
+	if not CacheController.Cache.Currencies then
+		return {}
+	end
+
+	return CacheController.Cache.Currencies
+end
+
+function CurrencyController:GetCurrency(currency)
+	local currencies = CurrencyController:GetCurrencies()
+	return currencies[currency] or 0
+end
+
 function CurrencyController:KnitStart() end
 
 function CurrencyController:KnitInit() end

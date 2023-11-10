@@ -52,23 +52,41 @@ local function CreateHighlight()
 end
 
 local function HighlightBall(ball)
-	local particleEmitter = ball.Attachment:FindFirstChild("TargetEmitter")
-	if particleEmitter then
-		particleEmitter.Enabled = true
-	end
+	-- local particleEmitter = ball.Attachment:FindFirstChild("TargetEmitter")
+	-- if particleEmitter then
+	-- 	particleEmitter.Enabled = true
+	-- end
+
+	ball.BillboardGui.Enabled = true
 
 	ball.Material = Enum.Material.Neon
-	ball.Color = Color3.fromRGB(122, 0, 0)
+	ball.Color = Color3.fromRGB(0, 255, 64)
 end
 
 local function UnhighlightBall(ball)
-	local particleEmitter = ball.Attachment:FindFirstChild("TargetEmitter")
-	if particleEmitter then
-		particleEmitter.Enabled = false
+	-- local particleEmitter = ball.Attachment:FindFirstChild("TargetEmitter")
+	-- if particleEmitter then
+	-- 	particleEmitter.Enabled = false
+	-- end
+
+	ball.BillboardGui.Enabled = false
+
+	ball.Material = Enum.Material.Glass
+	ball.Color = Color3.fromRGB(0, 231, 58)
+end
+
+function BallController:GetNearestBall(position)
+	local closests, lowestDist = nil, math.huge
+
+	for _, ball in CollectionService:GetTagged("Ball") do
+		local dist = (ball.CFrame.Position - position).Magnitude
+		if dist < lowestDist then
+			closests = ball
+			lowestDist = dist
+		end
 	end
 
-	ball.Material = Enum.Material.Marble
-	ball.Color = Color3.fromRGB(99, 95, 98)
+	return closests, closests:GetAttribute("Id")
 end
 
 function BallController:KnitStart()

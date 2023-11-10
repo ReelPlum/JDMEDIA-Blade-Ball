@@ -14,6 +14,7 @@ local Camera = workspace.CurrentCamera
 
 local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
+local cmdr = require(ReplicatedStorage:WaitForChild("CmdrClient"))
 
 local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
 
@@ -23,9 +24,20 @@ local ClientController = knit.CreateController({
 })
 
 function ClientController:KnitStart()
-	--Just simple testing
+	local UserService = knit.GetService("UserService")
+
+	if not LocalPlayer.Character then
+		LocalPlayer.CharacterAppearanceLoaded:Wait()
+	end
+
+	UserService:Ready()
 end
 
-function ClientController:KnitInit() end
+function ClientController:KnitInit()
+	--Initialize CMDR
+	cmdr:SetActivationKeys({
+		Enum.KeyCode.F4,
+	})
+end
 
 return ClientController
