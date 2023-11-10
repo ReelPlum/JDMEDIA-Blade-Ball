@@ -101,7 +101,7 @@ function ShopService:GiveBundle(user, bundleId)
 
 	local ItemService = knit.GetService("ItemService")
 	for _, item in data.Items do
-		ItemService:GiveUserItem(user, item, {
+		ItemService:GiveUserItem(user, item, 1, {
 			[MetadataTypes.Types.OriginalPurchaser] = user.Player.UserId,
 			[MetadataTypes.Types.Bundle] = bundleId,
 		})
@@ -117,7 +117,7 @@ function ShopService:GiveItem(user, itemShopId)
 	end
 
 	local ItemService = knit.GetService("ItemService")
-	ItemService:GiveUserItem(user, data.Item, {
+	ItemService:GiveUserItem(user, data.Item, 1, {
 		[MetadataTypes.Types.OriginalPurchaser] = user.Player.UserId,
 	})
 
@@ -148,7 +148,7 @@ function ShopService:Unbox(user, unboxableId)
 
 	if unboxedItem.Data.Type == "Item" then
 		local ItemService = knit.GetService("ItemService")
-		ItemService:GiveUserItem(user, unboxedItem, {
+		ItemService:GiveUserItem(user, unboxedItem, 1, {
 			[MetadataTypes.Types.UnboxedBy] = user.Player.UserId,
 			[MetadataTypes.Types.Unboxable] = unboxableId,
 		})

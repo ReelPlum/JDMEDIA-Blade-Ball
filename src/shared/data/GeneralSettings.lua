@@ -28,7 +28,7 @@ return {
 		StartRebirth = 0,
 		Trade = {
 			AcceptanceTime = 5, --Time till trade completes when both players accept trade
-		}
+		},
 	},
 
 	Game = {

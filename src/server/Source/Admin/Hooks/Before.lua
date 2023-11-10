@@ -4,8 +4,10 @@ Before
 Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 ]]
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
 local Groups = {}
-for _, v in script.Parent:GetChildren() do
+for _, v in ReplicatedStorage.Common.AdminGroups:GetChildren() do
 	Groups[v.Name] = require(v)
 end
 

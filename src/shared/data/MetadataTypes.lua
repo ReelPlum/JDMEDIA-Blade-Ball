@@ -10,6 +10,7 @@ local Types = {
 	UnboxedBy = "3",
 	Unboxable = "4",
 	Bundle = "5",
+	Admin = "6",
 }
 
 local Data = {}

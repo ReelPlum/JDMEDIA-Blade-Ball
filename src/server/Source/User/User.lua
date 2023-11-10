@@ -78,7 +78,7 @@ function User:LoadData()
 			local inventory = ItemService:GetUsersInventory(self)
 
 			for _, item in GeneralSettings.User.StartItems do
-				ItemService:GiveItemToInventory(inventory, item, {
+				ItemService:GiveItemToInventory(inventory, item, 1, {
 					Untradeable = true,
 				})
 			end

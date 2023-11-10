@@ -96,15 +96,17 @@ function ItemService:InventoryHasItem(inventory, item)
 	return true
 end
 
-function ItemService:GiveItemToInventory(inventory, item, metadata)
+function ItemService:GiveItemToInventory(inventory, item, quantity, metadata)
 	--Check if item exists
 	if not ItemData[item] then
 		return nil
 	end
 
-	local id, data = ItemService:CreateData(item, metadata)
+	for _ = 1, quantity do
+		local id, data = ItemService:CreateData(item, metadata)
 
-	inventory[id] = data
+		inventory[id] = data
+	end
 
 	return inventory
 end
@@ -289,11 +291,11 @@ function ItemService:UserHasItem(user, item)
 	return ItemService:InventoryHasItem(ItemService:GetUsersInventory(user), item)
 end
 
-function ItemService:GiveUserItem(user, item, metadata)
+function ItemService:GiveUserItem(user, item, quantity, metadata)
 	user:WaitForDataLoaded()
 
 	local inventory = ItemService:GetUsersInventory(user)
-	ItemService:GiveItemToInventory(inventory, item, metadata)
+	ItemService:GiveItemToInventory(inventory, item, quantity, metadata)
 
 	ItemService:SaveInventory(user, inventory)
 	ItemService:SyncInventory(user)
@@ -352,6 +354,17 @@ end
 function ItemService:RemoveMultipleItemsWithIdFromUsersInventory(user, ids)
 	local inventory = ItemService:GetUsersInventory(user)
 	ItemService:RemoveMultipleItemsWithIdFromInventory(inventory, ids)
+
+	self:SaveInventory(user, inventory)
+	self:SyncInventory(user)
+end
+
+function ItemService:GiveUserMultipleItems(user, items, metadata)
+	local inventory = ItemService:GetUsersInventory(user)
+
+	for item, quantity in items do
+		ItemService:GiveItemToInventory(inventory, item, quantity, metadata)
+	end
 
 	self:SaveInventory(user, inventory)
 	self:SyncInventory(user)

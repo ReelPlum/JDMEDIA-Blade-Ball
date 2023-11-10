@@ -17,6 +17,12 @@ local AdminService = knit.CreateService({
 	Signals = {},
 })
 
+function AdminService:WipeUser(userId) end
+
+function AdminService:MuteUser(userId) end
+
+function AdminService:BanUser(userId) end
+
 function AdminService:KnitStart() end
 
 function AdminService:KnitInit()
