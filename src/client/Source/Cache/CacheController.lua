@@ -37,6 +37,8 @@ function CacheController:KnitStart()
 	local GameStreakService = knit.GetService("GameStreakService")
 
 	UserTagService.UserTags:Observe(function(tags)
+		warn(tags)
+
 		self.Cache.Tags = tags
 		self.Signals.TagsUpdated:Fire(tags)
 	end)

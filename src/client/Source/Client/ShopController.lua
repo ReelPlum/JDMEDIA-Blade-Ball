@@ -18,6 +18,17 @@ local ShopController = knit.CreateController({
 	},
 })
 
+local unboxedRequiringConfirmation = {}
+
+function ShopController:ConfirmUnbox(unboxable)
+	for index, data in unboxedRequiringConfirmation do
+		if data.Unboxable == unboxable then
+			ShopController.Signals.Unboxed:Fire(data.Unboxable, data.Item)
+			unboxedRequiringConfirmation[index] = nil
+		end
+	end
+end
+
 function ShopController:GetBundle(bundleId)
 	return ShopData.Bundles[bundleId]
 end
@@ -91,6 +102,15 @@ function ShopController:KnitStart()
 
 	--Listen for purchased and unboxes
 	ShopService.UnboxablePurchased:Connect(function(case, index)
+		local data = ShopController:GetUnboxable(case)
+		if data.RequiresConfirmation then
+			table.insert(unboxedRequiringConfirmation, {
+				Case = case,
+				Item = index
+			})
+			return
+		end
+
 		ShopController.Signals.Unboxed:Fire(case, index)
 	end)
 end

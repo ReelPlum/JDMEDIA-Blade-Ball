@@ -1,5 +1,5 @@
 --[[
-init
+Menu
 2023, 11, 23
 Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 ]]
@@ -63,33 +63,73 @@ function Menu:Init()
 		self.UI.Lobby.Visible = true
 	end
 
+	local UIController = knit.GetController("UIController")
+
 	--Buttons
 	self.Janitor:Add(self.UI.Lobby.Shop.MouseButton1Click:Connect(function()
 		--Open shop
+		local ui = UIController:GetUI("Shop")
+		if not ui then
+			return
+		end
+		ui:OpenPage("Start")
+		ui:SetVisible(true)
 	end))
 
 	self.Janitor:Add(self.UI.Lobby.Trading.MouseButton1Click:Connect(function()
 		--Open trade requests
+		local ui = UIController:GetUI("TradeRequest")
+		if not ui then
+			return
+		end
+		ui:SetVisible(true)
 	end))
 
 	self.Janitor:Add(self.UI.Lobby.Rebirth.MouseButton1Click:Connect(function()
 		--Open rebirth
+		local ui = UIController:GetUI("Rebirth")
+		if not ui then
+			return
+		end
+		ui:SetVisible(true)
 	end))
 
 	self.Janitor:Add(self.UI.Lobby.Knives.MouseButton1Click:Connect(function()
 		--Open Knives inv
+		local ui = UIController:GetUI("ItemInventory")
+		if not ui then
+			return
+		end
+		ui:SetVisible()
 	end))
 
 	self.Janitor:Add(self.UI.Lobby.Effects.MouseButton1Click:Connect(function()
 		--Open effects inv
+		local ui = UIController:GetUI("CosmeticsInventory")
+		if not ui then
+			return
+		end
+		ui:SetVisible()
 	end))
 
 	self.Janitor:Add(self.UI.Lobby.Coins.MouseButton1Click:Connect(function()
 		--Open coins shop
+		local ui = UIController:GetUI("Shop")
+		if not ui then
+			return
+		end
+		ui:OpenPage("Coins")
+		ui:SetVisible(true)
 	end))
 
 	self.Janitor:Add(self.UI.InGame.Coins.MouseButton1Click:Connect(function()
 		--Open coins shop
+		local ui = UIController:GetUI("Shop")
+		if not ui then
+			return
+		end
+		ui:OpenPage("Coins")
+		ui:SetVisible(true)
 	end))
 
 	--Displays

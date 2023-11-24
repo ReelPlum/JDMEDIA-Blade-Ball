@@ -72,10 +72,9 @@ function EquipmentService:EquipItemById(user, id)
 		return warn("No data for item " .. invData.Item)
 	end
 
-	EquipmentService.Signals.ItemEquipped:Fire(user, data.ItemType)
-
 	user.Data.Equipped[data.ItemType] = id
 
+	EquipmentService.Signals.ItemEquipped:Fire(user, data.ItemType)
 	Update(user)
 	return true
 end

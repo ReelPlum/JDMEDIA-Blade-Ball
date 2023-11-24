@@ -13,7 +13,7 @@ local janitor = require(ReplicatedStorage.Packages.Janitor)
 local RebirthService = knit.CreateService({
 	Name = "RebirthService",
 	Client = {
-		Rebirths = knit.CreateProperty({}),
+		OnRebirth = knit.CreateSignal(),
 	},
 	Signals = {
 		UserRebirthed = signal.new(),
@@ -43,35 +43,11 @@ function RebirthService:Rebirth(user)
 	local ShopService = knit.GetService("ShopService")
 	ShopService:Unbox(user, "Rebirth")
 
-	RebirthService.Signals.UserRebirthed:Fire(user)
-end
-
-function RebirthService:SyncRebirth(user)
-	local rebirths = RebirthService.Client.Rebirths:Get()
-
-	rebirths[user.Player.UserId] = RebirthService:GetUsersRebirthLevel(user)
-
-	RebirthService.Client.Rebirths:Set(rebirths)
+	RebirthService.Client.OnRebirt:Fire(user.Player, RebirthService:GetUsersRebirthLevel(user))
+	RebirthService.Signals.UserRebirthed:Fire(user, RebirthService:GetUsersRebirthLevel(user))
 end
 
 function RebirthService:KnitStart()
-	local UserService = knit.GetService("UserService")
-
-	for _, user in UserService:GetUsers() do
-		RebirthService:SyncRebirth(user)
-	end
-
-	UserService.Signals.UserAdded:Connect(function(user)
-		RebirthService:SyncRebirth(user)
-	end)
-
-	UserService.Signals.UserRemoving:Connect(function(user)
-		local rebirths = RebirthService.Client.Rebirths:Get()
-
-		rebirths[user.Player.UserId] = nil
-
-		RebirthService.Client.Rebirths:Set(rebirths)
-	end)
 end
 
 function RebirthService:KnitInit() end

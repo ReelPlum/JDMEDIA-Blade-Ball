@@ -25,13 +25,13 @@ function Inventory.new(UITemplate)
 	self.Janitor = janitor.new()
 
 	self.UITemplate = UITemplate
-	self.ItemTypes = {"Knife", "Ability"}
+	self.ItemTypes = {"HitEffect", "Tag", "Ball"}
 
 	self.SelectedItemId = nil
 
 	self.Signals = {
 		Destroying = self.Janitor:Add(signal.new()),
-		VisibilityChanged = self.Janitor:Add(signal.new()),
+		VisibilityChanged = self.Janitor:Add(signal.new())
 	}
 
 	self:Init()
@@ -77,6 +77,7 @@ function Inventory:Init()
 	end))
 
 	self:SetVisible(false)
+
 	self:Update()
 end
 
@@ -144,7 +145,7 @@ function Inventory:SetVisible(bool)
 	end
 
 	self.ItemsContainer.ToolTip:Update()
-	
+
 	self.UI.Enabled = bool
 	self.Visible = bool
 end

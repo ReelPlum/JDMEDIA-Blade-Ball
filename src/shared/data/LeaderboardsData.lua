@@ -9,17 +9,23 @@ return {
 		Type = "Daily", --"AllTime", "Monthly", "Weekly", "Daily", "ServerOnly"
 		Tag = "DailyWinsLeaderboard",
 		Stat = "Wins",
+
+		Header = "Most wins today"
 	},
 
 	["Wins"] = {
 		Type = "AllTime", --"AllTime", "Monthly", "Weekly", "Daily", "ServerOnly"
 		Tag = "AllTimeWinsLeaderboard",
 		Stat = "Wins",
+
+		Header = "All time wins",
 	},
 
 	["LocalWins"] = {
 		Type = "ServerOnly", --"AllTime", "Monthly", "Weekly", "Daily", "ServerOnly"
 		Tag = "AllTimeWinsLeaderboard",
 		Stat = "Wins",
+
+		Header = "Wins in server",
 	},
 }

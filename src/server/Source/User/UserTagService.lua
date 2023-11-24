@@ -31,6 +31,8 @@ function UserTagService:UpdateUsersTag(user)
 	local EquipmentService = knit.GetService("EquipmentService")
 	local EquippedTag = EquipmentService:GetEquippedItemOfType(user, "Tag")
 
+	print(EquippedTag)
+
 	--Update Equipped tag cache
 	UpdateCache(user, EquippedTag)
 end
