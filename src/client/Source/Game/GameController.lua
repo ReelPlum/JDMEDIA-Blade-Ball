@@ -17,7 +17,10 @@ local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
 
 local GameController = knit.CreateController({
 	Name = "GameController",
-	Signals = {},
+	Signals = {
+		GameChanged = signal.new(),
+	},
+	InGame = nil,
 })
 
 function GameController:HitBall()
@@ -71,7 +74,14 @@ function GameController:UseAbility()
 	end)
 end
 
-function GameController:KnitStart() end
+function GameController:KnitStart()
+	local GameService = knit.GetService("GameService")
+
+	GameService.InGame:Observe(function(id)
+		GameController.InGame = id
+		GameController.Signals.GameChanged:Fire(id)
+	end)
+end
 
 function GameController:KnitInit() end
 

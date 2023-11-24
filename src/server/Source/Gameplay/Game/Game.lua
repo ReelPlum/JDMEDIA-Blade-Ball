@@ -35,6 +35,7 @@ function Game.new(map: Folder, location: CFrame, gameSettings: GameSettings)
 	local self = setmetatable({}, Game)
 
 	self.Janitor = janitor.new()
+	self.PassiveAbilityJanitors = {}
 
 	self.Id = HttpService:GenerateGUID(false)
 
@@ -51,6 +52,8 @@ function Game.new(map: Folder, location: CFrame, gameSettings: GameSettings)
 		Ended = self.Janitor:Add(signal.new()),
 		UserJoined = self.Janitor:Add(signal.new()),
 		UserLeft = self.Janitor:Add(signal.new()),
+
+		BallHit = self.Janitor:Add(signal.new()),
 	}
 
 	local UserService = knit.GetService("UserService")
@@ -95,6 +98,36 @@ function Game:SpawnUserOnMap(user, n)
 			+ Vector3.new(0, character.HumanoidRootPart.Size.Y / 2, 0)
 			+ Vector3.new(0, character.Humanoid.HipHeight, 0)
 	)
+
+	--Start passive abilities for user.
+	self:StartPassiveAbilitiesForUser(user)
+end
+
+function Game:StartPassiveAbilitiesForUser(user)
+	--Starts passive abilities for user
+	if self.PassiveAbilityJanitors[user] then
+		return
+	end
+
+	self.PassiveAbilityJanitors[user] = self.Janitor:Add(janitor.new())
+
+	--Only enchants on users knife are counted towards passive abilities
+	local EquipmentService = knit.GetService("EquipmentService")
+	local EnchantingService = knit.GetService("EnchantingService")
+
+	local id = EquipmentService:GetIdOfEquippedItemOfType(user, "Knife")
+	if not id then
+		return
+	end
+
+	local enchant, level = EnchantingService:GetEnchantOnUsersItem(user, id)
+	local data = EnchantingService:GetEnchantData(enchant)
+
+	local passiveAbility = data.Run(self, data, user, level)
+
+	if passiveAbility then
+		self.PassiveAbilityJanitors[user]:Add(passiveAbility)
+	end
 end
 
 function Game:UserHit(user)
@@ -168,7 +201,13 @@ function Game:Leave(user)
 		return
 	end
 
+	if self.PassiveAbilityJanitors[user] then
+		self.PassiveAbilityJanitors[user]:Destroy()
+		self.PassiveAbilityJanitors[user] = nil
+	end
+
 	local CurrencyService = knit.GetService("CurrencyService")
+	local GameStreakService = knit.GetService("GameStreakService")
 
 	local rewards = {}
 	if self.StartTime then
@@ -192,9 +231,12 @@ function Game:Leave(user)
 		CurrencyService:GiveCurrency(user, currency, reward)
 	end
 
-	--If showdown then save showndown streak
+	--Count kills stats
 	local StatsService = knit.GetService("StatsService")
-	StatsService:IncrementStat(user, "Showdowns", 1)
+	StatsService:IncrementStat(user, "Knockouts", self.Ball.Kills[user] or 0)
+
+	--Count hits stats
+	StatsService:IncrementStat(user, "Deflects", self.Ball.Hits[user] or 0)
 
 	--Remove user
 	user.Game = nil
@@ -215,6 +257,8 @@ function Game:Leave(user)
 		GameService.Client.PlayersInGame:SetFor(userInGame.Player, users)
 	end
 
+	GameStreakService:ResetStreaks(user)
+
 	if #self.Users == 2 then
 		self:Showdown()
 		return
@@ -234,8 +278,29 @@ function Game:Start()
 	--Tell clients what gamemode was chosen
 	local GameService = knit.GetService("GameService")
 	GameService.Client.CurrentGamemode:Set(chosenGamemode.Name)
+	local GameStreakService = knit.GetService("GameStreakService")
 
 	chosenGamemode.Run(self)
+
+	local streaks = {}
+	self.Janitor:Add(self.Ball.Signals.Hit:Connect(function(user, direction)
+		self.Signals.BallHit:Fire(user, direction)
+
+		--Count streak
+		if not streaks[user] then
+			streaks[user] = 0
+		end
+
+		streaks[user] += 1
+		GameStreakService:SetStreak(user, "Hits", streaks[user])
+	end))
+
+	self.Janitor:Add(self.Ball.Signals.HitTarget:Connect(function(killedUser, killingUser, kills)
+		if not killingUser then
+			return
+		end
+		GameStreakService:SetStreak(killingUser, "Kills", kills)
+	end))
 
 	for n, user in self.Users do
 		self:SpawnUserOnMap(user, n)
@@ -244,6 +309,7 @@ end
 
 function Game:Showdown()
 	--Starts showdown for game
+	self.Showdown = true
 
 	if GeneralSettings.SystemMessages.OnShowdown then
 		local ChatService = knit.GetService("ChatService")
@@ -254,11 +320,10 @@ function Game:Showdown()
 	end
 
 	--Setup showdown stats
-
-	--Count showdown ball hit streak
-	self.Janitor:Add(self.Ball.Signals.Hit:Connect(function()
-		--Save to streak
-	end))
+	for _, user in self.Users do
+		local StatsService = knit.GetService("StatsService")
+		StatsService:IncrementStat(user, "Showdowns", 1)
+	end
 end
 
 function Game:End()

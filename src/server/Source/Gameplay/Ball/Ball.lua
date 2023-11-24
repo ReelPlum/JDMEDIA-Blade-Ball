@@ -73,6 +73,27 @@ function Ball:CreateBall()
 	self.BallModel.Parent = workspace
 end
 
+function Ball:ChangeModelToUsersBall(user)
+	self.BallJanitor:Cleanup()
+
+	local EquipmentService = knit.GetService("EquipmentService")
+	local ItemService = knit.GetService("ItemService")
+
+	local EquippedBall = EquipmentService:GetEquippedItemOfType(user, "Ball")
+	if not EquippedBall then
+		EquippedBall = "DefaultBall"
+	end
+	local itemData = ItemService:GetDataForItem(EquippedBall)
+
+	self.BallModel = self.BallJanitor:Add(itemData.Model:Clone())
+
+	self.BallModel:SetAttribute("Id", self.Id)
+	self.BallModel:AddTag("Ball")
+	self.BallModel:PivotTo(self.SpawnPosition)
+
+	self.BallModel.Parent = workspace
+end
+
 function Ball:Respawn()
 	--Respawns ball at spawn
 	self.Position = self.SpawnPosition.Position
@@ -115,6 +136,10 @@ function Ball:Update(dt, accelerationSet)
 		return
 	end
 
+	if not self.BallModel:IsDescendantOf(workspace) then
+		return
+	end
+
 	--Updates position etc. for ball
 	if not self.BufferStarted and tick() - self.LastHit > 0.25 then
 		self.Acceleration = self:GetDirectionalVector().Unit * self.Speed
@@ -138,6 +163,8 @@ function Ball:Update(dt, accelerationSet)
 			self.LastHit = tick()
 
 			--Create hit effect
+			local VisualPartsService = knit.GetService("VisualPartsService")
+
 			task.spawn(function()
 				local dust = self.Janitor:Add(ReplicatedStorage.Assets.VFX.Dust:Clone())
 				dust.Parent = workspace
@@ -248,21 +275,30 @@ function Ball:CheckForHit(newPosition)
 			return
 		end
 
-		--Kill
-		self.Signals.HitTarget:Fire(self.Target)
 		--self:Respawn()
 		self.BallModel.Parent = ReplicatedStorage
 
+		local EquipmentService = knit.GetService("EquipmentService")
+		local equippedKillAnimation = nil
 		if self.LastTarget then
 			if not self.Kills[self.LastTarget] then
 				self.Kills[self.LastTarget] = 0
 			end
 
+			--Kill
 			self.Kills[self.LastTarget] += 1
 
 			--Get last targets kill animation
+			equippedKillAnimation = EquipmentService:GetEquippedItemOfType(self.LastTarget, "Explosion")
 		end
-		--Play kill animation
+		--Play kill animation if it exists
+		if equippedKillAnimation then
+			--Play animation
+			local data = EquipmentService:GetDataForItem(equippedKillAnimation)
+			data.Animation(self.Target)
+		end
+
+		self.Signals.HitTarget:Fire(self.Target, self.LastTarget, self.Kills[self.LastTarget])
 
 		--Play kill sound
 		local SoundService = knit.GetService("SoundService")
@@ -323,14 +359,17 @@ function Ball:Hit(user, cameraLookVector, characterLookVector)
 		return
 	end
 
+	--Change ball model to equipped ball
+	self:ChangeModelToUsersBall(user)
+
 	--Make user hit ball
 	local mixedLookVector = GetMixedLookVector(user, cameraLookVector)
 	self:SetImpulse(self:GetImpulse(mixedLookVector))
 
+	self.Signals.Hit:Fire(user, mixedLookVector)
+
 	self.Speed *= 1.05
 	self:GetNextTarget(self.TargetCallback(), characterLookVector)
-
-	self.Signals.Hit:Fire(user)
 
 	--Play hit sound
 	local SoundService = knit.GetService("SoundService")

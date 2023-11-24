@@ -10,9 +10,15 @@ local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
+local Vote = require(script.Parent.Vote)
+
 local VotingService = knit.CreateService({
 	Name = "VotingService",
-	Client = {},
+	Client = {
+		VoteStarted = knit.CreateSignal(),
+		VotesChanged = knit.CreateSignal(),
+		VoteEnded = knit.CreateSignal(),
+	},
 	Signals = {},
 })
 
@@ -27,6 +33,10 @@ type VoteData = {
 
 function VotingService:StartVote(voteData: VoteData)
 	--Start a vote
+	local vote = Vote.new(voteData)
+	vote:Start()
+
+	return vote
 end
 
 function VotingService:KnitStart() end

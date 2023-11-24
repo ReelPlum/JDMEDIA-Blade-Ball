@@ -6,7 +6,7 @@ Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 
 return {
 	Name = "GiveItem",
-	Aliases = { "gi", "itemgive", "giveawayitem", "ImAGenerousAdminLol" },
+	Aliases = { "gi", "itemgive", "giveawayitem", "ImAGenerousAdminLol", "DestroyTradingEconomy", "plsitem" },
 	Description = "Give items to a player",
 	Group = "Owner",
 	Args = {

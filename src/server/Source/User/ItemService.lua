@@ -66,8 +66,16 @@ end
 
 function ItemService:RemoveMultipleItemsWithIdFromInventory(inventory, ids)
 	for _, id in ids do
+		if not inventory[id] then
+			return
+		end
+	end
+
+	for _, id in ids do
 		inventory[id] = nil
 	end
+
+	return true
 end
 
 function ItemService:GetMetadataFromItem(data)
@@ -99,6 +107,7 @@ end
 function ItemService:GiveItemToInventory(inventory, item, quantity, metadata)
 	--Check if item exists
 	if not ItemData[item] then
+		warn("Item " .. item .. " was not found")
 		return nil
 	end
 
@@ -296,6 +305,7 @@ function ItemService:GiveUserItem(user, item, quantity, metadata)
 
 	local inventory = ItemService:GetUsersInventory(user)
 	ItemService:GiveItemToInventory(inventory, item, quantity, metadata)
+	warn(inventory)
 
 	ItemService:SaveInventory(user, inventory)
 	ItemService:SyncInventory(user)
@@ -319,6 +329,14 @@ function ItemService:GetUsersItemFromId(user, id)
 	user:WaitForDataLoaded()
 
 	return ItemService:GetItemFromId(ItemService:GetUsersInventory(user), id)
+end
+
+function ItemService:UpdateId(user, id, newData)
+	local Inventory = ItemService:GetUsersInventory(user)
+	Inventory[id] = newData
+
+	ItemService:SaveInventory(user, Inventory)
+	ItemService:SyncInventory(user)
 end
 
 function ItemService:GetUsersDataFromId(user, id)
@@ -353,10 +371,12 @@ end
 
 function ItemService:RemoveMultipleItemsWithIdFromUsersInventory(user, ids)
 	local inventory = ItemService:GetUsersInventory(user)
-	ItemService:RemoveMultipleItemsWithIdFromInventory(inventory, ids)
+	local success = ItemService:RemoveMultipleItemsWithIdFromInventory(inventory, ids)
 
 	self:SaveInventory(user, inventory)
 	self:SyncInventory(user)
+
+	return success
 end
 
 function ItemService:GiveUserMultipleItems(user, items, metadata)
@@ -409,6 +429,9 @@ function ItemService:KnitStart()
 
 	UserService.Signals.UserAdded:Connect(function(user)
 		InventoryChangeSignals[user] = signal.new()
+
+		user:WaitForDataLoaded()
+		self:SyncInventory(user)
 	end)
 
 	UserService.Signals.UserRemoving:Connect(function(user)

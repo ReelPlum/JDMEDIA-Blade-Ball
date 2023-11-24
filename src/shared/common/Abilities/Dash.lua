@@ -33,34 +33,37 @@ return {
 		end
 
 		local moveDirection = humanoid.MoveDirection
-		if moveDirection.Magnitude <= 0 then
-			return
-		end
 
 		local track
 
 		local relMoveDirection = rootPart.CFrame:PointToObjectSpace(rootPart.CFrame.Position + moveDirection.Unit)
 
-		if math.abs(relMoveDirection.X) > math.abs(relMoveDirection.Z) then
-			--Left or right
-			if relMoveDirection.X < 0 then
-				--Left
-				print("Left")
-				track = humanoid.Animator:LoadAnimation(ReplicatedStorage.Assets.Animations.Dash.DashLeft)
-			else
-				--Right
-				print("Right")
-				track = humanoid.Animator:LoadAnimation(ReplicatedStorage.Assets.Animations.Dash.DashRight)
-			end
+		if moveDirection.Magnitude <= 0 then
+			--Forward
+			relMoveDirection = rootPart.CFrame:PointToObjectSpace(rootPart.CFrame.Position + Vector3.new(0, 0, -1))
+			track = humanoid.Animator:LoadAnimation(ReplicatedStorage.Assets.Animations.Dash.DashFront)
 		else
-			if relMoveDirection.Z > 0 then
-				--Back
-				print("Back")
-				track = humanoid.Animator:LoadAnimation(ReplicatedStorage.Assets.Animations.Dash.DashBack)
+			if math.abs(relMoveDirection.X) > math.abs(relMoveDirection.Z) then
+				--Left or right
+				if relMoveDirection.X < 0 then
+					--Left
+					print("Left")
+					track = humanoid.Animator:LoadAnimation(ReplicatedStorage.Assets.Animations.Dash.DashLeft)
+				else
+					--Right
+					print("Right")
+					track = humanoid.Animator:LoadAnimation(ReplicatedStorage.Assets.Animations.Dash.DashRight)
+				end
 			else
-				--Front
-				print("Front")
-				track = humanoid.Animator:LoadAnimation(ReplicatedStorage.Assets.Animations.Dash.DashFront)
+				if relMoveDirection.Z > 0 then
+					--Back
+					print("Back")
+					track = humanoid.Animator:LoadAnimation(ReplicatedStorage.Assets.Animations.Dash.DashBack)
+				else
+					--Front
+					print("Front")
+					track = humanoid.Animator:LoadAnimation(ReplicatedStorage.Assets.Animations.Dash.DashFront)
+				end
 			end
 		end
 
@@ -86,6 +89,8 @@ return {
 		--local force = m * 25
 
 		local ClientPhysicsService = knit.GetService("ClientPhysicsService")
+
+		--Check if character is in the air. If they are in the air then apply a smaller force, and play another animation
 		ClientPhysicsService:ApplyImpulseOnCharacter(user, moveDirection.Unit * Vector3.new(force, 0, force))
 
 		task.spawn(function()

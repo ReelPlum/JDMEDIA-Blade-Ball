@@ -11,9 +11,19 @@ local Types = {
 	Unboxable = "4",
 	Bundle = "5",
 	Admin = "6",
+	Robux = "7",
+	Enchants = "8",
+	Enchant = "9",
 }
 
-local Data = {}
+local Data = {
+	[Types.Robux] = {
+		BoughtWithRobux = true,
+	},
+	[Types.Untradeable] = {
+		Untradeable = true,
+	},
+}
 
 local function TypeToString(type)
 	for index, t in Types do

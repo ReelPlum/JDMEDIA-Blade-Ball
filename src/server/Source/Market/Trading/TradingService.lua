@@ -7,12 +7,15 @@ Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local HttpService = game:GetService("HttpService")
+local PolicyService = game:GetService("PolicyService")
 
 local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
 local Trade = require(script.Parent.Trade)
+
+local MetadataTypes = require(ReplicatedStorage.Data.MetadataTypes)
 
 local TradingService = knit.CreateService({
 	Name = "TradingService",
@@ -22,13 +25,80 @@ local TradingService = knit.CreateService({
 		TradeId = knit.CreateProperty(nil),
 		OtherInventory = knit.CreateProperty({}), --Inventory of the user player is trading with
 
-		TradeRequests = knit.CreateProperty({}),
+		TradeRequests = knit.CreateProperty({ Sent = {}, Recieved = {} }),
+		UntradeableUsers = knit.CreateProperty({}),
 	},
 	Signals = {},
 })
 
 local TradeRequests = {}
 local Trades = {}
+local UntradeableUsers = {}
+
+function TradingService.Client:AddItemToTrade(player, itemId)
+	local UserService = knit.GetService("UserService")
+	local user = UserService:WaitForUser(player)
+
+	if not typeof(itemId) == "string" then
+		return
+	end
+
+	TradingService:AddItemToTrade(user, itemId)
+end
+
+function TradingService.Client:RemoveItemFromTrade(player, itemId)
+	local UserService = knit.GetService("UserService")
+	local user = UserService:WaitForUser(player)
+
+	if not typeof(itemId) == "string" then
+		return
+	end
+
+	TradingService:RemoveItemFromTrade(user, itemId)
+end
+
+function TradingService.Client:SetTradeAcceptanceStatus(player, status)
+	if not typeof(status) == "boolean" then
+		return
+	end
+
+	local UserService = knit.GetService("UserService")
+	local user = UserService:WaitForUser(player)
+	TradingService:SetTradeAcceptanceStatus(user, status)
+end
+
+function TradingService.Client:CancelTrade(player)
+	local UserService = knit.GetService("UserService")
+	local user = UserService:WaitForUser(player)
+
+	TradingService:CancelTrade(user)
+end
+
+function TradingService.Client:SendTradeRequest(player, targetUserId)
+	local UserService = knit.GetService("UserService")
+	local userA = UserService:WaitForUser(player)
+
+	local userB = UserService:GetUserFromUserId(targetUserId)
+	if not userB then
+		return
+	end
+
+	TradingService:RequestTrade(userA, userB)
+end
+
+function TradingService.Client:AcceptTradeRequest(player, requestId)
+	local UserService = knit.GetService("UserService")
+	local user = UserService:WaitForUser(player)
+
+	TradingService:AcceptTradeRequest(user, requestId)
+end
+
+function TradingService.Client:DeclineTradeRequest(player, requestId)
+	local UserService = knit.GetService("UserService")
+	local user = UserService:WaitForUser(player)
+
+	TradingService:DeclineTradeRequest(user, requestId)
+end
 
 function TradingService:UserIsTrading(user)
 	--Check if user is currently trading
@@ -51,8 +121,21 @@ function TradingService:UserCanSendTradeRequestToUser(userA, userB)
 end
 
 function TradingService:RequestTrade(userA, userB)
+	if userA.Player == userB.Player then
+		return
+	end
+
 	if not TradeRequests[userB] then
-		TradeRequests[userB] = {}
+		TradeRequests[userB] = {
+			Recieved = {},
+			Sent = {},
+		}
+	end
+	if not TradeRequests[userA] then
+		TradeRequests[userA] = {
+			Recieved = {},
+			Sent = {},
+		}
 	end
 
 	if not TradingService:UserCanSendTradeRequestToUser(userA, userB) then
@@ -62,12 +145,13 @@ function TradingService:RequestTrade(userA, userB)
 	end
 
 	--Check if UserA already sent a request
-	for _, trade in TradeRequests[userB] do
-		if trade.RequestingUser == userA.Player.UserId then
-			--Notify UserA
+	if table.find(TradeRequests[userA].Sent, userB.Player.UserId) then
+		return
+	end
 
-			return
-		end
+	--Check if USerB sent a request
+	if table.find(TradeRequests[userB].Sent, userA.Player.UserId) then
+		return
 	end
 
 	--Request trade.
@@ -78,9 +162,11 @@ function TradingService:RequestTrade(userA, userB)
 		Time = DateTime.now().UnixTimestamp,
 	}
 
-	TradeRequests[userB][id] = request
+	TradeRequests[userB].Recieved[id] = request
+	table.insert(TradeRequests[userA].Sent, userB.Player.UserId)
 
 	TradingService.Client.TradeRequests:SetFor(userB.Player, TradeRequests[userB])
+	TradingService.Client.TradeRequests:SetFor(userA.Player, TradeRequests[userA])
 end
 
 function TradingService:AcceptTradeRequest(userB, tradeId)
@@ -89,22 +175,28 @@ function TradingService:AcceptTradeRequest(userB, tradeId)
 		return
 	end
 
-	if not TradeRequests[userB][tradeId] then
+	if not TradeRequests[userB].Recieved[tradeId] then
 		return
 	end
 
 	--Get UserA
 	local UserService = knit.GetService("UserService")
-	local userA = UserService:GetUserFromUserId(TradeRequests[userB][tradeId].RequestingUser)
+	local userA = UserService:GetUserFromUserId(TradeRequests[userB].Recieved[tradeId].RequestingUser)
 	if not userA then
-		TradeRequests[userB][tradeId] = nil
+		TradeRequests[userB].Recieved[tradeId] = nil
+		return
+	end
+	local index = table.find(TradeRequests[userA].Sent, userB.Player.UserId)
+	if not index then
 		return
 	end
 
 	--Checks are done. Now we start the trade!
 	TradingService:StartTrade(userA, userB)
 
-	TradeRequests[userB][tradeId] = nil
+	TradeRequests[userB].Recieved[tradeId] = nil
+	table.remove(TradeRequests[userA].Sent, index)
+
 	TradingService.Client.TradeRequests:SetFor(userB.Player, TradeRequests[userB])
 end
 
@@ -150,7 +242,7 @@ function TradingService:SetTradeAcceptanceStatus(user, status)
 		return
 	end
 
-	user.CurrentTrade:SetTradeAcceptanceStatus(user, status)
+	user.CurrentTrade:SetAcceptanceStatus(user, status)
 end
 
 function TradingService:CancelTrade(user)
@@ -158,6 +250,8 @@ function TradingService:CancelTrade(user)
 	if not user.CurrentTrade then
 		return
 	end
+
+	warn("Trying to cancel trade")
 
 	user.CurrentTrade:Cancel(user)
 end
@@ -168,11 +262,40 @@ function TradingService:AddItemToTrade(user, itemId)
 		return
 	end
 
+	warn(itemId)
+
 	user.CurrentTrade:AddItem(user, itemId)
 end
 
-function TradingService:ValidateItemForTrade(item)
+function TradingService:ValidateItemForTrade(user, itemId)
 	--Validates if item can be used in trade
+	local ItemService = knit.GetService("ItemService")
+	local data = ItemService:GetUsersDataFromId(user, itemId)
+
+	--Check if item is bought with robux
+	local success, result = pcall(function()
+		return PolicyService:GetPolicyInfoForPlayerAsync(user.Player)
+	end)
+	if not success then
+		warn("Something went wrong while validating item " .. result)
+		return
+	end
+
+	if not result.IsPaidItemTradingAllowed and data.Metadata[MetadataTypes.Types.Robux] then
+		return
+	end
+
+	--Check other metadata
+	for t, v in data.Metadata do
+		local d = MetadataTypes.Data[t]
+		if d then
+			if d.Untradeable then
+				return false
+			end
+		end
+	end
+
+	return true
 end
 
 function TradingService:RemoveItemFromTrade(user, itemId)
@@ -231,14 +354,34 @@ function TradingService:KnitStart()
 			TradeRequests[user] = nil
 		end
 
-		for _, usersRequests in TradeRequests do
-			for id, trade in usersRequests do
+		for otherUser, usersRequests in TradeRequests do
+			local somethingChanged = false
+			for id, trade in usersRequests.Recieved do
 				if trade.RequestingUser == user.Player.UserId then
+					somethingChanged = true
 					usersRequests[id] = nil
 				end
 			end
+
+			local index = table.find(usersRequests.Sent, user.Player.UserId)
+			if index then
+				table.remove(usersRequests.Sent, index)
+				somethingChanged = true
+			end
+
+			if somethingChanged then
+				TradingService.Client.TradeRequests:SetFor(otherUser.Player, TradeRequests[otherUser])
+			end
+		end
+
+		local index = table.find(UntradeableUsers, user.Player.UserId)
+		if index then
+			table.remove(UntradeableUsers, index)
+			TradingService.Client.UntradeableUsers:Set(UntradeableUsers)
 		end
 	end)
+
+	--Listen for trade setting change.
 end
 
 function TradingService:KnitInit() end

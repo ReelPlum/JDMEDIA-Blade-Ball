@@ -15,4 +15,17 @@ return {
 	Stats = {}, --Users stats
 	Inventory = nil, --Users inventory with all their items
 	Equipped = {}, --Users equipped items
+
+	LeaderboardRewards = {},
+
+	Moderation = {
+		CurrentBan = nil,
+		--[[
+		CurrentBan = {
+			Reason: string,
+			Time: unix timestamp,
+			Moderator: userid
+		}
+		]]
+	},
 }

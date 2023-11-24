@@ -15,38 +15,71 @@ local ExperienceLevelsData = require(ReplicatedStorage.Data.ExperienceLevels)
 local ExperienceService = knit.CreateService({
 	Name = "ExperienceService",
 	Client = {
-		Level = knit.CreateProperty(nil),
+		Level = knit.CreateProperty({}),
 	},
-	Signals = {},
+	Signals = {
+		UserLevelledUp = signal.new(),
+	},
 })
 
-local function GetMatchingLevel(experience)
-	local current = 0
-	for requiredExperience, data in ExperienceLevelsData do
-		if experience > requiredExperience then
-			current = requiredExperience
-			continue
-		end
+function ExperienceService:CheckUserForRankup(user)
+	--
+	local exp = ExperienceService:GetUsersExperience(user)
+	local nextLvl = ExperienceService:GetNextLevel(user)
 
-		break
-	end
-
-	return current
-end
-
-function ExperienceService:GetUsersExperienceLevel(user)
-	--Gets users experience level
-	local CurrencyService = knit.GetService("CurrencyService")
-	local experience = CurrencyService:GetCurrency(user, "Experience")
-
-	local level = GetMatchingLevel(experience)
-
-	local currentLevel = ExperienceService.Client.Level:GetFor(user.Player)
-	if currentLevel == level then
+	if not nextLvl then
 		return
 	end
 
-	ExperienceService.Client.Level:SetFor(user.Player, level)
+	if exp >= nextLvl.RequiredExperience then
+		--Rank up
+		local CurrencyService = knit.GetService("CurrencyService")
+		CurrencyService:TakeCurrency(user, "Experience", nextLvl.RequiredExperience)
+
+		local StatsService = knit.GetService("StatsService")
+		StatsService:IncrementStat(user, "Level", 1)
+
+		ExperienceService:SyncUsersLevel(user)
+
+		ExperienceService.Signals.UserLevelledUp:Fire(user)
+	end
+end
+
+function ExperienceService:SetLevel(user, level)
+	local CurrencyService = knit.GetService("CurrencyService")
+	CurrencyService:WipeCurrency(user, "Experience")
+
+	local StatsService = knit.GetService("StatsService")
+	StatsService:SetStat(user, "Level", level)
+
+	ExperienceService:SyncUsersLevel(user)
+
+	ExperienceService.Signals.UserLevelledUp:Fire(user)
+end
+
+function ExperienceService:GetNextLevel(user)
+	return ExperienceLevelsData[ExperienceService:GetUsersLevel(user) + 1]
+end
+
+function ExperienceService:GetUsersExperience(user)
+	local CurrencyService = knit.GetService("CurrencyService")
+
+	return CurrencyService:GetCurrency(user, "Experience")
+end
+
+function ExperienceService:GetUsersLevel(user)
+	user:WaitForDataLoaded()
+
+	local StatsService = knit.GetService("StatsService")
+	return StatsService:GetStat(user, "Level")
+end
+
+function ExperienceService:SyncUsersLevel(user)
+	local levels = ExperienceService.Client.Level:Get()
+
+	levels[user.Player.UserId] = ExperienceService:GetUsersLevel(user)
+
+	ExperienceService.Client.Level:Set(levels)
 end
 
 function ExperienceService:KnitStart()
@@ -55,16 +88,22 @@ function ExperienceService:KnitStart()
 
 	CurrencyService.Signals.UsersCurrenciesChanged:Connect(function(user, currency)
 		if currency == "Experience" then
-			self:GetUsersExperienceLevel(user)
+			self:CheckUserForRankup(user)
 		end
 	end)
 
 	for _, user in UserService:GetUsers() do
-		self:GetUsersExperienceLevel(user)
+		ExperienceService:SyncUsersLevel(user)
 	end
 
 	UserService.Signals.UserAdded:Connect(function(user)
-		self:GetUsersExperienceLevel(user)
+		ExperienceService:SyncUsersLevel(user)
+	end)
+
+	UserService.Signals.UserRemoving:Connect(function(user)
+		local levels = ExperienceService.Client.Level:Get()
+		levels[user.Player.UserId] = nil
+		ExperienceService.Client.Level:Set(levels)
 	end)
 end
 

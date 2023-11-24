@@ -22,6 +22,8 @@ local BallController = knit.CreateController({
 	Signals = {
 		LocalPlayerTargeted = signal.new(),
 		BallChangedTarget = signal.new(),
+		BallAdded = signal.new(),
+		BallRemoved = signal.new(),
 	},
 
 	BallsTargetingLocalPlayer = {},
@@ -86,6 +88,10 @@ function BallController:GetNearestBall(position)
 		end
 	end
 
+	if not closests then
+		return
+	end
+
 	return closests, closests:GetAttribute("Id")
 end
 
@@ -122,8 +128,6 @@ function BallController:KnitStart()
 			particles[ball].Parent = target
 		end
 
-		BallController.Signals.BallChangedTarget:Fire(ball, target)
-
 		if IsTagetLocalPlayer(target) then
 			BallController.Signals.LocalPlayerTargeted:Fire(ball)
 
@@ -134,6 +138,8 @@ function BallController:KnitStart()
 			HighlightBall(ball)
 			return
 		end
+
+		BallController.Signals.BallChangedTarget:Fire(ball, target)
 
 		--Remove from target list
 		if table.find(BallController.BallsTargetingLocalPlayer, ball) then
@@ -146,6 +152,10 @@ function BallController:KnitStart()
 		UnhighlightBall(ball)
 	end)
 
+	CollectionService:GetInstanceAddedSignal("Ball"):Connect(function(ball)
+		BallController.Signals.BallAdded:Fire(ball)
+	end)
+
 	CollectionService:GetInstanceRemovedSignal("Ball"):Connect(function(ball)
 		if table.find(BallController.BallsTargetingLocalPlayer, ball) then
 			table.remove(
@@ -153,6 +163,8 @@ function BallController:KnitStart()
 				table.find(BallController.BallsTargetingLocalPlayer, ball)
 			)
 		end
+
+		BallController.Signals.BallRemoved:Fire(ball)
 
 		if highlights[ball] then
 			highlights[ball]:Destroy()

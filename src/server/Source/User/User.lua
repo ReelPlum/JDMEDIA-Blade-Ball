@@ -13,6 +13,7 @@ local janitor = require(ReplicatedStorage.Packages.Janitor)
 local ExtendedCharacter = require(script.Parent.ExtendedCharacter)
 
 local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
+local MetadataTypes = require(ReplicatedStorage.Data.MetadataTypes)
 
 local User = {}
 User.ClassName = "User"
@@ -79,7 +80,11 @@ function User:LoadData()
 
 			for _, item in GeneralSettings.User.StartItems do
 				ItemService:GiveItemToInventory(inventory, item, 1, {
-					Untradeable = true,
+					[MetadataTypes.Types.Untradeable] = true,
+					[MetadataTypes.Types.Enchant] = {
+						"Jump",
+						1,
+					},
 				})
 			end
 

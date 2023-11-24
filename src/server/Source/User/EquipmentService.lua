@@ -23,6 +23,13 @@ local EquipmentService = knit.CreateService({
 	},
 })
 
+function EquipmentService.Client:EquipItem(player, itemId)
+	local UserService = knit.GetService("UserService")
+	local user = UserService:WaitForUser(player)
+
+	EquipmentService:EquipItemById(user, itemId)
+end
+
 local function Update(user)
 	--Update user when new item is equipped
 	EquipmentService.Client.EquippedItems:SetFor(user.Player, user.Data.Equipped)
@@ -49,7 +56,28 @@ local function SetupUser(user)
 	--Load equipment on user
 	Update(user)
 
-	EquipmentService.Client.EquippedItems:SetFor(user.Player, user.Data.EquippedItems)
+	EquipmentService.Client.EquippedItems:SetFor(user.Player, user.Data.Equipped)
+end
+
+function EquipmentService:EquipItemById(user, id)
+	local ItemService = knit.GetService("ItemService")
+
+	local invData = ItemService:GetUsersDataFromId(user, id)
+	if not invData then
+		return warn("No inventory data for " .. id)
+	end
+
+	local data = ItemService:GetItemData(invData.Item)
+	if not data then
+		return warn("No data for item " .. invData.Item)
+	end
+
+	EquipmentService.Signals.ItemEquipped:Fire(user, data.ItemType)
+
+	user.Data.Equipped[data.ItemType] = id
+
+	Update(user)
+	return true
 end
 
 function EquipmentService:EquipItem(user, item)
@@ -66,34 +94,28 @@ function EquipmentService:EquipItem(user, item)
 		return
 	end
 
-	local data = ItemService:GetItemData(item)
-	if not data then
-		return
-	end
-
-	EquipmentService.Signals.ItemEquipped:Fire(user, data.ItemType)
-
-	user.Data.Equipped[data.ItemType] = id
-
-	Update(user)
+	return EquipmentService:EquipItemById(user, id)
 end
 
 function EquipmentService:GetEquippedItemOfType(user, type)
+	local ItemService = knit.GetService("ItemService")
+	local id = EquipmentService:GetIdOfEquippedItemOfType(user, type)
+
+	return ItemService:GetUsersItemFromId(user, id)
+end
+
+function EquipmentService:GetIdOfEquippedItemOfType(user, type)
 	user:WaitForDataLoaded()
 
-	local ItemService = knit.GetService("ItemService")
-
-	if not user.Data.Equipped[type] then
-		return
-	end
-
-	return ItemService:GetUsersItemFromId(user, user.Data.Equipped[type])
+	return user.Data.Equipped[type]
 end
 
 function EquipmentService:KnitStart()
 	local UserService = knit.GetService("UserService")
 	for _, user in UserService:GetUsers() do
-		SetupUser(user)
+		task.spawn(function()
+			SetupUser(user)
+		end)
 	end
 
 	UserService.Signals.UserAdded:Connect(SetupUser)

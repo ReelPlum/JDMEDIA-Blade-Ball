@@ -8,10 +8,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 return {
 	["TestItem"] = {
-		DisplayName = "Test",
+		DisplayName = "Knife",
 		ItemType = "Knife",
-		Rarity = nil,
+		Rarity = "RainbowImmortal",
 		Season = "Test",
+
+		Image = "",
 
 		Tags = {
 			"Test", --Used to describe item. Can be used to filter in items etc. at a later data
@@ -24,10 +26,12 @@ return {
 	},
 
 	["Dash"] = {
-		DisplayName = "Test",
+		DisplayName = "Dash",
 		ItemType = "Ability",
-		Rarity = nil,
+		Rarity = "Common",
 		Season = "Test",
+
+		Image = "",
 
 		Tags = {
 			"Test",
@@ -37,10 +41,12 @@ return {
 	},
 
 	["DeveloperTag"] = {
-		DisplayName = "Test",
+		DisplayName = "Developer Tag",
 		ItemType = "Tag",
-		Rarity = nil,
+		Rarity = "Common",
 		Season = "Test",
+
+		Image = "",
 
 		Tags = {
 			"Test",
@@ -52,10 +58,12 @@ return {
 	},
 
 	["DefaultTag"] = {
-		DisplayName = "Test",
+		DisplayName = "Default Tag",
 		ItemType = "Tag",
-		Rarity = nil,
+		Rarity = "Common",
 		Season = "Test",
+
+		Image = "",
 
 		Tags = {
 			"Test",
@@ -64,5 +72,20 @@ return {
 		--Item type specific
 		Color = nil,
 		Tag = "",
+	},
+
+	["DefaultBall"] = {
+		DisplayName = "Ball",
+		ItemType = "Ball",
+		Rarity = "Common",
+		Season = "Test",
+
+		Image = "",
+
+		Tags = {
+			"Test", --Used to describe item. Can be used to filter in items etc. at a later data
+		},
+
+		Model = ReplicatedStorage.Assets.Models.Balls:WaitForChild("DefaultBall"),
 	},
 }

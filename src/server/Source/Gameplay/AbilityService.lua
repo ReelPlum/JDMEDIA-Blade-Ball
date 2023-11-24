@@ -32,6 +32,13 @@ function AbilityService.Client:UseAbility(player, cameraLookVector, characterLoo
 	return AbilityService:ExecuteAbility(user, cameraLookVector, characterLookVector)
 end
 
+function AbilityService.Client:DoubleJump(player)
+	local UserService = knit.GetService("UserService")
+	local user = UserService:WaitForUser(player)
+
+	AbilityService:DoubleJump(user)
+end
+
 local function CheckCooldown(user)
 	if not user.LastAbilityUse then
 		return true

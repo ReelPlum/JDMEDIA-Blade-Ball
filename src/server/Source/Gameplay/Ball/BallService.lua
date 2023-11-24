@@ -12,6 +12,7 @@ local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
 local BallClass = require(script.Parent.Ball)
+local FakeBallClass = require(script.Parent.FakeBall)
 
 local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
 
@@ -58,7 +59,7 @@ function BallService:CreateNewBall(location: CFrame, currentGame)
 	-- CurrentBall = BallClass.new(location, ReplicatedStorage.Ball, function()
 	-- 	return currentGame:GetUsers()
 	-- end)
-	local ball = BallClass.new(location, ReplicatedStorage.Ball, function()
+	local ball = BallClass.new(location, ReplicatedStorage.Assets.Models.Balls:WaitForChild("DefaultBall"), function()
 		return currentGame:GetUsers()
 	end)
 	Balls[ball.Id] = ball
@@ -71,6 +72,22 @@ function BallService:CreateNewBall(location: CFrame, currentGame)
 		task.wait(2)
 		ball:Respawn()
 	end)
+
+	return ball
+end
+
+function BallService:CreateFakeBall(location, direction, speed, lifetime, user)
+	local EquipmentService = knit.GetService("EquipmentService")
+	local ItemService = knit.GetService("ItemService")
+
+	local EquippedBall = EquipmentService:GetEquippedItemOfType(user, "Ball")
+	if not EquippedBall then
+		EquippedBall = "DefaultBall"
+	end
+	local itemData = ItemService:GetDataForItem(EquippedBall)
+
+	local ball = FakeBallClass.new(direction, location, speed, lifetime, itemData.Model)
+	Balls[ball.Id] = ball
 
 	return ball
 end

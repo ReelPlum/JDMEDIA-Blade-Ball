@@ -26,6 +26,7 @@ local GameService = knit.CreateService({
 		CurrentGamemode = knit.CreateProperty(nil),
 
 		GameWon = knit.CreateSignal(),
+		NextMap = knit.CreateSignal(),
 	},
 	Signals = {},
 })
@@ -68,6 +69,7 @@ local GameSections = {
 			if nextMap then
 				--A map has already been set
 				votedMap = nextMap
+				nextMap = nil
 
 				return
 			end
@@ -87,18 +89,23 @@ local GameSections = {
 		CheckUsers = true,
 		OnStart = function()
 			if currentVote then
-				votedMap = currentVote:End()
+				votedMap = currentVote:GetWinner()
+				currentVote:End()
 
 				currentVote:Destroy()
 				currentVote = nil
 			end
 
+			-- if not votedMap then
+			-- 	votedMap = "BasicMap"
+			-- end
+			votedMap = "TestMap"
+
 			--Announce next map to clients
+			GameService.Client.NextMap:FireAll(votedMap)
 
 			--Create game
-			--currentGame = Game.new(votedMap, CFrame.new(0, 0, 0), { MaxPlayers = Players.MaxPlayers })
-
-			currentGame = Game.new("BasicMap", CFrame.new(0, 0, 0), { MaxPlayers = Players.MaxPlayers })
+			currentGame = Game.new(votedMap, CFrame.new(0, 0, 0), { MaxPlayers = Players.MaxPlayers })
 		end,
 		OnEnd = function()
 			local UserService = knit.GetService("UserService")
@@ -147,15 +154,14 @@ local GameSections = {
 
 function GameService:TeleportUserToLobby(user)
 	--Teleports user back to the lobby
-	user.Player:LoadCharacter()
-end
+	user.Player.Character.Parent = nil
 
-function GameService:SpawnUserOnMap(user)
-	--Spawns user on map
+	user.Player:LoadCharacter()
 end
 
 function GameService:SetNextMap(map)
 	--Sets next map to the given map
+	nextMap = map
 end
 
 function GameService:KnitStart()

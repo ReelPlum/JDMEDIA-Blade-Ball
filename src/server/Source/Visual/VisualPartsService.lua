@@ -56,6 +56,25 @@ function VisualPartsService:CreateCrater(location, material, radius, t)
 	--Creates crater at location with radius
 end
 
+function VisualPartsService:AddSplatter(location, normal, texture, size)
+	local j = janitor.new()
+
+	local part = j:Add(Instance.new("Part"))
+	part.Size = Vector3.new(size.X, size.Y, 0.01)
+	part.CanCollide = false
+	part.Anchored = true
+	part.Parent = workspace
+	part.Transparency = 1
+	local decal = j:Add(Instance.new("Decal"))
+	decal.Parent = part
+	decal.Texture = texture
+	decal.Face = "Front"
+
+	part.CFrame = CFrame.new(location, location + normal)
+
+	return j
+end
+
 function VisualPartsService:KnitStart() end
 
 function VisualPartsService:KnitInit() end

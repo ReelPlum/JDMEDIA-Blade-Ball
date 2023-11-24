@@ -5,6 +5,7 @@ Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
 
 local MarketPlaceService = game:GetService("MarketplaceService")
 
@@ -75,12 +76,11 @@ end
 function SubscriptionService:KnitStart()
 	local UserService = knit.GetService("UserService")
 
-	--What?
-	-- MarketPlaceService.UserSubscriptionStatusChanged:Connect(function(player, subscriptionId)
-	-- 	local user = UserService:WaitForUser(player)
+	Players.UserSubscriptionStatusChanged:Connect(function(player, subscriptionId)
+		local user = UserService:WaitForUser(player)
 
-	-- 	CheckSubscriptionStatus(user, GetSubscriptionData(subscriptionId))
-	-- end)
+		CheckSubscriptionStatus(user, GetSubscriptionData(subscriptionId))
+	end)
 end
 
 function SubscriptionService:KnitInit() end

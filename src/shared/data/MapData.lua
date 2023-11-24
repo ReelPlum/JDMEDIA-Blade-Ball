@@ -9,8 +9,4 @@ return {
 	["TestMap"] = {
 		Model = ReplicatedStorage.Assets.Maps.TestMap,
 	},
-
-	["BasicMap"] = {
-		Model = ReplicatedStorage.Assets.Maps.BasicMap,
-	},
 }

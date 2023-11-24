@@ -10,10 +10,13 @@ local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 
 local ItemData = require(ReplicatedStorage.Data.ItemData)
+local RarityData = require(ReplicatedStorage.Data.RarityData)
 
 local ItemController = knit.CreateController({
 	Name = "ItemController",
-	Signals = {},
+	Signals = {
+		InventoryChanged = signal.new(),
+	},
 })
 
 function ItemController:GetInventory()
@@ -28,6 +31,10 @@ end
 
 function ItemController:GetItemData(item)
 	return ItemData[item]
+end
+
+function ItemController:GetRarityData(rarity) 
+	return RarityData[rarity]
 end
 
 function ItemController:GetItemFromId(id)
@@ -156,7 +163,12 @@ function ItemController:GetOneItemWhichIsSeason(season)
 	end
 end
 
-function ItemController:KnitStart() end
+function ItemController:KnitStart()
+	local CacheController = knit.GetController("CacheController")
+	CacheController.Signals.InventoryChanged:Connect(function()
+		ItemController.Signals.InventoryChanged:Fire()
+	end)
+end
 
 function ItemController:KnitInit() end
 

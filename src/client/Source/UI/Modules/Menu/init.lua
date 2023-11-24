@@ -1,0 +1,178 @@
+--[[
+init
+2023, 11, 23
+Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
+]]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+
+local LocalPlayer = Players.LocalPlayer
+
+local knit = require(ReplicatedStorage.Packages.Knit)
+local signal = require(ReplicatedStorage.Packages.Signal)
+local janitor = require(ReplicatedStorage.Packages.Janitor)
+local formatNumber = require(ReplicatedStorage.Packages.FormatNumber)
+
+local format = formatNumber.Main.NumberFormatter.with()
+
+local Menu = {}
+Menu.ClassName = "Menu"
+Menu.__index = Menu
+
+function Menu.new(uiTemplate)
+	local self = setmetatable({}, Menu)
+
+	self.Janitor = janitor.new()
+
+	self.UITemplate = uiTemplate
+
+	self.Signals = {
+		Destroying = self.Janitor:Add(signal.new()),
+	}
+
+	self:Init()
+
+	return self
+end
+
+function Menu:Init()
+	self.UI = self.Janitor:Add(self.UITemplate:Clone())
+	self.UI.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+	local GameController = knit.GetController("GameController")
+	--Listen for game start / end
+	GameController.Signals.GameChanged:Connect(function(id)
+		if not id then
+			--Set to lobby ui
+			self.UI.InGame.Visible = false
+			self.UI.Lobby.Visible = true
+
+			return
+		end
+
+		--Set to ingame UI
+		self.UI.InGame.Visible = true
+		self.UI.Lobby.Visible = false
+	end)
+	if GameController.InGame then
+		self.UI.InGame.Visible = true
+		self.UI.Lobby.Visible = false
+	else
+		self.UI.InGame.Visible = false
+		self.UI.Lobby.Visible = true
+	end
+
+	--Buttons
+	self.Janitor:Add(self.UI.Lobby.Shop.MouseButton1Click:Connect(function()
+		--Open shop
+	end))
+
+	self.Janitor:Add(self.UI.Lobby.Trading.MouseButton1Click:Connect(function()
+		--Open trade requests
+	end))
+
+	self.Janitor:Add(self.UI.Lobby.Rebirth.MouseButton1Click:Connect(function()
+		--Open rebirth
+	end))
+
+	self.Janitor:Add(self.UI.Lobby.Knives.MouseButton1Click:Connect(function()
+		--Open Knives inv
+	end))
+
+	self.Janitor:Add(self.UI.Lobby.Effects.MouseButton1Click:Connect(function()
+		--Open effects inv
+	end))
+
+	self.Janitor:Add(self.UI.Lobby.Coins.MouseButton1Click:Connect(function()
+		--Open coins shop
+	end))
+
+	self.Janitor:Add(self.UI.InGame.Coins.MouseButton1Click:Connect(function()
+		--Open coins shop
+	end))
+
+	--Displays
+	local CacheController = knit.GetController("CacheController")
+	self.Janitor:Add(CacheController.Signals.GameStreaksChanged:Connect(function()
+		--Update the two streaks UI
+		self:UpdateStreaks()
+	end))
+	self.Janitor:Add(CacheController.Signals.CurrenciesChanged:Connect(function()
+		--Update the two coins displays
+		self:UpdateCurrencies()
+	end))
+
+	self:ToggleIndicator("Effects", false)
+	self:ToggleIndicator("Knives", false)
+	self:ToggleIndicator("Rebirth", false)
+	self:ToggleIndicator("Shop", false)
+	self:ToggleIndicator("Trading", false)
+
+	--Listen for trade request changes.
+
+	self:UpdateCurrencies()
+	self:UpdateStreaks()
+
+	self:SetVisible(true)
+end
+
+function Menu:ToggleIndicator(name, bool)
+	local ui = self.UI.Lobby:FindFirstChild(name)
+	if not ui then
+		return
+	end
+
+	local indicator = ui:FindFirstChild("Indicator")
+	if not indicator then
+		return
+	end
+
+	indicator.Visible = bool
+end
+
+function Menu:UpdateCurrencies()
+	local CacheController = knit.GetController("CacheController")
+
+	local Currencies = CacheController.Cache.Currencies or {}
+	local cash = Currencies["Cash"] or 0
+	cash = math.floor(cash)
+
+	warn(cash)
+
+	self.UI.InGame.Coins.Amount.Text = format:Format(cash)
+	self.UI.Lobby.Coins.Amount.Text = format:Format(cash)
+end
+
+function Menu:UpdateStreaks()
+	local CacheController = knit.GetController("CacheController")
+
+	local GameStreaks = CacheController.Cache.GameStreaks or {}
+	local hits = GameStreaks.Hits or 0
+	local kills = GameStreaks.Kills or 0
+	hits = math.floor(hits)
+	kills = math.floor(kills)
+
+	warn(hits)
+	warn(kills)
+
+	self.UI.InGame.HighestStreak.Amount.Text = format:Format(hits)
+	self.UI.InGame.Wipeouts.Amount.Text = format:Format(kills)
+end
+
+function Menu:SetVisible(bool)
+	if bool == nil then
+		bool = not self.Visible
+	end
+
+	self.Visible = bool
+	self.UI.Enabled = bool
+end
+
+function Menu:Destroy()
+	self.Signals.Destroying:Fire()
+	self.Janitor:Destroy()
+	self = nil
+end
+
+return Menu

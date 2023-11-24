@@ -24,13 +24,6 @@ local ClientController = knit.CreateController({
 })
 
 function ClientController:KnitStart()
-	local UserService = knit.GetService("UserService")
-
-	if not LocalPlayer.Character then
-		LocalPlayer.CharacterAppearanceLoaded:Wait()
-	end
-
-	UserService:Ready()
 end
 
 function ClientController:KnitInit()

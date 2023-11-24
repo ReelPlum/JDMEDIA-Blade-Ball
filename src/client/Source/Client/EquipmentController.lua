@@ -11,8 +11,12 @@ local signal = require(ReplicatedStorage.Packages.Signal)
 
 local EquipmentController = knit.CreateController({
 	Name = "EquipmentController",
-	Signals = {},
+	Signals = {
+		EquipmentChanged = signal.new(),
+	},
 })
+
+local itemTypeAddedEvents = {}
 
 function EquipmentController:GetEquippedItems()
 	local CacheController = knit.GetController("CacheController")
@@ -28,7 +32,40 @@ function EquipmentController:GetEquippedItemForType(itemType)
 	return EquipmentController:GetEquippedItems()[itemType]
 end
 
-function EquipmentController:KnitStart() end
+function EquipmentController:EquipItem(id)
+	--Equip item with id
+	local EquipmentService = knit.GetService("EquipmentService")
+	EquipmentService:EquipItem(id)
+end
+
+function EquipmentController:ListenForItemType(itemType)
+	if itemTypeAddedEvents[itemType] then
+		return itemTypeAddedEvents[itemType]
+	end
+
+	itemTypeAddedEvents[itemType] = signal.new()
+	return itemTypeAddedEvents[itemType]
+end
+
+function EquipmentController:KnitStart()
+	local CacheController = knit.GetController("CacheController")
+	local lastEquipment = {}
+
+	CacheController.Signals.EquipmentChanged:Connect(function()
+		EquipmentController.Signals.EquipmentChanged:Fire()
+
+		local newEquipment = EquipmentController:GetEquippedItems()
+		for itemType, id in newEquipment do
+			if not itemTypeAddedEvents[itemType] then
+				continue
+			end
+
+			if lastEquipment[itemType] ~= id then
+				itemTypeAddedEvents[itemType]:Fire()
+			end
+		end
+	end)
+end
 
 function EquipmentController:KnitInit() end
 

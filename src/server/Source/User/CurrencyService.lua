@@ -30,6 +30,7 @@ local function SyncCurrencies(user) --Syncs users currency data
 	task.spawn(function()
 		user:WaitForDataLoaded()
 
+		print(GetUsersCurrencyData(user))
 		CurrencyService.Client.Currency:SetFor(user.Player, GetUsersCurrencyData(user))
 	end)
 end
@@ -77,6 +78,16 @@ function CurrencyService:GiveCurrency(user, currency, amount) --Gives user the g
 	currencies[currency] += amount
 
 	CurrencyService.Signals.UsersCurrenciesChanged:Fire(user, currency, amount)
+	SyncCurrencies(user)
+end
+
+function CurrencyService:WipeCurrency(user, currency)
+	user:WaitForDataLoaded()
+
+	local currencies = GetUsersCurrencyData(user)
+	currencies[currency] = 0
+
+	CurrencyService.Signals.UsersCurrenciesChanged:Fire(user, currency, 0)
 	SyncCurrencies(user)
 end
 

@@ -15,7 +15,7 @@ dependencies = []
 [[package]]
 name = "frede/resource-gathering-simulator"
 version = "0.1.0"
-dependencies = [["Cmdr", "evaera/cmdr@1.12.0"], ["Janitor", "howmanysmall/janitor@1.15.6"], ["Knit", "sleitnick/knit@1.5.3"], ["ProfileService", "surnautica/profileservice@1.0.0"], ["Promise", "evaera/promise@4.0.0"], ["Signal", "sleitnick/signal@1.5.0"], ["gameanalytics-sdk", "gameanalytics/gameanalytics-sdk@2.2.2"], ["moonlite", "maximumadhd/moonlite@0.8.2"]]
+dependencies = [["Cmdr", "evaera/cmdr@1.12.0"], ["FormatNumber", "kumarion/formatnumber@0.0.1"], ["Janitor", "howmanysmall/janitor@1.15.6"], ["Knit", "sleitnick/knit@1.5.3"], ["ProfileService", "surnautica/profileservice@1.0.0"], ["Promise", "evaera/promise@4.0.0"], ["Signal", "sleitnick/signal@1.5.0"], ["gameanalytics-sdk", "gameanalytics/gameanalytics-sdk@2.2.2"], ["moonlite", "maximumadhd/moonlite@0.8.2"]]
 
 [[package]]
 name = "gameanalytics/gameanalytics-sdk"
@@ -26,6 +26,11 @@ dependencies = []
 name = "howmanysmall/janitor"
 version = "1.15.6"
 dependencies = [["Promise", "evaera/promise@4.0.0"]]
+
+[[package]]
+name = "kumarion/formatnumber"
+version = "0.0.1"
+dependencies = []
 
 [[package]]
 name = "maximumadhd/moonlite"

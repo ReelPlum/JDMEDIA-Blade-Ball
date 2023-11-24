@@ -29,6 +29,11 @@ return {
 		Trade = {
 			AcceptanceTime = 5, --Time till trade completes when both players accept trade
 		},
+
+		EnchantmentPrice = {
+			Currency = "Cash",
+			Amount = 50,
+		},
 	},
 
 	Game = {

@@ -58,6 +58,8 @@ function Trade.new(userA, userB)
 end
 
 function Trade:Init()
+	warn("Trade started!")
+
 	local UserService = knit.GetService("UserService")
 	local ItemService = knit.GetService("ItemService")
 	local TradingService = knit.GetService("TradingService")
@@ -66,8 +68,9 @@ function Trade:Init()
 	for _, user in { self.UserA, self.UserB } do
 		TradingService.Client.TradeId:SetFor(user.Player, self.Id)
 		TradingService.Client.CurrentTrade:SetFor(user.Player, {
-			InventoryA = self.Inventories[self.UserA],
-			InventoryB = self.Inventories[self.UserB],
+			OtherPlayer = if user == self.UserA then self.UserB.Player.UserId else self.UserA.Player.UserId,
+			LocalInventory = self.Inventories[user],
+			InventoryB = if self.UserA == user then self.Inventories[self.UserB] else self.Inventories[self.UserA],
 		})
 		TradingService.Client.TradeStatus:SetFor(user.Player, {
 			false,
@@ -169,6 +172,8 @@ function Trade:Complete()
 		return
 	end
 
+	warn("Trade completed!")
+
 	self.Completed = true
 	self.UserA:Lock()
 	self.UserB:Lock()
@@ -182,7 +187,7 @@ function Trade:Complete()
 	for user, inventory in self.Inventories do
 		local inv = {}
 		for _, id in inventory do
-			local data = ItemService:GetUsersDataFromId(id)
+			local data = ItemService:GetUsersDataFromId(user, id)
 			inv[id] = data
 		end
 
@@ -190,13 +195,38 @@ function Trade:Complete()
 	end
 
 	--Take items from boths users' inventories
+	local successfullUsers = {}
+	local FailedUser = nil
 	for user, ids in self.Inventories do
-		ItemService:RemoveMultipleItemsWithIdFromUsersInventory(user, ids)
+		warn(ids)
+		local success = ItemService:RemoveMultipleItemsWithIdFromUsersInventory(user, ids)
+		if success then
+			table.insert(successfullUsers, user)
+		else
+			FailedUser = user
+			break
+		end
+	end
+
+	if FailedUser then
+		for _, user in successfullUsers do
+			--Give them their old stuff back
+			local inv = InventoryCopies[user]
+			ItemService:TransferMultipleItemsToUsersInventory(user, inv)
+		end
+
+		self.Completed = false
+
+		warn("Failed with user " .. FailedUser.Player.Name)
+
+		self:Cancel(FailedUser)
+		return
 	end
 
 	--Give items
 	for user, inv in InventoryCopies do
-		ItemService:TransferMultipleItemsToUsersInventory(user, inv)
+		local to = if user == self.UserA then self.UserB else self.UserA
+		ItemService:TransferMultipleItemsToUsersInventory(to, inv)
 	end
 
 	--Save trade in logs on both users. (In a compressed format so it doesnt take up much space)
@@ -208,6 +238,8 @@ function Trade:Complete()
 		self.Inventories[self.UserA],
 		self.Inventories[self.UserB]
 	)
+
+	warn("Fully completed trade")
 
 	--Destroy trade
 	self:Destroy()
@@ -245,12 +277,19 @@ function Trade:AddItem(user, itemId)
 	local ItemService = knit.GetService("ItemService")
 	local TradingService = knit.GetService("TradingService")
 
+	if not TradingService:ValidateItemForTrade(user, itemId) then
+		warn("Invalid")
+		return
+	end
+
 	--Check if item can be added
 	if not ItemService:GetUsersItemFromId(user, itemId) then
+		warn("Cannot be added because not in inv")
 		return
 	end
 
 	if self:GetItem(itemId) then
+		warn("Item already added")
 		return
 	end
 
@@ -262,8 +301,9 @@ function Trade:AddItem(user, itemId)
 
 	for _, u in { self.UserA, self.UserB } do
 		TradingService.Client.CurrentTrade:SetFor(u.Player, {
-			InventoryA = self.Inventories[self.UserA],
-			InventoryB = self.Inventories[self.UserB],
+			OtherPlayer = if u == self.UserA then self.UserB.Player.UserId else self.UserA.Player.UserId,
+			LocalInventory = self.Inventories[u],
+			InventoryB = if self.UserA == u then self.Inventories[self.UserB] else self.Inventories[self.UserA],
 		})
 	end
 end
@@ -284,8 +324,9 @@ function Trade:RemoveItem(user, itemId)
 
 	for _, u in { self.UserA, self.UserB } do
 		TradingService.Client.CurrentTrade:SetFor(u.Player, {
-			InventoryA = self.Inventories[self.UserA],
-			InventoryB = self.Inventories[self.UserB],
+			OtherPlayer = if u == self.UserA then self.UserB.Player.UserId else self.UserA.Player.UserId,
+			LocalInventory = self.Inventories[u],
+			InventoryB = if self.UserA == u then self.Inventories[self.UserB] else self.Inventories[self.UserA],
 		})
 	end
 end
@@ -313,6 +354,8 @@ function Trade:Cancel(user)
 	end
 	self.Cancelled = true
 
+	warn(user.Player.Name .. " cancelled the trade!")
+
 	--Tell other player user cancelled
 
 	--Cancels trade and destroys it.
@@ -329,6 +372,9 @@ function Trade:Destroy()
 	local TradingService = knit.GetService("TradingService")
 	for _, user in { self.UserA, self.UserB } do
 		TradingService.Client.TradeId:SetFor(user.Player, nil)
+		TradingService.Client.CurrentTrade:SetFor(user.Player, {})
+		TradingService.Client.TradeStatus:SetFor(user.Player, {})
+		TradingService.Client.OtherInventory:SetFor(user.Player, {})
 	end
 
 	--Unregister trade

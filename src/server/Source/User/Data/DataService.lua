@@ -28,6 +28,14 @@ local DataStoreName = "PlayerData-Testing"
 local PlayerProfileStore = profileservice.GetProfileStore(DataStoreName, profileStoreTemplate)
 local LoadedPlayerProfiles = {}
 
+function DataService:GetDataStoreName()
+	return DataStoreName
+end
+
+function DataService:GetPlayersKey(userid)
+	return KeyPrefix .. userid
+end
+
 function DataService:RequestData(player: Player)
 	return promise.new(function(resolve, reject)
 		--Check if data is already loaded
@@ -35,7 +43,7 @@ function DataService:RequestData(player: Player)
 			resolve(LoadedPlayerProfiles[player.UserId])
 		end
 
-		local profile = PlayerProfileStore:LoadProfileAsync(KeyPrefix .. player.UserId)
+		local profile = PlayerProfileStore:LoadProfileAsync(DataService:GetPlayersKey(player.UserId))
 		if profile ~= nil then
 			profile:AddUserId(player.UserId)
 			profile:Reconcile()
