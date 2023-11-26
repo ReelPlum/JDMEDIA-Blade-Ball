@@ -81,10 +81,6 @@ function User:LoadData()
 			for _, item in GeneralSettings.User.StartItems do
 				ItemService:GiveItemToInventory(inventory, item, 1, {
 					[MetadataTypes.Types.Untradeable] = true,
-					[MetadataTypes.Types.Enchant] = {
-						"Jump",
-						1,
-					},
 				})
 			end
 

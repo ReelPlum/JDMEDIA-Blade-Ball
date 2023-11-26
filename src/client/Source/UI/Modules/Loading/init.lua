@@ -74,16 +74,16 @@ function Loading:StartAnimation()
 	self.UI.Frame.JDGamesLogo.Position = UDim2.new(0.5, 0, 0.5, 0)
 	self.UI.Frame.JDGamesLogo.Size = UDim2.new(0, 0, 0, 0)
 
-	task.wait(2)
-
 	ContentProvider:PreloadAsync({ self.UI.Frame.JDGamesLogo, ReplicatedStorage.Assets.Sounds.IntroSound })
+
+	task.wait(2)
 
 	--Launch animation
 	self.UI.Frame.JDGamesLogo:TweenSize(UDim2.new(0.3, 0, 1, 0), "Out", "Back", 0.4, true)
 	ReplicatedStorage.Assets.Sounds.IntroSound:Play()
 
 	ReplicatedStorage.Assets.Sounds.IntroSound.Ended:Wait()
-	self.UI.Frame.JDGamesLogo:TweenPosition(UDim2.new(0.5, 0, 0.4, 0), "Out", "Quint", 0.5, true)
+	self.UI.Frame.JDGamesLogo:TweenPosition(UDim2.new(0.5, 0, 0.4, -10), "Out", "Quint", 0.5, true)
 
 	--Waiting animation
 	self.UI.Frame.Bar.Frame.Size = UDim2.new(0, 0, 1, 0)

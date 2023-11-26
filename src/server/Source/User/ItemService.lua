@@ -120,13 +120,8 @@ function ItemService:GiveItemToInventory(inventory, item, quantity, metadata)
 	return inventory
 end
 
-function ItemService:TakeItemFromInventory(inventory, item)
-	if not ItemService:InventoryHasItem(inventory) then
-		return nil
-	end
-
-	local id = ItemService:GetOneItemFromInventory(inventory, item)
-	inventory[id] = nil
+function ItemService:TakeItemFromInventory(inventory, itemId)
+	inventory[itemId] = nil
 	return inventory
 end
 
@@ -311,7 +306,7 @@ function ItemService:GiveUserItem(user, item, quantity, metadata)
 	ItemService:SyncInventory(user)
 end
 
-function ItemService:TakeItemFromUser(user, item)
+function ItemService:TakeItemFromUser(user, itemId)
 	user:WaitForDataLoaded()
 
 	if user.Locked then
@@ -319,7 +314,7 @@ function ItemService:TakeItemFromUser(user, item)
 	end
 
 	local inventory = ItemService:GetUsersInventory(user)
-	ItemService:TakeItemFromInventory(inventory, item)
+	ItemService:TakeItemFromInventory(inventory, itemId)
 
 	ItemService:SaveInventory(user, inventory)
 	ItemService:SyncInventory(user)

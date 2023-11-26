@@ -80,6 +80,19 @@ return {
 					}, --The item which should be given, --The item which should be given
 				},
 				{
+					Type = "Item",
+					Weight = 1000, --The higher the weight compared to others the higher the chance is of getting the item.
+					Item = {
+						Item = "EnchantmentBook",
+						Metadata = {
+							[MetadataTypes.Types.Enchant] = {
+								"FakeBall",
+								1,
+							},
+						},
+					}, --The item which should be given, --The item which should be given
+				},
+				{
 					Type = "Currency",
 					Weight = 10,
 					Currency = "Cash",

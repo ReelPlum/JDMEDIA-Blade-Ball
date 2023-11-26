@@ -23,6 +23,7 @@ local CacheController = knit.CreateController({
 		PlayersLevelChanged = signal.new(),
 		TradeRequestRecieved = signal.new(),
 		GameStreaksChanged = signal.new(),
+		RandomEnchantChanged = signal.new(),
 	},
 	Cache = {},
 })
@@ -35,6 +36,7 @@ function CacheController:KnitStart()
 	local ExperienceService = knit.GetService("ExperienceService")
 	local TradingService = knit.GetService("TradingService")
 	local GameStreakService = knit.GetService("GameStreakService")
+	local EnchantingService = knit.GetService("EnchantingService")
 
 	UserTagService.UserTags:Observe(function(tags)
 		warn(tags)
@@ -89,6 +91,11 @@ function CacheController:KnitStart()
 	GameStreakService.Streaks:Observe(function(streaks)
 		CacheController.Cache.GameStreaks = streaks
 		CacheController.Signals.GameStreaksChanged:Fire()
+	end)
+
+	EnchantingService.RandomEnchant:Observe(function(enchant)
+		CacheController.Cache.RandomEnchant = enchant
+		CacheController.Signals.RandomEnchantChanged:Fire()
 	end)
 end
 

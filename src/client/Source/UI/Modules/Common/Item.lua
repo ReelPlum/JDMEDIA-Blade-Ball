@@ -20,6 +20,7 @@ function Item.new(UI, data, clicked, tooltip)
 	local self = setmetatable({}, Item)
 
 	self.Janitor = janitor.new()
+	self.ItemJanitor = self.Janitor:Add(janitor.new())
 
 	self.UI = self.Janitor:Add(UI:Clone())
 	self.Clicked = clicked
@@ -67,6 +68,8 @@ function Item:Update(information)
 	if not information then
 		return
 	end
+
+	self.ItemJanitor:Cleanup()
 
 	local index = self.ToolTip:RemoveActor(self.ToolTipData)
 
@@ -124,7 +127,7 @@ function Item:Update(information)
 	--self.UI:WaitForChild("ItemImage").Image = itemData.Image
 	self.UI.ItemName.Text = itemData.DisplayName
 	self.UI.ItemImage.Image = itemData.Image
-	self.Janitor:Add(rarityData.Effect(rarityData, self.UI))
+	self.ItemJanitor:Add(rarityData.Effect(rarityData, self.UI))
 end
 
 function Item:Destroy()

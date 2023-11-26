@@ -88,4 +88,17 @@ return {
 
 		Model = ReplicatedStorage.Assets.Models.Balls:WaitForChild("DefaultBall"),
 	},
+
+	["EnchantmentBook"] = {
+		DisplayName = "Enchantment book",
+		ItemType = "Book",
+		Rarity = "Common",
+		Season = "Test",
+
+		Image = "",
+
+		Tags = {
+			"Test", --Used to describe item. Can be used to filter in items etc. at a later data
+		},
+	},
 }

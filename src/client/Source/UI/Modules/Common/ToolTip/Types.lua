@@ -12,6 +12,8 @@ local MetadataTypes = require(ReplicatedStorage.Data.MetadataTypes)
 local EnchantsData = require(ReplicatedStorage.Data.EnchantsData)
 local IntToRomanNumerals = require(ReplicatedStorage.Common.IntToRomanNumerals)
 
+local MAXWIDTH = 1000
+
 return {
 	["Header"] = function(ToolTip, data, priority)
 		--Return a text label
@@ -27,7 +29,7 @@ return {
 		params.Text = label.Text
 		params.Font = label.FontFace
 		params.Size = 20
-		params.Width = 100
+		params.Width = MAXWIDTH
 
 		local size = TextService:GetTextBoundsAsync(params)
 		--local size = TextService:GetTextSize(data.Text, 20, Enum.Font.SourceSans, Vector2.new(100, 1000))
@@ -56,7 +58,7 @@ return {
 		params.Text = label.Text
 		params.Font = label.FontFace
 		params.Size = 14
-		params.Width = 100
+		params.Width = MAXWIDTH
 
 		local size = TextService:GetTextBoundsAsync(params)
 		--local size = TextService:GetTextSize(data.Text, 20, Enum.Font.SourceSans, Vector2.new(100, 1000))
@@ -81,7 +83,7 @@ return {
 		params.Text = label.Text
 		params.Font = label.FontFace
 		params.Size = 10
-		params.Width = 100
+		params.Width = MAXWIDTH
 
 		local size = TextService:GetTextBoundsAsync(params)
 		--local size = TextService:GetTextSize(data.Text, 20, Enum.Font.SourceSans, Vector2.new(100, 1000))
@@ -117,7 +119,7 @@ return {
 		params.Text = label.ContentText
 		params.Font = label.FontFace
 		params.Size = label.TextSize
-		params.Width = 100
+		params.Width = MAXWIDTH
 
 		local size = TextService:GetTextBoundsAsync(params)
 		--local size = TextService:GetTextSize(data.Text, 20, Enum.Font.SourceSans, Vector2.new(100, 1000))

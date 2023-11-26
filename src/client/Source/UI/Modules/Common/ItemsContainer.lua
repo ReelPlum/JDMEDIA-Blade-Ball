@@ -61,6 +61,8 @@ function ItemsContainer:Update(items)
 	--Update with new items
 	local ItemController = knit.GetController("ItemController")
 
+	self.Items = items
+
 	--Dont stack items. Create all items.
 	for id, data in items do
 		--Create UI
@@ -78,7 +80,7 @@ function ItemsContainer:Update(items)
 		end
 
 		if self.Check then
-			if not self.Check(data) then
+			if not self.Check(id, data) then
 				if item then
 					item:Destroy()
 					self.CreatedItems[id] = nil

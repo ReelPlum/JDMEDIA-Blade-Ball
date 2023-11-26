@@ -16,6 +16,7 @@ return {
 	Inventory = nil, --Users inventory with all their items
 	Equipped = {}, --Users equipped items
 
+	RandomEnchant = nil,
 	LeaderboardRewards = {},
 
 	Moderation = {

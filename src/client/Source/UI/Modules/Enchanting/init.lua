@@ -4,8 +4,8 @@ init
 Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 ]]
 
-local ReplicatedStorage = game:GetService('ReplicatedStorage')
-local Players = game:GetService('Players')
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
 
 local LocalPlayer = Players.LocalPlayer
 
@@ -20,315 +20,318 @@ local ToolTip = require(script.Parent.Common.ToolTip)
 local MetadataTypes = require(ReplicatedStorage.Data.MetadataTypes)
 
 local Enchanting = {}
-Enchanting.ClassName = 'Enchanting'
+Enchanting.ClassName = "Enchanting"
 Enchanting.__index = Enchanting
 
 function Enchanting.new(uiTemplate)
-    local self = setmetatable({}, Enchanting)
-    
-    self.Janitor = janitor.new()
-    
-    self.UITemplate = uiTemplate
+	local self = setmetatable({}, Enchanting)
 
-    self.SelectedBook = nil
-    self.SelectedItem = nil
+	self.Janitor = janitor.new()
 
-    self.Signals = {
-        Destroying = self.Janitor:Add(signal.new()),
-    }
-    
-    
-    return self
+	self.UITemplate = uiTemplate
+
+	self.SelectedBook = nil
+	self.SelectedItem = nil
+
+	self.Signals = {
+		Destroying = self.Janitor:Add(signal.new()),
+	}
+
+	self:Init()
+
+	return self
 end
 
 function Enchanting:Init()
-    self.UI = self.Janitor:Add(self.UITemplate:Clone())
-    self.UI.Parent = LocalPlayer:WaitForChild("PlayerGui")
+	self.UI = self.Janitor:Add(self.UITemplate:Clone())
+	self.UI.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
-    self.ToolTip = ToolTip.new(self.UI)
+	self.ToolTip = ToolTip.new(self.UI)
 
-    --Enchants item UI
-    self.CombinedBookItemDisplay = self.Janitor:Add(Item.new(ReplicatedStorage.Assets.UI.Item, nil, function()
-        --Unselect
-        self:UnselectItem(self.SelectedBook)
-    end, self.ToolTip))
-    --Parent, size and position
+	--Enchants item UI
+	self.CombinedBookItemDisplay = self.Janitor:Add(Item.new(ReplicatedStorage.Assets.UI.Item, nil, function()
+		--Unselect
+		self:UnselectItem(self.SelectedBook)
+	end, self.ToolTip))
+	--Parent, size and position
+	self.CombinedBookItemDisplay.UI.Parent = self.UI.Frame.Frame.CombineEnchants.Book
+	self.CombinedBookItemDisplay.UI.Size = UDim2.new(0.9, 0, 0.9, 0)
+	self.CombinedBookItemDisplay.UI.AnchorPoint = Vector2.new(0.5, 0.5)
+	self.CombinedBookItemDisplay.UI.Position = UDim2.new(0.5, 0, 0.5, 0)
 
-    self.CombinedKnifeItemDisplay = self.Janitor:Add(Item.new(ReplicatedStorage.Assets.UI.Item, nil, function()
-        self:UnselectItem(self.SelectedKnife)
-    end, self.ToolTip))
-    --Parent, size and position
+	self.CombinedKnifeItemDisplay = self.Janitor:Add(Item.new(ReplicatedStorage.Assets.UI.Item, nil, function()
+		self:UnselectItem(self.SelectedKnife)
+	end, self.ToolTip))
+	--Parent, size and position
+	self.CombinedKnifeItemDisplay.UI.Parent = self.UI.Frame.Frame.CombineEnchants.Item
+	self.CombinedKnifeItemDisplay.UI.Size = UDim2.new(0.9, 0, 0.9, 0)
+	self.CombinedKnifeItemDisplay.UI.AnchorPoint = Vector2.new(0.5, 0.5)
+	self.CombinedKnifeItemDisplay.UI.Position = UDim2.new(0.5, 0, 0.5, 0)
 
-    self.RandomKnifeItemDisplay = self.Janitor:Add(Item.new(ReplicatedStorage.Assets.UI.Item, nil, function()
-        self:UnselectItem(self.SelectedKnife)
-    end, self.ToolTip))
-    --Parent, size and position
+	self.RandomKnifeItemDisplay = self.Janitor:Add(Item.new(ReplicatedStorage.Assets.UI.Item, nil, function()
+		self:UnselectItem(self.SelectedKnife)
+	end, self.ToolTip))
+	--Parent, size and position
+	self.RandomKnifeItemDisplay.UI.Parent = self.UI.Frame.Frame.Enchant.Item
+	self.RandomKnifeItemDisplay.UI.Size = UDim2.new(0.9, 0, 0.9, 0)
+	self.RandomKnifeItemDisplay.UI.AnchorPoint = Vector2.new(0.5, 0.5)
+	self.RandomKnifeItemDisplay.UI.Position = UDim2.new(0.5, 0, 0.5, 0)
 
-    self.CraftedCombinedItem = self.Janitor:Add(Item.new(ReplicatedStorage.Assets.UI.Item, nil, function()
-        self:UnselectItem(self.SelectedKnife)
-    end, self.ToolTip))
-    --Parent, size and position
+	self.CraftedCombinedItem = self.Janitor:Add(Item.new(ReplicatedStorage.Assets.UI.Item, nil, function()
+		self:UnselectItem(self.SelectedKnife)
+	end, self.ToolTip))
+	--Parent, size and position
+	self.CraftedCombinedItem.UI.Parent = self.UI.Frame.Frame.CombineEnchants.CombinedItem
+	self.CraftedCombinedItem.UI.Size = UDim2.new(0.9, 0, 0.9, 0)
+	self.CraftedCombinedItem.UI.AnchorPoint = Vector2.new(0.5, 0.5)
+	self.CraftedCombinedItem.UI.Position = UDim2.new(0.5, 0, 0.5, 0)
 
-    self.CraftedRandomItem = self.Janitor:Add(Item.new(ReplicatedStorage.Assets.UI.Item, nil, function()
-        self:UnselectItem(self.SelectedKnife)
-    end, self.ToolTip))
-    --Parent, size and position
+	self.CraftedRandomItem = self.Janitor:Add(Item.new(ReplicatedStorage.Assets.UI.Item, nil, function()
+		self:UnselectItem(self.SelectedKnife)
+	end, self.ToolTip))
+	--Parent, size and position
+	self.CraftedRandomItem.UI.Parent = self.UI.Frame.Frame.Enchant.CombinedItem
+	self.CraftedRandomItem.UI.Size = UDim2.new(0.9, 0, 0.9, 0)
+	self.CraftedRandomItem.UI.AnchorPoint = Vector2.new(0.5, 0.5)
+	self.CraftedRandomItem.UI.Position = UDim2.new(0.5, 0, 0.5, 0)
 
-    --Setup inventory
-    local ItemController = knit.GetController("ItemController")
+	--Setup inventory
+	local ItemController = knit.GetController("ItemController")
 
-    self.Pages = {
-        ["Combine"] = {ui = self.UI.Frame.Frame.CombineEnchants, itemTypes = {"Book", "Knife"}},
-        ["Random"] = {ui = self.UI.Frame.Frame.Enchant, itemTypes = {"Knife"}},
-        ["Default"] = {ui = self.UI.Frame.Frame.NoSelection, itemTypes = {"Knife", "Book"}}
-    }
-    
-    self.ItemContainer = self.Janitor:Add(ItemsContainer.new(self.UI.Frame.Frame.Inventory.ScrollingFrame, ItemController:GetInventory(), function(id)
-        --Check if book or knife.
-        self:SelectItem(id)
-    end,{self.Pages.Default.itemTypes}, function(data)
-        local itemData = ItemController:GetDataForItem(data.Item)
+	self.Pages = {
+		["Combine"] = { ui = self.UI.Frame.Frame.CombineEnchants, itemTypes = { "Book", "Knife" } },
+		["Random"] = { ui = self.UI.Frame.Frame.Enchant, itemTypes = { "Knife" } },
+		["Default"] = { ui = self.UI.Frame.Frame.NoSelection, itemTypes = { "Knife", "Book" } },
+	}
 
-        if not data.Metadata then
-            return false
-        end
+	self.ItemContainer = self.Janitor:Add(
+		ItemsContainer.new(self.UI.Frame.Frame.Inventory.ScrollingFrame, ItemController:GetInventory(), function(id)
+			--Check if book or knife.
+			self:SelectItem(id)
+		end, { self.Pages.Default.itemTypes }, function(id, data)
+			local itemData = ItemController:GetItemData(data.Item)
 
-        if data.Metadata[MetadataTypes.Types.Enchant] and itemData.ItemType == "Book" then
-            return true
-        end
+			if id == self.SelectedKnife or id == self.SelectedBook then
+				return false
+			end
 
-        if not data.Metadata[MetadataTypes.Types.Enchant] and itemData.ItemType == "Knife" then
-            return true
-        end
+			if not data.Metadata then
+				return false
+			end
 
-        return false
+			if data.Metadata[MetadataTypes.Types.Enchant] and itemData.ItemType == "Book" then
+				return true
+			end
 
+			if not data.Metadata[MetadataTypes.Types.Enchant] and itemData.ItemType == "Knife" then
+				return true
+			end
 
-    end))
+			return false
+		end)
+	)
 
-    self.Janitor:Add(ItemController.Signals.InventoryChanged:Connect(function()
-        self.ItemContainer:Update(ItemController:GetInventory())
-        --self:Update()
-    end))
+	self.Janitor:Add(ItemController.Signals.InventoryChanged:Connect(function()
+		self.ItemContainer:Update(ItemController:GetInventory())
+		self:Update()
+	end))
 
-    --Buttons
-    local EnchantingService = knit.GetService("EnchantingService")
+	--Buttons
+	local EnchantingService = knit.GetService("EnchantingService")
 
-    self.Janitor:Add(self.Pages.Combine.Combine.MouseButton1Click:Connect(function()
-        --Combine
-    end))
+	self.Janitor:Add(self.Pages.Combine.ui.Combine.MouseButton1Click:Connect(function()
+		--Combine
+		EnchantingService:ApplyBookToItem(self.SelectedBook, self.SelectedKnife)
 
-    self.Janitor:Add(self.Pages.Random.Enchant.MouseButton1Click:Connect(function()
-        
-    end))
+		self:UnselectItem(self.SelectedKnife)
+		self:UnselectItem(self.SelectedBook)
+	end))
 
-    self.Janitor:Add(self.Pages.Combine.Continue.MouseButton1Click:Connect(function()
-        
-    end))
+	self.Janitor:Add(self.Pages.Random.ui.Enchant.MouseButton1Click:Connect(function()
+		EnchantingService:RandomlyEnchantItem(self.SelectedKnife)
+		self:UnselectItem(self.SelectedKnife)
+	end))
 
-    self.Janitor:Add(self.Pages.Random.Continue.MouseButton1Click:Connect(function()
-        
-    end))
+	self.Janitor:Add(self.UI.Frame.Topbar.Close.MouseButton1Click:Connect(function()
+		self:SetVisible(false)
+	end))
 
-    self:ChangePage("Default")
+	-- self.Janitor:Add(self.Pages.Combine.ui.Continue.MouseButton1Click:Connect(function() end))
+
+	-- self.Janitor:Add(self.Pages.Random.ui.Continue.MouseButton1Click:Connect(function() end))
+
+	self:ChangePage("Default")
+	self:SetVisible(true)
 end
 
 function Enchanting:ChangePage(page)
-    for name, data in self.Pages do
-        if string.lower(name) == string.lower(page) then
-            data.ui.Visible = true
-            self.ItemContainer:UpdateItemTypes(data.itemTypes)
+	local ItemController = knit.GetController("ItemController")
 
-            continue
-        end
-        data.ui.Visible = false
-    end
+	self.CurrentPage = page
+	for name, data in self.Pages do
+		if string.lower(name) == string.lower(page) then
+			data.ui.Visible = true
+			self.ItemContainer:UpdateItemTypes(data.itemTypes)
+			--self.ItemContainer:Update(ItemController:GetInventory())
 
-    self:Update()
-    self.CurrentPage = page
+			continue
+		end
+		data.ui.Visible = false
+	end
+
+	self:Update()
 end
 
 function Enchanting:Update()
-    local ItemController = knit.GetController("ItemController")
+	local ItemController = knit.GetController("ItemController")
+	local CacheController = knit.GetController("CacheController")
 
-    --Check if selected items are still in player's inventory
-    if not ItemController:GetItemFromId(self.SelectedBook) and self.SelectedBook ~= nil then
-        self:UnselectItem(self.SelectedBook)
-    end
-    if not ItemController:GetItemFromId(self.SelectedKnife) and self.SelectedKnife ~= nil then
-        self:UnselectItem(self.SelectedKnife)
-    end
+	--Check if selected items are still in player's inventory
+	if not ItemController:GetItemFromId(self.SelectedBook) and self.SelectedBook ~= nil then
+		self:UnselectItem(self.SelectedBook)
+	end
+	if not ItemController:GetItemFromId(self.SelectedKnife) and self.SelectedKnife ~= nil then
+		self:UnselectItem(self.SelectedKnife)
+	end
 
-    local SelectedBookData = ItemController:GetItemFromId(self.SelectedBook)
-    local SelectedKnifeData = ItemController:GetItemFromId(self.SelectedKnife)
+	local SelectedBookData = ItemController:GetItemFromId(self.SelectedBook)
+	local SelectedKnifeData = ItemController:GetItemFromId(self.SelectedKnife)
 
-    self.CraftedCombinedItem.UI.Visible = false
-    self.CraftedRandomItem.UI.Visible = true
+	self.CraftedCombinedItem.UI.Visible = false
+	self.CraftedRandomItem.UI.Visible = true
 
-    --Update items displayed on positions
-    if not self.SelectedBook then
-        --Hide selected book displays
-        self.CombinedBookItemDisplay:Update(SelectedBookData)
-        self.CombinedBookItemDisplay.UI.Visible = false
-    else
-        --Show selected book displays
-        self.CombinedBookItemDisplay:Update(SelectedBookData)
-        self.CombinedBookItemDisplay.UI.Visible = true
-    end
+	--Update items displayed on positions
+	if not self.SelectedBook then
+		--Hide selected book displays
+		self.CombinedBookItemDisplay:Update(SelectedBookData)
+		self.CombinedBookItemDisplay.UI.Visible = false
+	else
+		--Show selected book displays
+		self.CombinedBookItemDisplay:Update(SelectedBookData)
+		self.CombinedBookItemDisplay.UI.Visible = true
+	end
 
-    if not self.SelectedKnife then
-        --Hide selected knife displays
-        self.RandomKnifeItemDisplay:Update(SelectedKnifeData)
-        self.CombinedKnifeItemDisplay:Update(SelectedKnifeData)
-        self.RandomKnifeItemDisplay.UI.Visible = false
-        self.CombinedKnifeItemDisplay.UI.Visible = false
-    else
-        --Show selected knife displays
-        self.RandomKnifeItemDisplay:Update(SelectedKnifeData)
-        self.CombinedKnifeItemDisplay:Update(SelectedKnifeData)
-        self.RandomKnifeItemDisplay.UI.Visible = true
-        self.CombinedKnifeItemDisplay.UI.Visible = true
-    end
-end
+	if not self.SelectedKnife then
+		--Hide selected knife displays
+		self.RandomKnifeItemDisplay:Update(SelectedKnifeData)
+		self.CombinedKnifeItemDisplay:Update(SelectedKnifeData)
+		self.RandomKnifeItemDisplay.UI.Visible = false
+		self.CombinedKnifeItemDisplay.UI.Visible = false
+	else
+		--Show selected knife displays
+		self.RandomKnifeItemDisplay:Update(SelectedKnifeData)
+		self.CombinedKnifeItemDisplay:Update(SelectedKnifeData)
+		self.RandomKnifeItemDisplay.UI.Visible = true
+		self.CombinedKnifeItemDisplay.UI.Visible = true
+	end
 
-function Enchanting:Combine(newItemId)
-    local ItemController = knit.GetController("ItemController")
+	if self.CurrentPage == "Default" then
+		return
+	end
 
-    --Remove selected item displays
-    local SelectedBookData = ItemController:GetItemFromId(self.SelectedBook)
-    local SelectedKnifeData = ItemController:GetItemFromId(self.SelectedKnife)
+	if self.CurrentPage == "Combine" and (SelectedKnifeData and SelectedBookData) then
+		--Get combined price
 
-    self.RandomKnifeItemDisplay:Update(SelectedKnifeData)
-    self.CombinedKnifeItemDisplay:Update(SelectedKnifeData)
-    self.RandomKnifeItemDisplay.UI.Visible = false
-    self.CombinedKnifeItemDisplay.UI.Visible = false
+		--Position enchanted item at other end
+		local data = table.clone(SelectedKnifeData)
+		data.Metadata = table.clone(SelectedKnifeData.Metadata)
+		data.Metadata[MetadataTypes.Types.Enchant] = SelectedBookData.Metadata[MetadataTypes.Types.Enchant]
 
-    self.CombinedBookItemDisplay:Update(SelectedBookData)
-    self.CombinedBookItemDisplay.UI.Visible = false
+		self.CraftedCombinedItem:Update(data)
+		self.CraftedCombinedItem.UI.Visible = true
+	elseif self.CurrentPage == "Random" and SelectedKnifeData then
+		--Get random enchantment price
 
-    --Add new combined item on combine slot
-    local data = ItemController:GetItemFromId(newItemId)
-    self.CraftedCombinedItem:Update(data)
-    self.CraftedCombinedItem.UI.Visible = true
+		--Position enchanted item at other end
+		local data = table.clone(SelectedKnifeData)
+		data.Metadata = table.clone(SelectedKnifeData.Metadata)
+		data.Metadata[MetadataTypes.Types.Enchant] = {
+			CacheController.Cache.RandomEnchant,
+			1,
+		}
 
-    --Show continue button
-    self.Pages.Combine.Combine.Visible = false
-    self.Pages.Combine.Continue.Visible = true
-end
+		print(SelectedKnifeData)
 
-function Enchanting:RandomEnchant(newItemId)
-    local ItemController = knit.GetController("ItemController")
-    
-    --Remove selected items
-    local SelectedBookData = ItemController:GetItemFromId(self.SelectedBook)
-    local SelectedKnifeData = ItemController:GetItemFromId(self.SelectedKnife)
-
-    self.RandomKnifeItemDisplay:Update(SelectedKnifeData)
-    self.CombinedKnifeItemDisplay:Update(SelectedKnifeData)
-    self.RandomKnifeItemDisplay.UI.Visible = false
-    self.CombinedKnifeItemDisplay.UI.Visible = false
-
-    self.CombinedBookItemDisplay:Update(SelectedBookData)
-    self.CombinedBookItemDisplay.UI.Visible = false
-
-    --Add new combined item on combine slot
-    local data = ItemController:GetItemFromId(newItemId)
-    self.CraftedRandomItem:Update(data)
-    self.CraftedRandomItem.Visible = true
-
-    --Show continue button
-    self.Pages["Random"].Continue.Visible = true
-    self.Pages.Random.Enchant.Visible = false
+		self.CraftedRandomItem:Update(data)
+		self.CraftedRandomItem.UI.Visible = true
+	end
 end
 
 function Enchanting:SelectItem(id)
-    if not id then
-        return
-    end
+	if not id then
+		return
+	end
 
-    local ItemController = knit.GetController("ItemController")
-    local data = ItemController:GetItemFromId(id)
-    if not data then
-        return
-    end
+	local ItemController = knit.GetController("ItemController")
+	local data = ItemController:GetItemFromId(id)
+	if not data then
+		return
+	end
 
-    local itemData = ItemController:GetDataForItem(data.Item)
-    if not itemData then
-        return
-    end
+	local itemData = ItemController:GetItemData(data.Item)
+	if not itemData then
+		return
+	end
 
+	if itemData.ItemType == "Knife" then
+		if self.SelectedKnife then
+			return
+		end
 
-    if itemData.ItemType == "Knife" then
-        if self.SelectedKnife then
-            return
-        end
+		self.SelectedKnife = id
 
-        self.SelectedKnife = id
+		if not self.SelectedBook then
+			self:ChangePage("Random")
+			return
+		end
+		self:Update()
 
-        if not self.SelectedBook then
-            self:ChangePage("Random")
-        end
+		return
+	end
 
-        return
-    end
+	if itemData.ItemType == "Book" then
+		if self.SelectedBook then
+			return
+		end
 
-    if itemData.ItemType == "Book" then
-        if self.SelectedBook then
-            return
-        end
+		self.SelectedBook = id
 
-        self.SelectedBook = id
-
-
-        self:ChangePage("Combine")
-    end
+		self:ChangePage("Combine")
+	end
 end
 
 function Enchanting:UnselectItem(id)
-    local ItemController = knit.GetController("ItemController")
-    local data = ItemController:GetItemFromId(id)
-    if not data then
-        return
-    end
+	if self.SelectedBook == id then
+		self.SelectedBook = nil
+	elseif self.SelectedKnife == id then
+		self.SelectedKnife = nil
+	end
 
-    local itemData = ItemController:GetDataForItem(data.Item)
-    if not itemData then
-        return
-    end
-
-    --Unselect items
-    if itemData.ItemType == "Knife" and self.SelectedKnife == id then
-        --Unselect
-        self.SelectedKnife = nil
-    elseif itemData.ItemType == "Book" and self.SelectedBook == id then
-        --Unselect
-        self.SelectedBook = nil
-    end
-
-    if not self.SelectedBook and not self.SelectedKnife then
-        self:ChangePage("Default")
-    elseif self.SelectedBook and not self.SelectedKnife then
-        self:ChangePage("Combine")
-    elseif not self.SelectedBook and self.SelectedKnife then
-        self:ChangePage("Combine")
-    end
-
-    self:Update()
+	if not self.SelectedBook and not self.SelectedKnife then
+		self:ChangePage("Default")
+	elseif (self.SelectedBook and not self.SelectedKnife) or (not self.SelectedBook and self.SelectedKnife) then
+		self:ChangePage("Combine")
+	end
 end
 
 function Enchanting:SetVisible(bool)
-    if bool == nil then
-        bool = not self.Visible
-    end
+	if bool == nil then
+		bool = not self.Visible
+	end
 
-    self:Update()
-    self.Visible = bool
+	self.SelectedBook = nil
+	self.SelectedKnife = nil
+	self:ChangePage("Default")
+
+	self:Update()
+	self.Visible = bool
+	self.UI.Enabled = bool
 end
 
 function Enchanting:Destroy()
-    self.Signals.Destroying:Fire()
-    self.Janitor:Destroy()
-    self = nil
+	self.Signals.Destroying:Fire()
+	self.Janitor:Destroy()
+	self = nil
 end
 
 return Enchanting

@@ -220,8 +220,8 @@ function GameService:KnitStart()
 			lastUpdate = tick()
 			GameService.Client.Time:Set(math.floor(currentTime))
 
-			print(math.floor(currentTime))
-			print(section.Title)
+			-- print(math.floor(currentTime))
+			-- print(section.Title)
 		end
 
 		--Check if enough users
