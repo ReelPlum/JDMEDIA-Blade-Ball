@@ -42,6 +42,8 @@ function Rebirth:Init()
     --Buttons
     self.Janitor:Add(self.UI.Main.Frame.RankupButton.MouseButton1Click:Connect(function()
         --Rebirth
+        local RebirthService = knit.GetService("RebirthService")
+        RebirthService:Rebirth()
     end))
 
     self.Janitor:Add(self.UI.OnRebirth.Frame.Accept.MouseButton1Click:Connect(function()
@@ -55,6 +57,7 @@ function Rebirth:Init()
     self.Janitor:Add(RebirthService.OnRebirth:Connect(function(level)
         --User rebirthed
         --Show Rebirth rewards UI
+
 
         --Confetti
     end))

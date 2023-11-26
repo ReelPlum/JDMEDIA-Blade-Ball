@@ -17,7 +17,7 @@ local ItemsContainer = {}
 ItemsContainer.ClassName = "ItemsContainer"
 ItemsContainer.__index = ItemsContainer
 
-function ItemsContainer.new(UI, items, clicked, itemTypes)
+function ItemsContainer.new(UI, items, clicked, itemTypes, check)
 	local self = setmetatable({}, ItemsContainer)
 
 	self.Janitor = janitor.new()
@@ -27,6 +27,7 @@ function ItemsContainer.new(UI, items, clicked, itemTypes)
 	self.Clicked = clicked
 	self.ToolTip = ToolTip.new(self.UI:FindFirstAncestorWhichIsA("ScreenGui"))
 	self.ItemTypes = itemTypes
+	self.Check = check
 
 	self.CreatedItems = {}
 	self.ItemStacks = {}
@@ -38,6 +39,12 @@ function ItemsContainer.new(UI, items, clicked, itemTypes)
 	self:Init()
 
 	return self
+end
+
+function ItemsContainer:UpdateItemTypes(newItemTypes)
+	self.ItemTypes = newItemTypes
+
+	self:Update(self.Items)
 end
 
 function ItemsContainer:Init()
@@ -58,16 +65,31 @@ function ItemsContainer:Update(items)
 	for id, data in items do
 		--Create UI
 		local item = self:GetUI(id)
-		if item then
-			item:Update(data)
-			continue
-		end
 
 		if self.ItemTypes then
 			local itmData = ItemController:GetItemData(data.Item)
 			if not table.find(self.ItemTypes, itmData.ItemType) then
+				if item then
+					item:Destroy()
+					self.CreatedItems[id] = nil
+				end
 				continue
 			end
+		end
+
+		if self.Check then
+			if not self.Check(data) then
+				if item then
+					item:Destroy()
+					self.CreatedItems[id] = nil
+				end
+				continue
+			end
+		end
+
+		if item then
+			item:Update(data)
+			continue
 		end
 
 		--Create new item

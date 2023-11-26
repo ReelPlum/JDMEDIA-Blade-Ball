@@ -20,6 +20,13 @@ local RebirthService = knit.CreateService({
 	},
 })
 
+function RebirthService.Client:Rebirth(player)
+	local UserService = knit.GetService("UserService")
+	local user = UserService:WaitForUser(player)
+
+	RebirthService:Rebirth(user)
+end
+
 function RebirthService:GetUsersRebirthLevel(user)
 	local StatsService = knit.GetService("StatsService")
 
