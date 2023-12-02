@@ -14,7 +14,9 @@ local userObj = require(script.Parent.User)
 
 local UserService = knit.CreateService({
 	Name = "UserService",
-	Client = {},
+	Client = {
+		AFK = knit.CreateProperty({}),
+	},
 	Signals = {
 		UserAdded = signal.new(),
 		UserRemoving = signal.new(),
@@ -27,6 +29,14 @@ function UserService.Client:Ready(player)
 	local user = UserService:WaitForUser(player)
 
 	user.Ready = true
+end
+
+function UserService:SetUserAFK(user, bool)
+	user.AFK = bool
+
+	local AFK = UserService.Client.AFK:Get()
+	AFK[user.Player.UserId] = bool
+	UserService.Client.AFK:Set(AFK)
 end
 
 function UserService:ListenForUserLeave(user)

@@ -27,6 +27,27 @@ local ShopService = knit.CreateService({
 	Signals = {},
 })
 
+function ShopService.Client:PurchaseItem(player, id)
+	local UserService = knit.GetService("UserService")
+	local user = UserService:WaitForUser(player)
+
+	ShopService:PurchaseItem(user, id)
+end
+
+function ShopService.Client:PurchaseBundle(player, id)
+	local UserService = knit.GetService("UserService")
+	local user = UserService:WaitForUser(player)
+
+	ShopService:PurchaseBundle(user, id)
+end
+
+function ShopService.Client:PurchaseUnboxable(player, id)
+	local UserService = knit.GetService("UserService")
+	local user = UserService:WaitForUser(player)
+
+	ShopService:PurchaseUnboxable(user, id)
+end
+
 function ShopService:GetBundle(bundleId)
 	return ShopData.Bundles[bundleId]
 end

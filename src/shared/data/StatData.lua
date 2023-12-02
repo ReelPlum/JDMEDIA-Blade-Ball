@@ -7,6 +7,7 @@ Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 return {
 	["Knockouts"] = {
 		DisplayName = "Knockouts",
+		DisplayOnLeaderboard = true,
 	},
 
 	["Deflects"] = {
@@ -19,6 +20,7 @@ return {
 
 	["Wins"] = {
 		DisplayName = "Wins",
+		DisplayOnLeaderboard = true,
 	},
 
 	["Level"] = {

@@ -107,23 +107,30 @@ function LeaderboardsService:GetLeaderboardTop(leaderboard)
 		end
 
 		local items = {}
-		for _, item in range do
-			items[item.key] = item.value
+		for i, item in range do
+			items[i] = {
+				Value = item.value,
+				Key = item.key,
+			}
 		end
 
 		return items
 	elseif Type == "DataStore" then
 		--Datastore
 		local success, pages = pcall(function()
-			return datastore:GetSortedAsync(true, 50)
+			return datastore:GetSortedAsync(false, 50)
 		end)
 		if not success then
 			return warn("Something went wrong while getting top for leaderboard " .. pages)
 		end
 
 		local items = {}
-		for _, item in pages:GetCurrentPage() do
-			items[item.key] = item.value
+
+		for i, item in pages:GetCurrentPage() do
+			items[i] = {
+				Value = item.value,
+				Key = item.key,
+			}
 		end
 
 		return items
@@ -131,8 +138,11 @@ function LeaderboardsService:GetLeaderboardTop(leaderboard)
 		local top = datastore:GetTop()
 
 		local items = {}
-		for _, item in top do
-			items[item.key] = item.value
+		for i, item in top do
+			items[i] = {
+				Value = item.value,
+				Key = item.key,
+			}
 		end
 
 		return items
@@ -180,9 +190,6 @@ function LeaderboardsService:IncrementLeaderboard(leaderboard, user, increment)
 			warn("Failed to write to leaderboard " .. msg)
 		end
 	end
-
-	--Update cache
-	LeaderboardsService:SyncLeaderboard(leaderboard)
 end
 
 function LeaderboardsService:WriteToLeaderboard(leaderboard, user, value)
@@ -217,9 +224,6 @@ function LeaderboardsService:WriteToLeaderboard(leaderboard, user, value)
 		datastore:UpdateUser(user)
 		return
 	end
-
-	--Update cache
-	LeaderboardsService:SyncLeaderboard(leaderboard)
 end
 
 function LeaderboardsService:KnitStart()
@@ -255,11 +259,7 @@ function LeaderboardsService:KnitStart()
 			--Update
 			lastUpdate = tick()
 
-			for leaderboard, data in LeaderboardsData do
-				if data.Type == "ServerOnly" then
-					continue
-				end
-
+			for leaderboard, _ in LeaderboardsData do
 				LeaderboardsService:SyncLeaderboard(leaderboard)
 			end
 		end

@@ -31,17 +31,16 @@ function ExperienceService:CheckUserForRankup(user)
 		return
 	end
 
+	local CurrencyService = knit.GetService("CurrencyService")
 	if exp >= nextLvl.RequiredExperience then
 		--Rank up
-		local CurrencyService = knit.GetService("CurrencyService")
-		CurrencyService:TakeCurrency(user, "Experience", nextLvl.RequiredExperience)
-
 		local StatsService = knit.GetService("StatsService")
 		StatsService:IncrementStat(user, "Level", 1)
 
-		ExperienceService:SyncUsersLevel(user)
-
 		ExperienceService.Signals.UserLevelledUp:Fire(user)
+		CurrencyService:TakeCurrency(user, "Experience", nextLvl.RequiredExperience, true)
+		ExperienceService:SyncUsersLevel(user)
+		return
 	end
 end
 
@@ -88,6 +87,7 @@ function ExperienceService:KnitStart()
 
 	CurrencyService.Signals.UsersCurrenciesChanged:Connect(function(user, currency)
 		if currency == "Experience" then
+			print("Change!")
 			self:CheckUserForRankup(user)
 		end
 	end)
@@ -97,6 +97,7 @@ function ExperienceService:KnitStart()
 	end
 
 	UserService.Signals.UserAdded:Connect(function(user)
+		--	ExperienceService:CheckUserForRankup(user)
 		ExperienceService:SyncUsersLevel(user)
 	end)
 

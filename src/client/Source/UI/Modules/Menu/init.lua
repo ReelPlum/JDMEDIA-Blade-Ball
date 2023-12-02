@@ -72,7 +72,7 @@ function Menu:Init()
 		if not ui then
 			return
 		end
-		ui:OpenPage("Start")
+		ui:ChangePage("FrontPage")
 		ui:SetVisible(true)
 	end))
 
@@ -118,7 +118,7 @@ function Menu:Init()
 		if not ui then
 			return
 		end
-		ui:OpenPage("Coins")
+		--ui:OpenPage("Coins")
 		ui:SetVisible(true)
 	end))
 
@@ -128,7 +128,7 @@ function Menu:Init()
 		if not ui then
 			return
 		end
-		ui:OpenPage("Coins")
+		--ui:OpenPage("Coins")
 		ui:SetVisible(true)
 	end))
 

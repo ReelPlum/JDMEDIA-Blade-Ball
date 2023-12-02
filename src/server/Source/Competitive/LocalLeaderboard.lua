@@ -66,7 +66,7 @@ function LocalLeaderboard:GetTop()
 	end
 
 	table.sort(t, function(a, b)
-		return a.value < b.value
+		return a.value > b.value
 	end)
 
 	return t

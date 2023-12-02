@@ -52,6 +52,30 @@ function StatsService:SetStat(user, stat, value)
 	user.Data.Stats[stat] = value
 	StatsService.Client.Stats:SetFor(user.Player, user.Data.Stats)
 	StatsService.Signals.StatUpdated:Fire(user, stat, value - oldValue)
+
+	StatsService:UpdateLeaderstats(user)
+end
+
+function StatsService:UpdateLeaderstats(user)
+	local leaderstats = user.Player:FindFirstChild("leaderstats")
+	if not leaderstats then
+		leaderstats = Instance.new("Folder")
+		leaderstats.Name = "leaderstats"
+		leaderstats.Parent = user.Player
+	end
+
+	for stat, data in StatData do
+		if data.DisplayOnLeaderboard then
+			local val = leaderstats:FindFirstChild(stat)
+			if not val then
+				val = Instance.new("IntValue")
+				val.Name = stat
+				val.Parent = leaderstats
+			end
+
+			val.Value = StatsService:GetStat(user, stat)
+		end
+	end
 end
 
 function StatsService:KnitStart()
@@ -60,6 +84,7 @@ function StatsService:KnitStart()
 		user:WaitForDataLoaded()
 
 		StatsService.Client.Stats:SetFor(user.Player, user.Data.Stats)
+		StatsService:UpdateLeaderstats(user)
 	end)
 end
 

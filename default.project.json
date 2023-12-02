@@ -4,9 +4,6 @@
     "$className": "DataModel",
     "ReplicatedStorage": {
       "$ignoreUnknownInstances": true,
-      "Data": {
-        "$path": "src/shared/data"
-      },
       "Packages": {
         "$path": "packages"
       },

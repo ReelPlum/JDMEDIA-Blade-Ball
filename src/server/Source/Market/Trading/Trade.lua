@@ -63,9 +63,12 @@ function Trade:Init()
 	local UserService = knit.GetService("UserService")
 	local ItemService = knit.GetService("ItemService")
 	local TradingService = knit.GetService("TradingService")
+	local UserService = knit.GetService("UserService")
 
 	--Initialize trade for clients
 	for _, user in { self.UserA, self.UserB } do
+		UserService:SetUserAFK(user, true)
+
 		TradingService.Client.TradeId:SetFor(user.Player, self.Id)
 		TradingService.Client.CurrentTrade:SetFor(user.Player, {
 			OtherPlayer = if user == self.UserA then self.UserB.Player.UserId else self.UserA.Player.UserId,
@@ -370,7 +373,10 @@ function Trade:Destroy()
 
 	--Tell clients the trade is finished
 	local TradingService = knit.GetService("TradingService")
+	local UserService = knit.GetService("UserService")
+
 	for _, user in { self.UserA, self.UserB } do
+		UserService:SetUserAFK(user, false)
 		TradingService.Client.TradeId:SetFor(user.Player, nil)
 		TradingService.Client.CurrentTrade:SetFor(user.Player, {})
 		TradingService.Client.TradeStatus:SetFor(user.Player, {})

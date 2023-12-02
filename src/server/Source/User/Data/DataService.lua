@@ -12,6 +12,7 @@ local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 local profileservice = require(ReplicatedStorage.Packages.ProfileService)
 local promise = require(ReplicatedStorage.Packages.Promise)
+local rongo = require(ReplicatedStorage.Common.Rongo)
 
 local profileStoreTemplate = require(script.Parent.ProfileStoreTemplate)
 
@@ -20,6 +21,11 @@ local DataService = knit.CreateService({
 	Client = {},
 	Signals = {},
 })
+
+local app_id = "data-zobyd"
+local api_key = "LxmSpRvlpmhRfPUwQUx9JShluTiMrWKeWocNQtiyvANVMo48AovY8NocTJotHoqN"
+
+local currentRongo = rongo.new(app_id, api_key)
 
 local KeyPrefix = "Player_"
 local DataStoreName = "PlayerData-Testing"
@@ -34,6 +40,10 @@ end
 
 function DataService:GetPlayersKey(userid)
 	return KeyPrefix .. userid
+end
+
+function DataService:GetRongo()
+	return currentRongo
 end
 
 function DataService:RequestData(player: Player)

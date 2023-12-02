@@ -12,6 +12,7 @@ return {
 		ItemType = "Knife",
 		Rarity = "RainbowImmortal",
 		Season = "Test",
+		TrackCopies = true,
 
 		Image = "",
 
@@ -30,6 +31,7 @@ return {
 		ItemType = "Ability",
 		Rarity = "Common",
 		Season = "Test",
+		TrackCopies = true,
 
 		Image = "",
 
@@ -45,6 +47,7 @@ return {
 		ItemType = "Tag",
 		Rarity = "Common",
 		Season = "Test",
+		TrackCopies = true,
 
 		Image = "",
 
@@ -62,6 +65,7 @@ return {
 		ItemType = "Tag",
 		Rarity = "Common",
 		Season = "Test",
+		TrackCopies = true,
 
 		Image = "",
 
@@ -79,6 +83,7 @@ return {
 		ItemType = "Ball",
 		Rarity = "Common",
 		Season = "Test",
+		TrackCopies = true,
 
 		Image = "",
 
@@ -94,6 +99,7 @@ return {
 		ItemType = "Book",
 		Rarity = "Common",
 		Season = "Test",
+		TrackCopies = false,
 
 		Image = "",
 

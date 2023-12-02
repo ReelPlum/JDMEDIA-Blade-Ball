@@ -181,7 +181,16 @@ function EnchantingService:ApplyEnchantmentBookOnUsersItem(user, itemId, bookId)
 		return
 	end
 
-	print(data)
+	local EnchantData = EnchantingService:GetEnchantData(enchant)
+	if not EnchantData then
+		return
+	end
+
+	--Check for price
+	local CurrencyService = knit.GetService("CurrencyService")
+	if not CurrencyService:UserHasEnough(user, EnchantData.Price.Currency, EnchantData.Price.Amount) then
+		return
+	end
 
 	local success = EnchantingService:ApplyEnchantOnItem(data, enchant, level)
 	if success then
@@ -189,6 +198,9 @@ function EnchantingService:ApplyEnchantmentBookOnUsersItem(user, itemId, bookId)
 		warn("Taking away book!")
 		ItemService:UpdateId(user, itemId, success)
 		ItemService:TakeItemFromUser(user, bookId)
+
+		CurrencyService:TakeCurrency(user, EnchantData.Price.Currency, EnchantData.Price.Amount)
+
 		return true
 	end
 

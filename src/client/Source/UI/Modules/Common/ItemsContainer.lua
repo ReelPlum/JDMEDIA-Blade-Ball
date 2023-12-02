@@ -51,7 +51,7 @@ function ItemsContainer:Init()
 	--Init container
 	self:Update(self.Items)
 
-	local list = self.UI:FindFirstChildOfClass("UIListLayout")
+	local list = self.UI:FindFirstChildWhichIsA("UIGridStyleLayout")
 	self.Janitor:Add(list:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 		self.UI.CanvasSize = UDim2.new(0, 0, 0, list.AbsoluteContentSize.Y + 10)
 	end))
@@ -111,7 +111,7 @@ function ItemsContainer:Update(items)
 	end
 
 	--Update scrolling
-	local list = self.UI:FindFirstChildOfClass("UIListLayout")
+	local list = self.UI:FindFirstChildWhichIsA("UIGridStyleLayout")
 	self.UI.CanvasSize = UDim2.new(0, 0, 0, list.AbsoluteContentSize.Y + 10)
 end
 

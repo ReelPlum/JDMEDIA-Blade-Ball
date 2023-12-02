@@ -50,12 +50,11 @@ function RebirthService:Rebirth(user)
 	local ShopService = knit.GetService("ShopService")
 	ShopService:Unbox(user, "Rebirth")
 
-	RebirthService.Client.OnRebirt:Fire(user.Player, RebirthService:GetUsersRebirthLevel(user))
+	RebirthService.Client.OnRebirth:Fire(user.Player, RebirthService:GetUsersRebirthLevel(user))
 	RebirthService.Signals.UserRebirthed:Fire(user, RebirthService:GetUsersRebirthLevel(user))
 end
 
-function RebirthService:KnitStart()
-end
+function RebirthService:KnitStart() end
 
 function RebirthService:KnitInit() end
 

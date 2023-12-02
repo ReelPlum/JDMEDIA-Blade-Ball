@@ -8,6 +8,10 @@ return {
 	["FakeBall"] = {
 		DisplayName = "FAKE BALL",
 		Weight = 10, --Weight used for enchanting
+		Price = {
+			Currency = "Cash",
+			Amount = 100,
+		},
 		SupportedItemTypes = {
 			"Knife",
 		},
@@ -25,6 +29,10 @@ return {
 	["Run"] = {
 		DisplayName = "CHEETAH",
 		Weight = 10, --Weight used for enchanting
+		Price = { --Price for putting on enchant with book
+			Currency = "Cash",
+			Amount = 100,
+		},
 		SupportedItemTypes = {
 			"Knife",
 		},
@@ -43,6 +51,10 @@ return {
 	["Jump"] = {
 		DisplayName = "RABBIT",
 		Weight = 10, --Weight used for enchanting
+		Price = {
+			Currency = "Cash",
+			Amount = 100,
+		},
 		SupportedItemTypes = {
 			"Knife",
 		},

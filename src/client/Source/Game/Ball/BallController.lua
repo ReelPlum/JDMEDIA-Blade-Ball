@@ -32,14 +32,17 @@ local BallController = knit.CreateController({
 local highlights = {}
 local particles = {}
 
-local function GetBall(id: string): PVInstance | nil
-	for _, ball in CollectionService:GetTagged("Ball") do
-		if ball:GetAttribute("Id") == id then
-			return ball
-		end
-	end
+local balls = {}
+local targets = {}
 
-	return nil
+local function GetBall(id: string): PVInstance | nil
+	-- for _, ball in CollectionService:GetTagged("Ball") do
+	-- 	if ball:GetAttribute("Id") == id then
+	-- 		return ball
+	-- 	end
+	-- end
+
+	return balls[id]
 end
 
 local function IsTagetLocalPlayer(target: Model): boolean
@@ -59,10 +62,14 @@ local function HighlightBall(ball)
 	-- 	particleEmitter.Enabled = true
 	-- end
 
-	ball.BillboardGui.Enabled = true
+	local billboard = ball:FindFirstChild("BillboardGui")
+	if not billboard then
+		return
+	end
+
+	billboard.Enabled = true
 
 	ball.Material = Enum.Material.Neon
-	ball.Color = Color3.fromRGB(0, 255, 64)
 end
 
 local function UnhighlightBall(ball)
@@ -71,10 +78,13 @@ local function UnhighlightBall(ball)
 	-- 	particleEmitter.Enabled = false
 	-- end
 
-	ball.BillboardGui.Enabled = false
+	local billboard = ball:FindFirstChild("BillboardGui")
+	if not billboard then
+		return
+	end
+	billboard.Enabled = false
 
 	ball.Material = Enum.Material.Glass
-	ball.Color = Color3.fromRGB(0, 231, 58)
 end
 
 function BallController:GetNearestBall(position)
@@ -98,13 +108,22 @@ end
 function BallController:KnitStart()
 	local BallService = knit.GetService("BallService")
 
-	BallService.TargetChanged:Connect(function(id, target)
+	local function BallAdded(id, target)
+		if not target then
+			return
+		end
+		targets[id] = target
+
 		local ball = GetBall(id)
 		if not ball then
 			warn("Ball not found")
 			return
 		end
+		if not ball:IsDescendantOf(workspace) then
+			return
+		end
 
+		warn("Target changed!")
 		if not highlights[ball] then
 			highlights[ball] = CreateHighlight()
 
@@ -114,6 +133,9 @@ function BallController:KnitStart()
 		end
 
 		highlights[ball].Adornee = target
+
+		warn(ball:GetFullName())
+		ball:WaitForChild("Highlight").Enabled = true
 
 		if not particles[ball] then
 			particles[ball] = ReplicatedStorage.Assets.VFX.TargetEmitter:Clone()
@@ -129,6 +151,7 @@ function BallController:KnitStart()
 		end
 
 		if IsTagetLocalPlayer(target) then
+			warn("Localplayer targeted!")
 			BallController.Signals.LocalPlayerTargeted:Fire(ball)
 
 			if not table.find(BallController.BallsTargetingLocalPlayer, ball) then
@@ -150,10 +173,23 @@ function BallController:KnitStart()
 		end
 
 		UnhighlightBall(ball)
+	end
+
+	BallService.TargetChanged:Connect(function(id, target)
+		BallAdded(id, target)
 	end)
 
 	CollectionService:GetInstanceAddedSignal("Ball"):Connect(function(ball)
+		if not ball:IsDescendantOf(workspace) then
+			return
+		end
+
+		warn("BALL ADDED!")
 		BallController.Signals.BallAdded:Fire(ball)
+
+		local id = ball:GetAttribute("Id")
+		balls[id] = ball
+		BallAdded(id, targets[id])
 	end)
 
 	CollectionService:GetInstanceRemovedSignal("Ball"):Connect(function(ball)

@@ -11,6 +11,7 @@ local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
 local MetadataTypes = require(ReplicatedStorage.Data.MetadataTypes)
+local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
 
 local Item = {}
 Item.ClassName = "Item"
@@ -61,6 +62,11 @@ function Item:Init()
 		--Clicked
 		self.Clicked()
 	end))
+
+	local CacheController = knit.GetController("CacheController")
+	self.Janitor:Add(CacheController.Signals.ItemCopiesChanged:Connect(function()
+		self:Update(self.Data)
+	end))
 end
 
 function Item:Update(information)
@@ -76,6 +82,7 @@ function Item:Update(information)
 	self.Data = information
 
 	local ItemController = knit.GetController("ItemController")
+	local CacheController = knit.GetController("CacheController")
 
 	local itemData = ItemController:GetItemData(self.Data.Item)
 	local rarityData = ItemController:GetRarityData(itemData.Rarity)
@@ -84,6 +91,7 @@ function Item:Update(information)
 		["Header"] = 1,
 		["Rarity"] = 2,
 		[MetadataTypes.Types.Enchant] = 3,
+		["Copies"] = 4,
 		[MetadataTypes.Types.Untradeable] = 10,
 		[MetadataTypes.Types.UnboxedBy] = 11,
 	}
@@ -101,6 +109,18 @@ function Item:Update(information)
 	--Add metadata
 	for metadata, data in self.Data.Metadata do
 		table.insert(self.ToolTipData, { Type = metadata, Data = data })
+	end
+
+	if table.find(GeneralSettings.ItemTypesToTrackCopiesOf, itemData.ItemType) then
+		local amount = 0
+		if CacheController.Cache.ItemCopies then
+			amount = CacheController.Cache.ItemCopies[self.Data.Item]
+		end
+
+		table.insert(self.ToolTipData, {
+			Type = "Copies",
+			Copies = amount,
+		})
 	end
 
 	table.sort(self.ToolTipData, function(a, b)

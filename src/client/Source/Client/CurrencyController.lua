@@ -9,10 +9,16 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 
+local CurrencyData = require(ReplicatedStorage.Data.CurrencyData)
+
 local CurrencyController = knit.CreateController({
 	Name = "CurrencyController",
 	Signals = {},
 })
+
+function CurrencyController:GetCurrencyData(currency)
+	return CurrencyData[currency]
+end
 
 function CurrencyController:GetCurrencies()
 	local CacheController = knit.GetController("CacheController")

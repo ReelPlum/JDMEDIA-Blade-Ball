@@ -19,7 +19,10 @@ local ItemService = knit.CreateService({
 	Client = {
 		Inventory = knit.CreateProperty({}),
 	},
-	Signals = {},
+	Signals = {
+		ItemCreated = signal.new(),
+		ItemDestroyed = signal.new(),
+	},
 })
 
 local InventoryCache = {}
@@ -117,11 +120,16 @@ function ItemService:GiveItemToInventory(inventory, item, quantity, metadata)
 		inventory[id] = data
 	end
 
+	ItemService.Signals.ItemCreated:Fire(item, quantity)
+
 	return inventory
 end
 
 function ItemService:TakeItemFromInventory(inventory, itemId)
+	ItemService.Signals.ItemDestroyed:Fire(inventory[itemId].Item, 1)
+
 	inventory[itemId] = nil
+
 	return inventory
 end
 

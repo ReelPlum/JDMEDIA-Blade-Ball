@@ -15,15 +15,6 @@ local janitor = require(ReplicatedStorage.Packages.Janitor)
 local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
 local MapData = require(ReplicatedStorage.Data.MapData)
 
-local Gamemodes = {}
-for _, gamemode in script.Parent.Gamemodes:GetChildren() do
-	if not gamemode:IsA("ModuleScript") then
-		continue
-	end
-
-	table.insert(Gamemodes, require(gamemode))
-end
-
 local Game = {}
 Game.__index = Game
 
@@ -273,6 +264,14 @@ function Game:Start()
 	self.StartTime = tick()
 
 	--Choose random gamemode
+	local Gamemodes = {}
+	for _, gamemode in script.Parent.Gamemodes:GetChildren() do
+		if not gamemode:IsA("ModuleScript") then
+			continue
+		end
+
+		table.insert(Gamemodes, require(gamemode))
+	end
 	local chosenGamemode = Gamemodes[math.random(1, #Gamemodes)]
 
 	--Tell clients what gamemode was chosen

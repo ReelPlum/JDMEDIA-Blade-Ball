@@ -1,6 +1,6 @@
 --[[
-ConfirmationPage
-2023, 11, 30
+GamePassAd
+2023, 11, 29
 Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 ]]
 
@@ -10,16 +10,16 @@ local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
-local ConfirmationPage = {}
-ConfirmationPage.ClassName = 'ConfirmationPage'
-ConfirmationPage.__index = ConfirmationPage
+local GamePassAd = {}
+GamePassAd.ClassName = 'GamePassAd'
+GamePassAd.__index = GamePassAd
 
-function ConfirmationPage.new()
-  local self = setmetatable({}, ConfirmationPage)
+function GamePassAd.new(itemsPage)
+  local self = setmetatable({}, GamePassAd)
   
   self.Janitor = janitor.new()
   
-  
+  self.itemsPage = itemsPage
   
   self.Signals = {
     Destroying = self.Janitor:Add(signal.new())
@@ -28,14 +28,10 @@ function ConfirmationPage.new()
   return self
 end
 
-function ConfirmationPage:SetVisible(bool)
-  
-end
-
-function ConfirmationPage:Destroy()
+function GamePassAd:Destroy()
   self.Signals.Destroying:Fire()
   self.Janitor:Destroy()
   self = nil
 end
 
-return ConfirmationPage
+return GamePassAd

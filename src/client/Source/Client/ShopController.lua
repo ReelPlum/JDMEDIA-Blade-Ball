@@ -51,12 +51,19 @@ function ShopController:GetLootFromUnboxable(unboxableId, lootIndex)
 end
 
 function ShopController:PurchaseItem(shopItemId)
-	--local ShopService = knit.GetService("ShopService")
+	local ShopService = knit.GetService("ShopService")
+	ShopService:PurchaseItem(shopItemId)
 end
 
-function ShopController:PurchaseBundle(bundleId) end
+function ShopController:PurchaseBundle(bundleId)
+	local ShopService = knit.GetService("ShopService")
+	ShopService:PurchaseBundle(bundleId)
+end
 
-function ShopController:PurchaseUnboxable(unboxableId) end
+function ShopController:PurchaseUnboxable(unboxableId)
+	local ShopService = knit.GetService("ShopService")
+	ShopService:PurchaseUnboxable(unboxableId)
+end
 
 function ShopController:GetBundlesForSale()
 	local bundles = {}
@@ -106,7 +113,7 @@ function ShopController:KnitStart()
 		if data.RequiresConfirmation then
 			table.insert(unboxedRequiringConfirmation, {
 				Case = case,
-				Item = index
+				Item = index,
 			})
 			return
 		end

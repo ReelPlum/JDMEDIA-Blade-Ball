@@ -60,7 +60,7 @@ function Enchanting:Init()
 	self.CombinedBookItemDisplay.UI.Position = UDim2.new(0.5, 0, 0.5, 0)
 
 	self.CombinedKnifeItemDisplay = self.Janitor:Add(Item.new(ReplicatedStorage.Assets.UI.Item, nil, function()
-		self:UnselectItem(self.SelectedKnife)
+		self:UnselectItem(self.SelectedItem)
 	end, self.ToolTip))
 	--Parent, size and position
 	self.CombinedKnifeItemDisplay.UI.Parent = self.UI.Frame.Frame.CombineEnchants.Item
@@ -69,7 +69,7 @@ function Enchanting:Init()
 	self.CombinedKnifeItemDisplay.UI.Position = UDim2.new(0.5, 0, 0.5, 0)
 
 	self.RandomKnifeItemDisplay = self.Janitor:Add(Item.new(ReplicatedStorage.Assets.UI.Item, nil, function()
-		self:UnselectItem(self.SelectedKnife)
+		self:UnselectItem(self.SelectedItem)
 	end, self.ToolTip))
 	--Parent, size and position
 	self.RandomKnifeItemDisplay.UI.Parent = self.UI.Frame.Frame.Enchant.Item
@@ -78,7 +78,7 @@ function Enchanting:Init()
 	self.RandomKnifeItemDisplay.UI.Position = UDim2.new(0.5, 0, 0.5, 0)
 
 	self.CraftedCombinedItem = self.Janitor:Add(Item.new(ReplicatedStorage.Assets.UI.Item, nil, function()
-		self:UnselectItem(self.SelectedKnife)
+		self:UnselectItem(self.SelectedItem)
 	end, self.ToolTip))
 	--Parent, size and position
 	self.CraftedCombinedItem.UI.Parent = self.UI.Frame.Frame.CombineEnchants.CombinedItem
@@ -87,7 +87,7 @@ function Enchanting:Init()
 	self.CraftedCombinedItem.UI.Position = UDim2.new(0.5, 0, 0.5, 0)
 
 	self.CraftedRandomItem = self.Janitor:Add(Item.new(ReplicatedStorage.Assets.UI.Item, nil, function()
-		self:UnselectItem(self.SelectedKnife)
+		self:UnselectItem(self.SelectedItem)
 	end, self.ToolTip))
 	--Parent, size and position
 	self.CraftedRandomItem.UI.Parent = self.UI.Frame.Frame.Enchant.CombinedItem
@@ -111,7 +111,7 @@ function Enchanting:Init()
 		end, { self.Pages.Default.itemTypes }, function(id, data)
 			local itemData = ItemController:GetItemData(data.Item)
 
-			if id == self.SelectedKnife or id == self.SelectedBook then
+			if id == self.SelectedItem or id == self.SelectedBook then
 				return false
 			end
 
@@ -141,15 +141,15 @@ function Enchanting:Init()
 
 	self.Janitor:Add(self.Pages.Combine.ui.Combine.MouseButton1Click:Connect(function()
 		--Combine
-		EnchantingService:ApplyBookToItem(self.SelectedBook, self.SelectedKnife)
+		EnchantingService:ApplyBookToItem(self.SelectedBook, self.SelectedItem)
 
-		self:UnselectItem(self.SelectedKnife)
+		self:UnselectItem(self.SelectedItem)
 		self:UnselectItem(self.SelectedBook)
 	end))
 
 	self.Janitor:Add(self.Pages.Random.ui.Enchant.MouseButton1Click:Connect(function()
-		EnchantingService:RandomlyEnchantItem(self.SelectedKnife)
-		self:UnselectItem(self.SelectedKnife)
+		EnchantingService:RandomlyEnchantItem(self.SelectedItem)
+		self:UnselectItem(self.SelectedItem)
 	end))
 
 	self.Janitor:Add(self.UI.Frame.Topbar.Close.MouseButton1Click:Connect(function()
@@ -160,8 +160,14 @@ function Enchanting:Init()
 
 	-- self.Janitor:Add(self.Pages.Random.ui.Continue.MouseButton1Click:Connect(function() end))
 
+	self.Janitor:Add(game:GetService("ProximityPromptService").PromptTriggered:Connect(function(prompt)
+		if prompt.Name == "EnchantingStation" then
+			self:SetVisible(true)
+		end
+	end))
+
 	self:ChangePage("Default")
-	self:SetVisible(true)
+	self:SetVisible(false)
 end
 
 function Enchanting:ChangePage(page)
@@ -190,12 +196,12 @@ function Enchanting:Update()
 	if not ItemController:GetItemFromId(self.SelectedBook) and self.SelectedBook ~= nil then
 		self:UnselectItem(self.SelectedBook)
 	end
-	if not ItemController:GetItemFromId(self.SelectedKnife) and self.SelectedKnife ~= nil then
-		self:UnselectItem(self.SelectedKnife)
+	if not ItemController:GetItemFromId(self.SelectedItem) and self.SelectedItem ~= nil then
+		self:UnselectItem(self.SelectedItem)
 	end
 
 	local SelectedBookData = ItemController:GetItemFromId(self.SelectedBook)
-	local SelectedKnifeData = ItemController:GetItemFromId(self.SelectedKnife)
+	local SelectedItemData = ItemController:GetItemFromId(self.SelectedItem)
 
 	self.CraftedCombinedItem.UI.Visible = false
 	self.CraftedRandomItem.UI.Visible = true
@@ -211,16 +217,16 @@ function Enchanting:Update()
 		self.CombinedBookItemDisplay.UI.Visible = true
 	end
 
-	if not self.SelectedKnife then
+	if not self.SelectedItem then
 		--Hide selected knife displays
-		self.RandomKnifeItemDisplay:Update(SelectedKnifeData)
-		self.CombinedKnifeItemDisplay:Update(SelectedKnifeData)
+		self.RandomKnifeItemDisplay:Update(SelectedItemData)
+		self.CombinedKnifeItemDisplay:Update(SelectedItemData)
 		self.RandomKnifeItemDisplay.UI.Visible = false
 		self.CombinedKnifeItemDisplay.UI.Visible = false
 	else
 		--Show selected knife displays
-		self.RandomKnifeItemDisplay:Update(SelectedKnifeData)
-		self.CombinedKnifeItemDisplay:Update(SelectedKnifeData)
+		self.RandomKnifeItemDisplay:Update(SelectedItemData)
+		self.CombinedKnifeItemDisplay:Update(SelectedItemData)
 		self.RandomKnifeItemDisplay.UI.Visible = true
 		self.CombinedKnifeItemDisplay.UI.Visible = true
 	end
@@ -229,28 +235,26 @@ function Enchanting:Update()
 		return
 	end
 
-	if self.CurrentPage == "Combine" and (SelectedKnifeData and SelectedBookData) then
+	if self.CurrentPage == "Combine" and (SelectedItemData and SelectedBookData) then
 		--Get combined price
 
 		--Position enchanted item at other end
-		local data = table.clone(SelectedKnifeData)
-		data.Metadata = table.clone(SelectedKnifeData.Metadata)
+		local data = table.clone(SelectedItemData)
+		data.Metadata = table.clone(SelectedItemData.Metadata)
 		data.Metadata[MetadataTypes.Types.Enchant] = SelectedBookData.Metadata[MetadataTypes.Types.Enchant]
 
 		self.CraftedCombinedItem:Update(data)
 		self.CraftedCombinedItem.UI.Visible = true
-	elseif self.CurrentPage == "Random" and SelectedKnifeData then
+	elseif self.CurrentPage == "Random" and SelectedItemData then
 		--Get random enchantment price
 
 		--Position enchanted item at other end
-		local data = table.clone(SelectedKnifeData)
-		data.Metadata = table.clone(SelectedKnifeData.Metadata)
+		local data = table.clone(SelectedItemData)
+		data.Metadata = table.clone(SelectedItemData.Metadata)
 		data.Metadata[MetadataTypes.Types.Enchant] = {
 			CacheController.Cache.RandomEnchant,
 			1,
 		}
-
-		print(SelectedKnifeData)
 
 		self.CraftedRandomItem:Update(data)
 		self.CraftedRandomItem.UI.Visible = true
@@ -274,26 +278,22 @@ function Enchanting:SelectItem(id)
 	end
 
 	if itemData.ItemType == "Knife" then
-		if self.SelectedKnife then
+		if self.SelectedItem then
 			return
 		end
 
-		self.SelectedKnife = id
+		self.SelectedItem = id
 
 		if not self.SelectedBook then
 			self:ChangePage("Random")
 			return
 		end
-		self:Update()
+		self:ChangePage("Combine")
 
 		return
 	end
 
 	if itemData.ItemType == "Book" then
-		if self.SelectedBook then
-			return
-		end
-
 		self.SelectedBook = id
 
 		self:ChangePage("Combine")
@@ -303,13 +303,13 @@ end
 function Enchanting:UnselectItem(id)
 	if self.SelectedBook == id then
 		self.SelectedBook = nil
-	elseif self.SelectedKnife == id then
-		self.SelectedKnife = nil
+	elseif self.SelectedItem == id then
+		self.SelectedItem = nil
 	end
 
-	if not self.SelectedBook and not self.SelectedKnife then
+	if not self.SelectedBook and not self.SelectedItem then
 		self:ChangePage("Default")
-	elseif (self.SelectedBook and not self.SelectedKnife) or (not self.SelectedBook and self.SelectedKnife) then
+	elseif (self.SelectedBook and not self.SelectedItem) or (not self.SelectedBook and self.SelectedItem) then
 		self:ChangePage("Combine")
 	end
 end
@@ -320,7 +320,7 @@ function Enchanting:SetVisible(bool)
 	end
 
 	self.SelectedBook = nil
-	self.SelectedKnife = nil
+	self.SelectedItem = nil
 	self:ChangePage("Default")
 
 	self:Update()

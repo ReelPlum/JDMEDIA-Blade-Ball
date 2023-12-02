@@ -40,6 +40,8 @@ function UIController:KnitStart()
 	self:RegisterUI(script.Parent.Modules.Unboxing, ReplicatedStorage.Assets.UI.Unbox)
 	self:RegisterUI(script.Parent.Modules.Menu, ReplicatedStorage.Assets.UI.Menu)
 	self:RegisterUI(script.Parent.Modules.Enchanting, ReplicatedStorage.Assets.UI.EnchantingTable)
+	self:RegisterUI(script.Parent.Modules.Leaderboards)
+	self:RegisterUI(script.Parent.Modules.Shop, ReplicatedStorage.Assets.UI.ItemShop)
 end
 
 function UIController:KnitInit()

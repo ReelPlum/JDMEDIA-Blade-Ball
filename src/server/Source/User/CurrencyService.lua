@@ -30,9 +30,12 @@ local function SyncCurrencies(user) --Syncs users currency data
 	task.spawn(function()
 		user:WaitForDataLoaded()
 
-		print(GetUsersCurrencyData(user))
 		CurrencyService.Client.Currency:SetFor(user.Player, GetUsersCurrencyData(user))
 	end)
+end
+
+function CurrencyService:SyncCurrency(user)
+	SyncCurrencies(user)
 end
 
 function CurrencyService:GetCurrency(user, currency)
@@ -53,7 +56,7 @@ function CurrencyService:UserHasEnough(user, currency, amount) --Check if user h
 	return currencies[currency] >= amount
 end
 
-function CurrencyService:TakeCurrency(user, currency, amount) --Takes the given amount of currency from user
+function CurrencyService:TakeCurrency(user, currency, amount, dontsync) --Takes the given amount of currency from user
 	user:WaitForDataLoaded()
 
 	if not CurrencyService:UserHasEnough(user, currency, amount) then
@@ -64,6 +67,10 @@ function CurrencyService:TakeCurrency(user, currency, amount) --Takes the given 
 	currencies[currency] -= amount
 
 	CurrencyService.Signals.UsersCurrenciesChanged:Fire(user, currency, amount)
+
+	if dontsync then
+		return
+	end
 	SyncCurrencies(user)
 end
 
