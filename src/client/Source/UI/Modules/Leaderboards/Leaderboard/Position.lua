@@ -79,6 +79,16 @@ function Position:Update(userId, value)
 		self.UI.Rank.Text = "#" .. self.Index
 		self.UI.Value.Text = value
 
+		if self.Index == 1 then
+			self.UI.DisplayName.Text = name .. " 🥇"
+		elseif self.Index == 2 then
+			self.UI.DisplayName.Text = name .. " 🥈"
+		elseif self.Index == 3 then
+			self.UI.DisplayName.Text = name .. " 🥉"
+		elseif self.Index >= 10 then
+			self.UI.DisplayName.Text = name .. " 🎖️"
+		end
+
 		self.UI.PlayerImage.Image =
 			Players:GetUserThumbnailAsync(userId, Enum.ThumbnailType.AvatarBust, Enum.ThumbnailSize.Size100x100)
 	end)

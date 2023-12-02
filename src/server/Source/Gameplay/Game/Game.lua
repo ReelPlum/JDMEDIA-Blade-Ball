@@ -114,6 +114,9 @@ function Game:StartPassiveAbilitiesForUser(user)
 	local enchant, level = EnchantingService:GetEnchantOnUsersItem(user, id)
 	local data = EnchantingService:GetEnchantData(enchant)
 
+	if not data then
+		return
+	end
 	local passiveAbility = data.Run(self, data, user, level)
 
 	if passiveAbility then
@@ -262,6 +265,8 @@ end
 
 function Game:Start()
 	self.StartTime = tick()
+
+	print("starting game!")
 
 	--Choose random gamemode
 	local Gamemodes = {}

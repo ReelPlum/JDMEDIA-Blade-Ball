@@ -215,13 +215,13 @@ function GameService:KnitStart()
 		currentTime += deltaTime
 
 		--Update time for clients
-		if tick() - lastUpdate >= 1 then
+		if tick() - lastUpdate >= 0.05 then
 			--Update
 			lastUpdate = tick()
 			GameService.Client.Time:FireAll(math.floor(currentTime))
 
-			print(math.floor(currentTime))
-			print(section.Title)
+			-- print(math.floor(currentTime))
+			-- print(section.Title)
 		end
 
 		--Check if enough users

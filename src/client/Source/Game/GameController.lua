@@ -6,6 +6,7 @@ Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
 
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
@@ -80,6 +81,55 @@ function GameController:KnitStart()
 	GameService.InGame:Observe(function(id)
 		GameController.InGame = id
 		GameController.Signals.GameChanged:Fire(id)
+	end)
+
+	local ToShow = {
+		"waiting for players...",
+		"intermission",
+		"voting",
+	}
+
+	local StatePart = workspace:WaitForChild("GameState"):WaitForChild("State")
+	local currentTitle = nil
+
+	GameService.Time:Connect(function(Time)
+		--Update time
+		local times = GeneralSettings.Game.GameTimes
+		local s = Time
+
+		if times[currentTitle] then
+			s = math.max(times[currentTitle] - Time, 0)
+		end
+
+		local m = (s - s % 60) / 60
+		s = s - m * 60
+
+		s = math.floor(s)
+		m = math.floor(m)
+
+		while #tostring(s) < 2 do
+			s = "0" .. s
+		end
+
+		while #tostring(m) < 2 do
+			m = "0" .. m
+		end
+
+		StatePart.SurfaceGui.Time.Text = m .. ":" .. s
+	end)
+
+	GameService.Title:Observe(function(text)
+		--Update text
+		-- if not table.find(ToShow, string.lower(text)) then
+		-- 	print(text)
+		-- 	StatePart.Parent = ReplicatedStorage
+		-- 	return
+		-- end
+
+		-- StatePart.Parent = workspace.GameState
+
+		currentTitle = text
+		StatePart.SurfaceGui.Title.Text = text
 	end)
 end
 

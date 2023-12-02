@@ -65,11 +65,15 @@ function StatsService:UpdateLeaderstats(user)
 	end
 
 	for stat, data in StatData do
-		if data.DisplayOnLeaderboard then
+		if data.DisplayOnLeaderstats then
 			local val = leaderstats:FindFirstChild(stat)
 			if not val then
 				val = Instance.new("IntValue")
 				val.Name = stat
+				if data.LeaderstatName then
+					val.Name = data.LeaderstatName
+				end
+
 				val.Parent = leaderstats
 			end
 

@@ -81,7 +81,7 @@ function LeaderboardsService:GetLeaderboard(leaderboard)
 		t = "DataStore"
 	elseif data.Type == "AllTime" then
 		--Get alltime data store
-		datastore = DataStoreService:GetOrderedDataStore("AllTime")
+		datastore = DataStoreService:GetOrderedDataStore(leaderboard .. "-AllTime")
 		t = "DataStore"
 	elseif data.Type == "ServerOnly" then
 		--Return server local leaderboard

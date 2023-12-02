@@ -102,6 +102,7 @@ function Ball:Respawn()
 	self.Speed = GeneralSettings.Game.Ball.StartSpeed
 	self.LastTarget = nil
 	self.LastHit = 0
+
 	self.BallModel.Parent = workspace
 
 	local impulseRange = GeneralSettings.Game.Ball.ImpulseRange
