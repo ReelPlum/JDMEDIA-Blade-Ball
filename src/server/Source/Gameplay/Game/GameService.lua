@@ -19,12 +19,12 @@ local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
 local GameService = knit.CreateService({
 	Name = "GameService",
 	Client = {
-		Time = knit.CreateProperty(0),
 		Title = knit.CreateProperty(""),
 		PlayersInGame = knit.CreateProperty(nil),
 		InGame = knit.CreateProperty(nil),
 		CurrentGamemode = knit.CreateProperty(nil),
 
+		Time = knit.CreateUnreliableSignal(),
 		GameWon = knit.CreateSignal(),
 		NextMap = knit.CreateSignal(),
 	},
@@ -218,7 +218,7 @@ function GameService:KnitStart()
 		if tick() - lastUpdate >= 1 then
 			--Update
 			lastUpdate = tick()
-			GameService.Client.Time:Set(math.floor(currentTime))
+			GameService.Client.Time:FireAll(math.floor(currentTime))
 
 			print(math.floor(currentTime))
 			print(section.Title)
