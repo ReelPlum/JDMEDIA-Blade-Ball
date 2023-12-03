@@ -9,6 +9,7 @@ local Players = game:GetService("Players")
 
 local ContentProvider = game:GetService("ContentProvider")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 
 local LocalPlayer = Players.LocalPlayer
 
@@ -40,6 +41,13 @@ end
 function Loading:Init()
 	local LoadingController = knit.GetController("LoadingController")
 
+	if RunService:IsStudio() then
+		local UserService = knit.GetService("UserService")
+		UserService:Ready()
+
+		return
+	end
+
 	self.UI = self.Janitor:Add(self.UITemplate:Clone())
 	self.UI.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
@@ -57,8 +65,6 @@ function Loading:Init()
 		LocalPlayer.CharacterAppearanceLoaded:Wait()
 	end
 
-	task.wait(5)
-
 	self.UI.Frame:TweenPosition(UDim2.new(0, 0, -1, 0), "In", "Linear", 0.25, true)
 	task.wait(0.3)
 
@@ -73,17 +79,26 @@ function Loading:StartAnimation()
 	self.UI.Frame.Bar.Visible = false
 	self.UI.Frame.JDGamesLogo.Position = UDim2.new(0.5, 0, 0.5, 0)
 	self.UI.Frame.JDGamesLogo.Size = UDim2.new(0, 0, 0, 0)
+	self.UI.Frame.JDGamesLogo.Rotation = -35
 
 	ContentProvider:PreloadAsync({ self.UI.Frame.JDGamesLogo, ReplicatedStorage.Assets.Sounds.IntroSound })
 
-	task.wait(2)
-
 	--Launch animation
-	self.UI.Frame.JDGamesLogo:TweenSize(UDim2.new(0.3, 0, 1, 0), "Out", "Back", 0.4, true)
 	ReplicatedStorage.Assets.Sounds.IntroSound:Play()
+	task.wait(0.4)
+	--self.UI.Frame.JDGamesLogo:TweenSize(UDim2.new(0.3, 0, 1, 0), "Out", "Back", 0.4, true)
+	local Tween = TweenService:Create(
+		self.UI.Frame.JDGamesLogo,
+		TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+		{
+			Size = UDim2.new(0.3, 0, 1, 0),
+			Rotation = 0,
+		}
+	)
+	Tween:Play()
 
 	ReplicatedStorage.Assets.Sounds.IntroSound.Ended:Wait()
-	self.UI.Frame.JDGamesLogo:TweenPosition(UDim2.new(0.5, 0, 0.4, -10), "Out", "Quint", 0.5, true)
+	self.UI.Frame.JDGamesLogo:TweenPosition(UDim2.new(0.5, 0, 0.4, -10), "Out", "Quint", 0.1, true)
 
 	--Waiting animation
 	self.UI.Frame.Bar.Frame.Size = UDim2.new(0, 0, 1, 0)

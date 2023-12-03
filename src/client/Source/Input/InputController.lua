@@ -34,8 +34,6 @@ local function ChangeInputMode(newInputMode)
 
 	InputController.CurrentInputMode = newInputMode
 	InputController.Signals.InputModeChanged:Fire(newInputMode)
-
-	warn("New input mode! " .. newInputMode)
 end
 
 function InputController:FireAction(action)
@@ -133,6 +131,43 @@ function InputController:KnitInit()
 
 	UserInputService:GetPropertyChangedSignal("MouseBehavior"):Connect(function()
 		self.Signals.ShiftLockChanged:Fire(UserInputService.MouseBehavior == Enum.MouseBehavior.LockCenter)
+	end)
+
+	local InputTypes = {
+		["Keyboard"] = {
+			Enum.UserInputType.Keyboard,
+			Enum.UserInputType.MouseButton1,
+			Enum.UserInputType.MouseButton2,
+			Enum.UserInputType.MouseButton3,
+			Enum.UserInputType.MouseMovement,
+			Enum.UserInputType.MouseWheel,
+		},
+		["Gamepad"] = {
+			Enum.UserInputType.Gamepad1,
+			Enum.UserInputType.Gamepad2,
+			Enum.UserInputType.Gamepad3,
+			Enum.UserInputType.Gamepad4,
+			Enum.UserInputType.Gamepad5,
+			Enum.UserInputType.Gamepad6,
+			Enum.UserInputType.Gamepad7,
+			Enum.UserInputType.Gamepad8,
+		},
+		["Touch"] = {
+			Enum.UserInputType.Touch,
+			Enum.UserInputType.Gyro,
+			Enum.UserInputType.Accelerometer,
+		},
+	}
+
+	UserInputService.LastInputTypeChanged:Connect(function(lastInputType)
+		for inputMode, types in InputTypes do
+			for _, t in types do
+				if lastInputType == t then
+					ChangeInputMode(inputMode)
+					return
+				end
+			end
+		end
 	end)
 
 	task.spawn(function()
