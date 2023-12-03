@@ -63,6 +63,7 @@ function TradeRequest:Init()
 		self:Update()
 	end))
 
+
 	--Listen for when trading UI sets visibility to true
 	local UIController = knit.GetController("UIController")
 	local tradingUI = UIController:GetUI("Trading")

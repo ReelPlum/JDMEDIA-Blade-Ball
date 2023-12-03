@@ -9,6 +9,15 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
+local FormatNumber = require(ReplicatedStorage.Packages.FormatNumber)
+
+local abbreviations = FormatNumber.Main.Notation.compactWithSuffixThousands({
+	"K",
+	"M",
+	"B",
+	"T",
+})
+local formatter = FormatNumber.Main.NumberFormatter.with():Notation(abbreviations)
 
 local MetadataTypes = require(ReplicatedStorage.Data.MetadataTypes)
 local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
@@ -40,7 +49,7 @@ end
 
 function Item:Init()
 	--Setup Visuals for UI
-	self:Update(self.Data)
+	self:Update(self.Data, self.StackSize)
 
 	--Events
 	self.Janitor:Add(self.UI.MouseEnter:Connect(function()
@@ -66,7 +75,7 @@ function Item:Init()
 
 	local CacheController = knit.GetController("CacheController")
 	self.Janitor:Add(CacheController.Signals.ItemCopiesChanged:Connect(function()
-		self:Update(self.Data)
+		self:Update(self.Data, self.StackSize)
 	end))
 end
 
@@ -76,6 +85,7 @@ function Item:Update(information, stackSize)
 		return
 	end
 
+	self.StackSize = stackSize
 	self.ItemJanitor:Cleanup()
 
 	local index = self.ToolTip:RemoveActor(self.ToolTipData)
@@ -88,6 +98,16 @@ function Item:Update(information, stackSize)
 	local itemData = ItemController:GetItemData(self.Data.Item)
 	local rarityData = ItemController:GetRarityData(itemData.Rarity)
 
+	if stackSize then
+		if stackSize > 1 then
+			self.UI.StackSize.Visible = true
+			self.UI.StackSize.Text = "x" .. formatter:Format(stackSize)
+		else
+			self.UI.StackSize.Visible = false
+		end
+	else
+		self.UI.StackSize.Visible = false
+	end
 
 	--Setup data for tooltip
 	self.ToolTipData = {}
@@ -118,7 +138,6 @@ function Item:Update(information, stackSize)
 			Item = self.Data.Item,
 		})
 	end
-
 
 	if index then
 		self.ToolTip:AddActor(self.ToolTipData)

@@ -70,7 +70,7 @@ local IndexesToIgnore = {
 	MetadataTypes.Types.Robux,
 }
 
-local function CompareItems(a, b)
+local function CompareItems(a, b, alreadyCheckedOther)
 	for index, value in a do
 		if table.find(IndexesToIgnore, index) then
 			continue
@@ -90,7 +90,11 @@ local function CompareItems(a, b)
 		end
 	end
 
-	return true
+	if alreadyCheckedOther then
+		return true
+	end
+
+	return CompareItems(b, a, true)
 end
 
 function ItemsContainer:Update(items)
@@ -133,9 +137,9 @@ function ItemsContainer:Update(items)
 				continue
 			end
 		end
-
 		if not self.ItemStacks[data.Item] then
 			--Add it
+			print(data.Item)
 			self.ItemStacks[data.Item] = {}
 		end
 

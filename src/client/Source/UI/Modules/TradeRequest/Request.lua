@@ -54,6 +54,10 @@ function Request:Init()
 	self.Janitor:Add(self.UI.Send.MouseButton1Click:Connect(function()
 		TradingController:SendTradeRequest(self.Player)
 	end))
+
+	self.Janitor:Add(TradingController.Signals.TradeEnded:Connect(function()
+		self.UI.Send.Visible = true
+	end))
 end
 
 function Request:SetRecieved(bool, id)

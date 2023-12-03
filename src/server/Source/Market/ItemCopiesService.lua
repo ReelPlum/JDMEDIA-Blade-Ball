@@ -6,6 +6,7 @@ Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 
 local ChangeHistoryService = game:GetService("ChangeHistoryService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
@@ -25,6 +26,10 @@ local Cache = {}
 local ItemCache = {}
 
 function ItemCopiesService:SaveCache()
+	if RunService:IsStudio() then
+		return
+	end
+
 	for item, amount in Cache do
 		ItemCopiesService.Collection:UpdateOne({
 			["Item"] = item,

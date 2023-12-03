@@ -56,12 +56,17 @@ function ItemService:TransferItemToInventory(inventory, itemId, data)
 	end
 
 	inventory[itemId] = data
+
+	return inventory
 end
 
 function ItemService:TransferMultipleItemsToInventory(inventory, items)
 	for id, data in items do
+		warn(data)
 		inventory[id] = data
 	end
+
+	return inventory
 end
 
 function ItemService:RemoveItemWithIdFromInventory(inventory, itemId)
@@ -351,7 +356,7 @@ end
 
 function ItemService:TransferItemToUsersInventory(user, itemId, data)
 	local inventory = ItemService:GetUsersInventory(user)
-	ItemService:TransferItemToInventory(inventory, itemId, data)
+	inventory = ItemService:TransferItemToInventory(inventory, itemId, data)
 
 	self:SaveInventory(user, inventory)
 	self:SyncInventory(user)
@@ -359,7 +364,9 @@ end
 
 function ItemService:TransferMultipleItemsToUsersInventory(user, items)
 	local inventory = ItemService:GetUsersInventory(user)
-	ItemService:TransferMultipleItemsToInventory(inventory, items)
+	inventory = ItemService:TransferMultipleItemsToInventory(inventory, items)
+
+	warn(inventory)
 
 	self:SaveInventory(user, inventory)
 	self:SyncInventory(user)

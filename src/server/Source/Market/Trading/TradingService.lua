@@ -262,8 +262,6 @@ function TradingService:AddItemToTrade(user, itemId)
 		return
 	end
 
-	warn(itemId)
-
 	user.CurrentTrade:AddItem(user, itemId)
 end
 

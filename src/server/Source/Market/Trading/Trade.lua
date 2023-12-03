@@ -201,7 +201,6 @@ function Trade:Complete()
 	local successfullUsers = {}
 	local FailedUser = nil
 	for user, ids in self.Inventories do
-		warn(ids)
 		local success = ItemService:RemoveMultipleItemsWithIdFromUsersInventory(user, ids)
 		if success then
 			table.insert(successfullUsers, user)

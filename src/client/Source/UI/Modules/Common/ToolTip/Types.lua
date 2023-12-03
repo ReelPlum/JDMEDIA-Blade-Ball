@@ -222,7 +222,7 @@ return {
 
 		local label = Instance.new("TextLabel")
 		label.AnchorPoint = Vector2.new(0.5, 0.5)
-		label.Text = `{stat.Emoji} {data.Data}`
+		label.Text = `{stat.Emoji} {formatter:Format(data.Data)}`
 		label.TextSize = 14
 		label.LayoutOrder = priority
 		label.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json")
@@ -269,7 +269,7 @@ return {
 
 			local l = Instance.new("TextLabel")
 
-			l.Text = `{sd.Emoji} {value}`
+			l.Text = `{sd.Emoji} {formatter:Format(value)}`
 			l.TextSize = 14
 			l.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json")
 			l.TextColor3 = Color3.fromRGB(255, 136, 39)
