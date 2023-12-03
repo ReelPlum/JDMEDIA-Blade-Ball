@@ -4,6 +4,7 @@ ItemsContainer
 Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 ]]
 
+local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local knit = require(ReplicatedStorage.Packages.Knit)
@@ -23,7 +24,7 @@ function ItemsContainer.new(UI, items, clicked, itemTypes, check)
 	self.Janitor = janitor.new()
 
 	self.UI = UI
-	self.Items = items
+	self.CurrentData = items
 	self.Clicked = clicked
 	self.ToolTip = ToolTip.new(self.UI:FindFirstAncestorWhichIsA("ScreenGui"))
 	self.ItemTypes = itemTypes
@@ -31,6 +32,7 @@ function ItemsContainer.new(UI, items, clicked, itemTypes, check)
 
 	self.CreatedItems = {}
 	self.ItemStacks = {}
+	self.Items = {}
 
 	self.Signals = {
 		Destroying = self.Janitor:Add(signal.new()),
@@ -44,12 +46,12 @@ end
 function ItemsContainer:UpdateItemTypes(newItemTypes)
 	self.ItemTypes = newItemTypes
 
-	self:Update(self.Items)
+	self:Update(self.CurrentData)
 end
 
 function ItemsContainer:Init()
 	--Init container
-	self:Update(self.Items)
+	self:Update(self.CurrentData)
 
 	local list = self.UI:FindFirstChildWhichIsA("UIGridStyleLayout")
 	self.Janitor:Add(list:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
@@ -57,56 +59,141 @@ function ItemsContainer:Init()
 	end))
 end
 
+local IndexesToIgnore = {
+	"Date",
+}
+
+local function CompareItems(a, b)
+	return true
+end
+
 function ItemsContainer:Update(items)
 	--Update with new items
 	local ItemController = knit.GetController("ItemController")
 
-	self.Items = items
+	self.CurrentData = items
 
-	--Dont stack items. Create all items.
-	for id, data in items do
-		--Create UI
-		local item = self:GetUI(id)
+	--[[
+		self.CreatedItems will hold all shown items in the UI.
+		self.ItemStacks will hold all stacks for each different item.
+		self.Items hold 
+	]]
 
-		if self.ItemTypes then
-			local itmData = ItemController:GetItemData(data.Item)
-			if not table.find(self.ItemTypes, itmData.ItemType) then
-				if item then
-					item:Destroy()
-					self.CreatedItems[id] = nil
-				end
-				continue
-			end
-		end
-
-		if self.Check then
-			if not self.Check(id, data) then
-				if item then
-					item:Destroy()
-					self.CreatedItems[id] = nil
-				end
-				continue
-			end
-		end
-
-		if item then
-			item:Update(data)
+	for id, data in self.CurrentData do
+		--Check item etc.
+		if not self.Check(data) then
 			continue
 		end
 
-		--Create new item
-		local item = Item.new(ReplicatedStorage.Assets.UI.Item, data, function()
-			--Clicked
-			self.Clicked(id)
-		end, self.ToolTip)
-		item.UI.Parent = self.UI
-		self.CreatedItems[id] = item
+		if not self.ItemStacks[data.Item] then
+			--Add it
+			self.ItemStacks[data.Item] = {}
+		end
+
+		if self.Items[id] then
+			if self.ItemStacks[data.Item][self.Items[id].StackId] then
+				if CompareItems(self.ItemStacks[data.Item][self.Items[id].StackId].Data, data) then
+					continue
+				end
+
+				--Remove from stack
+				local i = table.find(self.ItemStacks[data.Item][self.Items[id].StackId].Hold, id)
+				if i then
+					table.remove(self.ItemStacks[data.Item][self.Items[id].StackId].Hold, i)
+				end
+				self.Items[id] = nil
+			end
+		end
+
+		local found = false
+		for stackId, stackData in self.ItemStacks[data.Item] do
+			if CompareItems(stackData.Data, data) then
+				--Is equal
+				found = true
+				self.Items[id] = { StackId = stackId, Item = data.Item }
+				table.insert(self.ItemStacks[data.Item][self.Items[id].StackId].Hold, id)
+			end
+		end
+
+		if not found then
+			--Create new stack
+			self.ItemStacks[data.Item][id] = {
+				Hold = {
+					id,
+				},
+				Data = data,
+			}
+			self.Items[id] = {
+				StackId = id,
+				Item = data.Item,
+			}
+		end
 	end
 
-	for id, item in self.CreatedItems do
+	--Go through items and find the items not available anymore
+	for id, stackData in self.Items do
 		if not items[id] then
-			item:Destroy()
+			--Remove item
+			if not self.ItemStacks[stackData.Item] then
+				self.Items[id] = nil
+				continue
+			end
+			if not self.ItemStacks[stackData.Item][stackData.StackId] then
+				self.Items[id] = nil
+				continue
+			end
+
+			local i = table.find(self.ItemStacks[stackData.Item][stackData.StackId].Hold, id)
+			if i then
+				table.remove(self.ItemStacks[stackData.Item][stackData.StackId].Hold, i)
+			end
+			self.Items[id] = nil
+
+			continue
+		end
+	end
+
+	--Check stacks
+	for _, stacks in self.ItemStacks do
+		for id, data in stacks do
+			if #data.Hold <= 0 then
+				stacks[id] = nil
+			end
+		end
+	end
+
+	--Update UI
+	for id, ui in self.CreatedItems do
+		local item = ui.Data.Item
+
+		if not self.ItemStacks[item] then
+			ui:Destroy()
 			self.CreatedItems[id] = nil
+			continue
+		end
+
+		if not self.ItemStacks[item][id] then
+			ui:Destroy()
+			self.CreatedItems[id] = nil
+			continue
+		end
+
+		--Update UI
+		ui:Update(self.ItemStacks[item][id].Data, #self.ItemStacks[item][id].Hold)
+	end
+
+	--Create new ui
+	for item, stack in self.ItemStacks do
+		for id, stackData in stack do
+			if not self.CreatedItems[id] then
+				--Create item
+				self.CreatedItems[id] =
+					self.Janitor:Add(Item.new(ReplicatedStorage.Assets.UI.Item, stackData.Data, function()
+						self.Clicked(stackData.Hold[1])
+					end, self.ToolTip, #stackData.Hold))
+
+				self.CreatedItems[id].UI.Parent = self.UI
+			end
 		end
 	end
 

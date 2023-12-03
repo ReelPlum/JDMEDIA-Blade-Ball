@@ -17,7 +17,7 @@ local Item = {}
 Item.ClassName = "Item"
 Item.__index = Item
 
-function Item.new(UI, data, clicked, tooltip)
+function Item.new(UI, data, clicked, tooltip, stackSize)
 	local self = setmetatable({}, Item)
 
 	self.Janitor = janitor.new()
@@ -27,6 +27,7 @@ function Item.new(UI, data, clicked, tooltip)
 	self.Clicked = clicked
 	self.Data = data
 	self.ToolTip = tooltip
+	self.StackSize = stackSize
 
 	self.Signals = {
 		Destroying = self.Janitor:Add(signal.new()),
@@ -69,7 +70,7 @@ function Item:Init()
 	end))
 end
 
-function Item:Update(information)
+function Item:Update(information, stackSize)
 	--Updates with new data
 	if not information then
 		return
