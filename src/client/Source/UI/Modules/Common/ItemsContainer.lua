@@ -13,6 +13,7 @@ local janitor = require(ReplicatedStorage.Packages.Janitor)
 
 local Item = require(script.Parent.Item)
 local ToolTip = require(script.Parent.ToolTip)
+local MetadataTypes = require(ReplicatedStorage.Data.MetadataTypes)
 
 local ItemsContainer = {}
 ItemsContainer.ClassName = "ItemsContainer"
@@ -61,9 +62,34 @@ end
 
 local IndexesToIgnore = {
 	"Date",
+	MetadataTypes.Types.OriginalPurchaser,
+	MetadataTypes.Types.UnboxedBy,
+	MetadataTypes.Types.Unboxable,
+	MetadataTypes.Types.Bundle,
+	MetadataTypes.Types.Admin,
+	MetadataTypes.Types.Robux,
 }
 
 local function CompareItems(a, b)
+	for index, value in a do
+		if table.find(IndexesToIgnore, index) then
+			continue
+		end
+
+		if not b[index] then
+			return false
+		end
+		if not (typeof(value) == typeof(b[index])) then
+			return false
+		end
+
+		if typeof(value) == "table" then
+			if not CompareItems(value, b[index]) then
+				return false
+			end
+		end
+	end
+
 	return true
 end
 
