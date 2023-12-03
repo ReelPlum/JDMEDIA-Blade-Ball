@@ -84,9 +84,12 @@ function ItemsContainer:Update(items)
 		if self.ItemTypes then
 			local itmData = ItemController:GetItemData(data.Item)
 			if not table.find(self.ItemTypes, itmData.ItemType) then
-				if item then
-					item:Destroy()
-					self.CreatedItems[id] = nil
+				if self.Items[id] then
+					local i = table.find(self.ItemStacks[self.Items[id].Item][self.Items[id].StackId].Hold, id)
+					if i then
+						table.remove(self.ItemStacks[self.Items[id].Item][self.Items[id].StackId].Hold, i)
+					end
+					self.Items[id] = nil
 				end
 				continue
 			end
@@ -94,9 +97,12 @@ function ItemsContainer:Update(items)
 
 		if self.Check then
 			if not self.Check(id, data) then
-				if item then
-					item:Destroy()
-					self.CreatedItems[id] = nil
+				if self.Items[id] then
+					local i = table.find(self.ItemStacks[self.Items[id].Item][self.Items[id].StackId].Hold, id)
+					if i then
+						table.remove(self.ItemStacks[self.Items[id].Item][self.Items[id].StackId].Hold, i)
+					end
+					self.Items[id] = nil
 				end
 				continue
 			end
