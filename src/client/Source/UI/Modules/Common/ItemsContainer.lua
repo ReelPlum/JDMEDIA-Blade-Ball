@@ -81,8 +81,25 @@ function ItemsContainer:Update(items)
 
 	for id, data in self.CurrentData do
 		--Check item etc.
-		if not self.Check(data) then
-			continue
+		if self.ItemTypes then
+			local itmData = ItemController:GetItemData(data.Item)
+			if not table.find(self.ItemTypes, itmData.ItemType) then
+				if item then
+					item:Destroy()
+					self.CreatedItems[id] = nil
+				end
+				continue
+			end
+		end
+
+		if self.Check then
+			if not self.Check(id, data) then
+				if item then
+					item:Destroy()
+					self.CreatedItems[id] = nil
+				end
+				continue
+			end
 		end
 
 		if not self.ItemStacks[data.Item] then
