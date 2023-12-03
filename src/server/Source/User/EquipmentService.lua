@@ -111,6 +111,8 @@ end
 
 function EquipmentService:KnitStart()
 	local UserService = knit.GetService("UserService")
+	local ItemService = knit.GetService("ItemService")
+
 	for _, user in UserService:GetUsers() do
 		task.spawn(function()
 			SetupUser(user)
@@ -118,6 +120,16 @@ function EquipmentService:KnitStart()
 	end
 
 	UserService.Signals.UserAdded:Connect(SetupUser)
+
+	ItemService.Signals.UsersInventoryChanged:Connect(function(user)
+		--Check for equipped items
+		for itemType, id in user.Data.Equipped do
+			if not ItemService:GetUsersItemFromId(user, id) then
+				--Equip default item
+				EquipmentService:EquipItem(user, GeneralSettings.User.DefaultEquippedItems[itemType])
+			end
+		end
+	end)
 end
 
 function EquipmentService:KnitInit() end

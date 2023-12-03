@@ -101,7 +101,7 @@ return {
 
 		local size = TextService:GetTextBoundsAsync(params)
 		--local size = TextService:GetTextSize(data.Text, 20, Enum.Font.SourceSans, Vector2.new(100, 1000))
-		label.Size = UDim2.new(0, size.X + 10, 0, size.Y + 10)
+		label.Size = UDim2.new(0, size.X, 0, size.Y)
 
 		params:Destroy()
 		return label
@@ -200,6 +200,92 @@ return {
 			label.Parent = f
 
 			f.Parent = frame
+		end
+
+		local s = uigrid.AbsoluteContentSize
+		frame.Size = UDim2.new(0, s.X, 0, s.Y)
+
+		frame.LayoutOrder = priority
+
+		return frame
+	end,
+
+	[MetadataTypes.Types.Strange] = function(ToolTip, data, priority)
+		--Return a text label
+		local StrangeItemData = require(ReplicatedStorage.Data.StrangeItemData)
+		local StatData = require(ReplicatedStorage.Data.StatData)
+		local ItemController = knit.GetController("ItemController")
+
+		local itemData = ItemController:GetItemData(data.Item)
+		local strangeData = StrangeItemData.ItemTypes[itemData.ItemType]
+		local stat = StatData[strangeData.Stat]
+
+		local label = Instance.new("TextLabel")
+		label.AnchorPoint = Vector2.new(0.5, 0.5)
+		label.Text = `{stat.Emoji} {data.Data}`
+		label.TextSize = 14
+		label.LayoutOrder = priority
+		label.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json")
+		label.TextColor3 = Color3.fromRGB(255, 136, 39)
+		label.BackgroundTransparency = 1
+
+		local params = Instance.new("GetTextBoundsParams")
+		params.Text = label.Text
+		params.Font = label.FontFace
+		params.Size = 14
+		params.Width = MAXWIDTH
+
+		local size = TextService:GetTextBoundsAsync(params)
+		--local size = TextService:GetTextSize(data.Text, 20, Enum.Font.SourceSans, Vector2.new(100, 1000))
+		label.Size = UDim2.new(0, size.X, 0, size.Y)
+
+		params:Destroy()
+		return label
+	end,
+
+	[MetadataTypes.Types.StrangeParts] = function(ToolTip, data, priority)
+		--Return a text label
+		local StrangeItemData = require(ReplicatedStorage.Data.StrangeItemData)
+		local StatData = require(ReplicatedStorage.Data.StatData)
+
+		local frame = Instance.new("Frame")
+		frame.Size = UDim2.new(0, 150, 0, 150)
+		frame.BackgroundTransparency = 1
+
+		local uigrid = Instance.new("UIListLayout")
+		uigrid.HorizontalAlignment = Enum.HorizontalAlignment.Center
+		uigrid.VerticalAlignment = Enum.VerticalAlignment.Center
+		uigrid.FillDirection = Enum.FillDirection.Vertical
+		uigrid.Parent = frame
+
+		--Create chance uis
+		for part, value in data.Data do
+			--Create strange stuff here
+			local d = StrangeItemData.Parts[part]
+			if not d then
+				continue
+			end
+			local sd = StatData[d.Stat]
+
+			local l = Instance.new("TextLabel")
+
+			l.Text = `{sd.Emoji} {value}`
+			l.TextSize = 14
+			l.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json")
+			l.TextColor3 = Color3.fromRGB(255, 136, 39)
+			l.BackgroundTransparency = 1
+
+			local params = Instance.new("GetTextBoundsParams")
+			params.Text = l.Text
+			params.Font = l.FontFace
+			params.Size = 14
+			params.Width = MAXWIDTH
+
+			local size = TextService:GetTextBoundsAsync(params)
+			--local size = TextService:GetTextSize(data.Text, 20, Enum.Font.SourceSans, Vector2.new(100, 1000))
+			l.Size = UDim2.new(0, size.X, 0, size.Y)
+
+			l.Parent = frame
 		end
 
 		local s = uigrid.AbsoluteContentSize

@@ -15,6 +15,7 @@ local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
 local Types = require(script.Types)
+local MetadataTypes = require(ReplicatedStorage.Data.MetadataTypes)
 
 local ToolTip = {}
 ToolTip.ClassName = "ToolTip"
@@ -79,6 +80,34 @@ function ToolTip:Update(data)
 		self:SetVisible(false)
 		return
 	end
+
+	local rankings = {
+		["Header"] = 1,
+		["Rarity"] = 2,
+		[MetadataTypes.Types.Enchant] = 3,
+		[MetadataTypes.Types.Strange] = 4,
+		[MetadataTypes.Types.StrangeParts] = 5,
+
+		["Copies"] = 9,
+		[MetadataTypes.Types.Untradeable] = 10,
+		[MetadataTypes.Types.UnboxedBy] = 11,
+	}
+	table.sort(data, function(a, b)
+		--Check if ranked
+		if a.Type == "Untradeable" then
+			warn("Untradeable")
+		end
+
+		if rankings[a.Type] and not rankings[b.Type] then
+			return true
+		elseif not rankings[a.Type] and rankings[b.Type] then
+			return false
+		elseif rankings[a.Type] and rankings[b.Type] then
+			return rankings[a.Type] < rankings[b.Type]
+		end
+
+		return true
+	end)
 
 	for index, text in data do
 		local label = self:CreateTextElement(text, index)

@@ -87,28 +87,22 @@ function Item:Update(information)
 	local itemData = ItemController:GetItemData(self.Data.Item)
 	local rarityData = ItemController:GetRarityData(itemData.Rarity)
 
-	local rankings = {
-		["Header"] = 1,
-		["Rarity"] = 2,
-		[MetadataTypes.Types.Enchant] = 3,
-		["Copies"] = 4,
-		[MetadataTypes.Types.Untradeable] = 10,
-		[MetadataTypes.Types.UnboxedBy] = 11,
-	}
 
 	--Setup data for tooltip
 	self.ToolTipData = {}
 	table.insert(self.ToolTipData, {
 		Type = "Header",
 		Text = itemData.DisplayName,
+		Item = self.Data.Item,
 	})
 	table.insert(self.ToolTipData, {
 		Type = "Rarity",
 		Data = rarityData,
+		Item = self.Data.Item,
 	})
 	--Add metadata
 	for metadata, data in self.Data.Metadata do
-		table.insert(self.ToolTipData, { Type = metadata, Data = data })
+		table.insert(self.ToolTipData, { Type = metadata, Data = data, Item = self.Data.Item })
 	end
 
 	if table.find(GeneralSettings.ItemTypesToTrackCopiesOf, itemData.ItemType) then
@@ -120,25 +114,10 @@ function Item:Update(information)
 		table.insert(self.ToolTipData, {
 			Type = "Copies",
 			Copies = amount,
+			Item = self.Data.Item,
 		})
 	end
 
-	table.sort(self.ToolTipData, function(a, b)
-		--Check if ranked
-		if a.Type == "Untradeable" then
-			warn("Untradeable")
-		end
-
-		if rankings[a.Type] and not rankings[b.Type] then
-			return true
-		elseif not rankings[a.Type] and rankings[b.Type] then
-			return false
-		elseif rankings[a.Type] and rankings[b.Type] then
-			return rankings[a.Type] < rankings[b.Type]
-		end
-
-		return true
-	end)
 
 	if index then
 		self.ToolTip:AddActor(self.ToolTipData)

@@ -29,11 +29,16 @@ function ItemController:GetInventory()
 	return CacheController.Cache.Inventory
 end
 
+
+function ItemController:GetToolTipDataFromItemData(itemData)
+	--Gets tooltip data from itemdata
+end
+
 function ItemController:GetItemData(item)
 	return ItemData[item]
 end
 
-function ItemController:GetRarityData(rarity) 
+function ItemController:GetRarityData(rarity)
 	return RarityData[rarity]
 end
 

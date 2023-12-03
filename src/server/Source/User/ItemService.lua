@@ -22,6 +22,7 @@ local ItemService = knit.CreateService({
 	Signals = {
 		ItemCreated = signal.new(),
 		ItemDestroyed = signal.new(),
+		UsersInventoryChanged = signal.new(),
 	},
 })
 
@@ -414,6 +415,8 @@ function ItemService:SaveInventory(user, inventory)
 	local DataCompressionService = knit.GetService("DataCompressionService")
 
 	user.Data.Inventory = DataCompressionService:CompressData(HttpService:JSONEncode(inventory))
+
+	ItemService.Signals.UsersInventoryChanged:Fire(user)
 end
 
 function ItemService:SyncInventory(user)

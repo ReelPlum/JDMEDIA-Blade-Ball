@@ -10,6 +10,8 @@ local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
+local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
+
 local Item = {}
 Item.ClassName = "Item"
 Item.__index = Item
@@ -35,6 +37,7 @@ function Item:Init()
 	local ShopController = knit.GetController("ShopController")
 	local CurrencyController = knit.GetController("CurrencyController")
 	local ItemController = knit.GetController("ItemController")
+	local CacheController = knit.GetController("CacheController")
 
 	local d = ShopController:GetItem(self.ShopItem)
 	if not d then
@@ -76,10 +79,12 @@ function Item:Init()
 		{
 			Type = "Header",
 			Text = itemData.DisplayName,
+			Item = d.Item.Item,
 		},
 		{
 			Type = "Rarity",
 			Data = rarityData,
+			Item = d.Item.Item,
 		},
 	}
 
@@ -87,12 +92,28 @@ function Item:Init()
 		table.insert(self.ToolTipData, {
 			Type = t,
 			Data = i,
+			Item = d.Item.Item,
+		})
+	end
+
+	if table.find(GeneralSettings.ItemTypesToTrackCopiesOf, itemData.ItemType) then
+		local amount = 0
+		if CacheController.Cache.ItemCopies then
+			amount = CacheController.Cache.ItemCopies[d.Item.Item]
+		end
+
+		table.insert(self.ToolTipData, {
+			Type = "Copies",
+			Copies = amount,
+			Item = d.Item.Item,
 		})
 	end
 
 	--Tool tip
 	self.Janitor:Add(self.UI.MouseEnter:Connect(function()
 		--Shop tool tip
+		self:GetToolTipData()
+
 		self.Items.ItemsPage.Shop.ToolTip:AddActor(self.ToolTipData)
 	end))
 
@@ -100,6 +121,61 @@ function Item:Init()
 		--Hide tool tip
 		self.Items.ItemsPage.Shop.ToolTip:RemoveActor(self.ToolTipData)
 	end))
+end
+
+function Item:GetToolTipData()
+	local ShopController = knit.GetController("ShopController")
+	local ItemController = knit.GetController("ItemController")
+	local CacheController = knit.GetController("CacheController")
+
+	self.ToolTipData = {}
+	local d = ShopController:GetItem(self.ShopItem)
+	if not d then
+		return
+	end
+
+	local itemData = ItemController:GetItemData(d.Item.Item)
+	if not itemData then
+		warn("No data")
+		warn(d.Item)
+		return
+	end
+
+	local rarityData = ItemController:GetRarityData(itemData.Rarity)
+	self.ToolTipData = {
+		{
+			Type = "Header",
+			Text = itemData.DisplayName,
+			Item = d.Item.Item,
+		},
+		{
+			Type = "Rarity",
+			Data = rarityData,
+			Item = d.Item.Item,
+		},
+	}
+
+	for t, i in d.Item.Metadata do
+		table.insert(self.ToolTipData, {
+			Type = t,
+			Data = i,
+			Item = d.Item.Item,
+		})
+	end
+
+	if table.find(GeneralSettings.ItemTypesToTrackCopiesOf, itemData.ItemType) then
+		local amount = 0
+		warn(d.Item.Item)
+		if CacheController.Cache.ItemCopies then
+			amount = CacheController.Cache.ItemCopies[d.Item.Item]
+		end
+
+		table.insert(self.ToolTipData, {
+			Type = "Copies",
+			Copies = amount,
+			Item = d.Item.Item,
+		})
+	end
 end
 
 function Item:Destroy()

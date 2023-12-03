@@ -20,6 +20,10 @@ function CurrencyController:GetCurrencyData(currency)
 	return CurrencyData[currency]
 end
 
+function CurrencyController:GetItemForCurrency(currency, amount)
+	--Returns an item that corresponds to the currency and the given amount
+end
+
 function CurrencyController:GetCurrencies()
 	local CacheController = knit.GetController("CacheController")
 	if not CacheController.Cache.Currencies then

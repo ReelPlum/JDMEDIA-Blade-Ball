@@ -69,9 +69,11 @@ function CurrencyService:TakeCurrency(user, currency, amount, dontsync) --Takes 
 	CurrencyService.Signals.UsersCurrenciesChanged:Fire(user, currency, amount)
 
 	if dontsync then
-		return
+		return true
 	end
 	SyncCurrencies(user)
+
+	return true
 end
 
 function CurrencyService:GiveCurrency(user, currency, amount) --Gives user the given amount of currency

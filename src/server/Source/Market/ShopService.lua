@@ -152,6 +152,7 @@ function ShopService:GiveBundle(user, bundleId, priceInRobux)
 			metadata[t] = v
 		end
 
+		print("Giving item " .. item.Item)
 		ItemService:GiveUserItem(user, item.Item, 1, metadata)
 	end
 

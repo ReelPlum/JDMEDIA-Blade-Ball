@@ -19,6 +19,7 @@ local StatsService = knit.CreateService({
 	},
 	Signals = {
 		StatUpdated = signal.new(),
+		StatIncremented = signal.new(),
 	},
 })
 
@@ -41,6 +42,7 @@ function StatsService:IncrementStat(user, stat, amount)
 	user:WaitForDataLoaded()
 
 	StatsService:SetStat(user, stat, StatsService:GetStat(user, stat) + amount)
+	StatsService.Signals.StatIncremented:Fire(user, stat, amount)
 end
 
 function StatsService:SetStat(user, stat, value)
@@ -69,10 +71,7 @@ function StatsService:UpdateLeaderstats(user)
 			local val = leaderstats:FindFirstChild(stat)
 			if not val then
 				val = Instance.new("IntValue")
-				val.Name = stat
-				if data.LeaderstatName then
-					val.Name = data.LeaderstatName
-				end
+				val.Name = data.Emoji .. " " .. data.DisplayName
 
 				val.Parent = leaderstats
 			end
