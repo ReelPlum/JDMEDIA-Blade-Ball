@@ -69,7 +69,7 @@ end
 function Leaderboards:CreateLeaderboard(instance, leaderboard)
 	--Create leaderboard on instance.
 	if self.Leaderboards[instance] then
-		warn("The instance " .. instance:GetFullName() .. " already had a leaderboard connected!")
+		warn("❗The instance " .. instance:GetFullName() .. " already had a leaderboard connected!")
 		return
 	end
 

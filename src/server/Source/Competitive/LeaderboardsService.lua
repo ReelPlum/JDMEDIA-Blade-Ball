@@ -39,8 +39,6 @@ function LeaderboardsService:GetTimeTillExpiration(leaderboard)
 		local date = os.date("!*t")
 		local dayTime = date.hour * 60 * 60 + date.min * 60 + date.sec
 
-		print(date.hour, date.min, date.sec)
-
 		return (24 * 60 * 60 + 60 * 60 + 60) - dayTime
 	elseif data.Type == "Weekly" then
 		--Get weekly datastore
@@ -103,7 +101,7 @@ function LeaderboardsService:GetLeaderboardTop(leaderboard)
 			return datastore:GetRangeAsync(Enum.SortDirection.Descending, 50)
 		end)
 		if not success then
-			return warn("Something went wrong while getting top for leaderboard " .. range)
+			return warn("❗Something went wrong while getting top for leaderboard " .. range)
 		end
 
 		local items = {}
@@ -121,7 +119,7 @@ function LeaderboardsService:GetLeaderboardTop(leaderboard)
 			return datastore:GetSortedAsync(false, 50)
 		end)
 		if not success then
-			return warn("Something went wrong while getting top for leaderboard " .. pages)
+			return warn("❗Something went wrong while getting top for leaderboard " .. pages)
 		end
 
 		local items = {}
@@ -162,7 +160,7 @@ function LeaderboardsService:IncrementLeaderboard(leaderboard, user, increment)
 	local datastore, Type = LeaderboardsService:GetLeaderboard(leaderboard)
 
 	if not datastore then
-		return warn("No datastore found")
+		return warn("❗No datastore found")
 	end
 
 	if Type == "DataStore" then
@@ -170,7 +168,7 @@ function LeaderboardsService:IncrementLeaderboard(leaderboard, user, increment)
 			datastore:IncrementAsync(user.Player.UserId, increment)
 		end)
 		if not success then
-			warn("Failed to write to leaderboard " .. msg)
+			warn("❗Failed to write to leaderboard " .. msg)
 		end
 	elseif Type == "Memory" then
 		local timeLeft = LeaderboardsService:GetTimeTillExpiration(leaderboard)
@@ -187,7 +185,7 @@ function LeaderboardsService:IncrementLeaderboard(leaderboard, user, increment)
 		end)
 
 		if not success then
-			warn("Failed to write to leaderboard " .. msg)
+			warn("❗Failed to write to leaderboard " .. msg)
 		end
 	end
 end
@@ -207,7 +205,7 @@ function LeaderboardsService:WriteToLeaderboard(leaderboard, user, value)
 		end)
 
 		if not success then
-			warn("Failed to write to leaderboard " .. msg)
+			warn("❗Failed to write to leaderboard " .. msg)
 		end
 	elseif Type == "Memory" then
 		local timeLeft = LeaderboardsService:GetTimeTillExpiration(leaderboard)
@@ -218,7 +216,7 @@ function LeaderboardsService:WriteToLeaderboard(leaderboard, user, value)
 			end, timeLeft)
 		end)
 		if not success then
-			warn("Failed to write to leaderboard " .. msg)
+			warn("❗Failed to write to leaderboard " .. msg)
 		end
 	elseif Type == "Local" then
 		datastore:UpdateUser(user)

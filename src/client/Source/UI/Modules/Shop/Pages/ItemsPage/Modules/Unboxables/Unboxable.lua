@@ -73,7 +73,6 @@ function Unboxable:Init()
 	for _, i in unboxableData.DropList do
 		if i.Type == "Item" then
 			local data = ItemController:GetItemData(i.Item.Item)
-			print(i)
 			if not data then
 				data = {
 					Image = "rbxassetid://1",

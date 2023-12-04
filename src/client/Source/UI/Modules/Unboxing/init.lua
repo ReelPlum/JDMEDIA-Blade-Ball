@@ -18,6 +18,8 @@ local UnboxingFrame = require(script.UnboxingFrame)
 local Item = require(script.Parent.Common.Item)
 local ToolTip = require(script.Parent.Common.ToolTip)
 
+local MetadataTypes = require(ReplicatedStorage.Data.MetadataTypes)
+
 local Unboxing = {}
 Unboxing.ClassName = "Unboxing"
 Unboxing.__index = Unboxing
@@ -56,19 +58,28 @@ function Unboxing:Init()
 
 	--Listen for unboxes
 	local ShopController = knit.GetController("ShopController")
-	self.Janitor:Add(ShopController.Signals.Unboxed:Connect(function(unboxableId, unboxedItemIndex)
+	self.Janitor:Add(ShopController.Signals.Unboxed:Connect(function(unboxableId, unboxedItemIndex, IsStrange)
 		--
-		table.insert(self.UnboxingQueue, { unboxableId, unboxedItemIndex })
+		table.insert(self.UnboxingQueue, { unboxableId, unboxedItemIndex, IsStrange })
 		self:CheckQueue()
 	end))
 
-	self.Janitor:Add(self.UnboxingFrame.Signals.Finished:Connect(function(unboxable, unboxedItem)
+	self.Janitor:Add(self.UnboxingFrame.Signals.Finished:Connect(function(unboxable, unboxedItem, IsStrange)
 		--Show unboxed item frame
 		local ShopController = knit.GetController("ShopController")
 		local data = ShopController:GetLootFromUnboxable(unboxable, unboxedItem)
 
 		if data.Type == "Item" then
-			local i = self.UnboxJanitor:Add(Item.new(ReplicatedStorage.Assets.UI.Item, data.Item, function()
+			local d = table.clone(data.Item)
+			if IsStrange then
+				if not d.Metadata then
+					d.Metadata = {}
+				end
+
+				d.Metadata[MetadataTypes.Types.Strange] = 0
+			end
+
+			local i = self.UnboxJanitor:Add(Item.new(ReplicatedStorage.Assets.UI.Item, d, function()
 				return
 			end, self.ToolTip))
 			i.UI.Parent = self.UI.UnboxedItem.Frame.Frame
@@ -91,6 +102,9 @@ function Unboxing:Init()
 		self.UnboxingFrame.UnboxingJanitor:Cleanup()
 		self.UI.Enabled = false
 
+		local UIController = knit.GetController("UIController")
+		UIController:ShowGameUI()
+
 		self.UnboxJanitor:Cleanup()
 
 		task.wait(1)
@@ -110,11 +124,10 @@ function Unboxing:CheckQueue()
 	local data = self.UnboxingQueue[1]
 	table.remove(self.UnboxingQueue, 1)
 
-	warn(data)
-	self:Unbox(data[1], data[2])
+	self:Unbox(data[1], data[2], data[3])
 end
 
-function Unboxing:Unbox(unboxableId, unboxedItem)
+function Unboxing:Unbox(unboxableId, unboxedItem, IsStrange)
 	--
 	self.UnboxJanitor:Cleanup()
 	self.CurrentlyUnboxing = true
@@ -123,7 +136,10 @@ function Unboxing:Unbox(unboxableId, unboxedItem)
 	self.UI.Frame.Visible = true
 	self.UI.Enabled = true
 
-	self.UnboxingFrame:AnimateUnboxing(unboxableId, unboxedItem)
+	local UIController = knit.GetController("UIController")
+	UIController:HideAllUI()
+
+	self.UnboxingFrame:AnimateUnboxing(unboxableId, unboxedItem, IsStrange)
 end
 
 function Unboxing:Destroy()

@@ -122,8 +122,10 @@ function Item:Update(information, stackSize)
 		Item = self.Data.Item,
 	})
 	--Add metadata
-	for metadata, data in self.Data.Metadata do
-		table.insert(self.ToolTipData, { Type = metadata, Data = data, Item = self.Data.Item })
+	if self.Data.Metadata then
+		for metadata, data in self.Data.Metadata do
+			table.insert(self.ToolTipData, { Type = metadata, Data = data, Item = self.Data.Item })
+		end
 	end
 
 	if table.find(GeneralSettings.ItemTypesToTrackCopiesOf, itemData.ItemType) then

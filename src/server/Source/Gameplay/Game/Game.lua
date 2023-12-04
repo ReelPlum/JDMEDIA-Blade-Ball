@@ -142,17 +142,17 @@ function Game:CreateMap()
 	--Creates the map for the game.
 	local data = MapData[self.Map]
 	if not data then
-		warn("Could not find map " .. self.Map)
+		warn("❗Could not find map " .. self.Map)
 		return
 	end
 
 	if not data.Model:FindFirstChild("BallSpawn") then
-		warn("Ball Spawn was not found for map " .. self.Map)
+		warn("❗Ball Spawn was not found for map " .. self.Map)
 		return
 	end
 
 	if not data.Model.PrimaryPart then
-		warn("No primarypart was found for map " .. self.Map .. " this may bring problems in the future...")
+		warn("❗No primarypart was found for map " .. self.Map .. " this may bring problems in the future...")
 	end
 
 	--Create map and position it.
@@ -176,7 +176,7 @@ function Game:Join(user)
 	end
 
 	if user.Game then
-		warn("User already in game...")
+		warn("❗User already in game... " .. user.Player.Name)
 		return
 	end
 
@@ -265,8 +265,6 @@ end
 
 function Game:Start()
 	self.StartTime = tick()
-
-	print("starting game!")
 
 	--Choose random gamemode
 	local Gamemodes = {}

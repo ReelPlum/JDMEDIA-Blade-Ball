@@ -63,8 +63,6 @@ function IndicatorList:Init()
 		self.Frame = self.UI:FindFirstChild(InputController.Platform)
 	end
 
-	print(InputController.Platform)
-
 	self.Frame.Visible = true
 
 	for _, element in self.Elements do

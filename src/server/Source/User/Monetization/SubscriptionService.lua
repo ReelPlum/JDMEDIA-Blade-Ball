@@ -31,7 +31,7 @@ local function CheckSubscriptionStatus(user, subscriptionData)
 	end)
 
 	if not success then
-		warn("Failed to get subscription data " .. result)
+		warn("❗Failed to get subscription data " .. result)
 		return
 	end
 

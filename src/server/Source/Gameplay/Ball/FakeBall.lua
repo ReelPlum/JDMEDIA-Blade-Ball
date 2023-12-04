@@ -55,11 +55,11 @@ end
 function FakeBall:Update(dt)
 	--Update position of ball
 	if self:CheckTime() then
-		return warn("Time check")
+		return
 	end
 
 	if not self.BallModel then
-		return warn("NO ball model")
+		return
 	end
 
 	local raycastParams = RaycastParams.new()

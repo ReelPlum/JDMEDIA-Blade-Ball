@@ -80,7 +80,14 @@ local function UpdateItemFrameWithItem(ui, case, itemIndex)
 end
 
 local function RandomItemFromWeightedTable(t)
-	return t[math.random(1, #t)]
+	local IsStrange = false
+	if math.random(0, 100) <= t.StrangeChance then
+		IsStrange = true
+	end
+
+	local Item = t.Items[math.random(1, #t.Items)]
+
+	return { Item, IsStrange }
 end
 
 local function GenerateWeightedTableFromCase(case)
@@ -88,17 +95,23 @@ local function GenerateWeightedTableFromCase(case)
 
 	local unboxable = ShopController:GetUnboxable(case)
 
-	local t = {}
+	if unboxable.WeightedTable then
+		return unboxable.WeightedTable
+	end
+
+	local t = { Items = {}, StrangeChance = unboxable.StrangeChance or 0 }
 	for index, data in unboxable.DropList do
 		for _ = 1, data.Weight do
-			table.insert(t, index)
+			table.insert(t.Items, index)
 		end
 	end
+
+	unboxable.WeightedTable = t
 
 	return t
 end
 
-function UnboxingFrame:AnimateUnboxing(case, winningItem)
+function UnboxingFrame:AnimateUnboxing(case, winningItem, isStrange)
 	self.Finished = false
 	self.UnboxingJanitor:Cleanup()
 
@@ -107,9 +120,6 @@ function UnboxingFrame:AnimateUnboxing(case, winningItem)
 	local finish = CalculateFinish()
 	local totalDistance = math.random(80 * 1000, 150 * 1000) / 1000 --ItemFrames
 	local finalItemNumber = math.floor(totalDistance + 0.5)
-
-	print(finalItemNumber)
-	print(totalDistance)
 
 	local weightedTable = GenerateWeightedTableFromCase(case)
 
@@ -135,12 +145,11 @@ function UnboxingFrame:AnimateUnboxing(case, winningItem)
 			ItemList = {}
 			for i = -frameAmount, finalItemNumber + frameAmount do
 				if i == finalItemNumber then
-					ItemList[finalItemNumber] = winningItem
+					ItemList[finalItemNumber] = { winningItem, isStrange }
 					continue
 				end
 				ItemList[i] = RandomItemFromWeightedTable(weightedTable)
 			end
-			ItemList[finalItemNumber] = winningItem
 		end
 
 		MaxIndex[frame] = frameAmount
@@ -156,9 +165,6 @@ function UnboxingFrame:AnimateUnboxing(case, winningItem)
 
 			local itm = self.UnboxingJanitor:Add(itemFrame.new(self, ui, FrameWidths[frame], i))
 			itm:Update(i, case, ItemList[i])
-			if i == finalItemNumber then
-				print(ItemList[i])
-			end
 
 			table.insert(Items[frame], itm)
 		end
@@ -183,21 +189,11 @@ function UnboxingFrame:AnimateUnboxing(case, winningItem)
 
 				--Calculate where the items should be placed.
 				item:SetPosition(x)
-				if
-					(item.Index - x) * FrameWidths[frame] > -FrameWidths[frame] / 2
-					and (item.Index - x) * FrameWidths[frame] < FrameWidths[frame] / 2
-				then
-					--print((item.Index - x) * FrameWidths[frame])
-					--print(item.Index)
-				end
 
 				--Check if items get out of range.
 				if x - item.Index > FrameAmounts[frame] then
 					--Out of range.
 					--Spawn in new items if items got out of range and destroy the items that got out of range
-					if MaxIndex[frame] + 1 == finalItemNumber then
-						print(ItemList[MaxIndex[frame] + 1])
-					end
 					MaxIndex[frame] += 1
 					item:Update(MaxIndex[frame], case, ItemList[MaxIndex[frame]])
 				end
@@ -206,11 +202,9 @@ function UnboxingFrame:AnimateUnboxing(case, winningItem)
 
 		if math.min(t, finish) == finish then
 			self.Finished = true
-			print(totalDistance)
-			print(x)
 
 			task.wait(2)
-			self.Signals.Finished:Fire(case, winningItem)
+			self.Signals.Finished:Fire(case, winningItem, isStrange)
 			return
 		end
 	end))

@@ -29,8 +29,6 @@ function Request.new(TradeRequests, player)
 		Destroying = self.Janitor:Add(signal.new()),
 	}
 
-	warn(self.Player)
-
 	self:Init()
 
 	return self
@@ -40,8 +38,6 @@ function Request:Init()
 	self.UI = self.Janitor:Add(self.TradeRequests.UI.PlayerTemplate:Clone())
 	self.UI.Parent = self.TradeRequests.UI.Frame.Frame.ScrollingFrame
 	self.UI.Visible = true
-	warn("Starting up!")
-	print(self.UI)
 
 	--Buttons
 	local TradingController = knit.GetController("TradingController")
@@ -92,8 +88,6 @@ function Request:SetSent(bool)
 end
 
 function Request:Destroy()
-	warn("Destroying?!")
-
 	self.Signals.Destroying:Fire()
 	self.Janitor:Destroy()
 	self = nil

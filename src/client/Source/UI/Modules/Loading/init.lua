@@ -130,6 +130,10 @@ function Loading:StartAnimation()
 end
 
 function Loading:SetVisible(bool)
+	if not self.UI then
+		return
+	end
+
 	if bool == nil then
 		bool = not self.Visible
 	end

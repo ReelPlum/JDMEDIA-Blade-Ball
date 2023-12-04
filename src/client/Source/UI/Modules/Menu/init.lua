@@ -73,7 +73,7 @@ function Menu:Init()
 			return
 		end
 		ui:ChangePage("FrontPage")
-		ui:SetVisible(true)
+		ui:SetVisible()
 	end))
 
 	self.Janitor:Add(self.UI.Lobby.Trading.MouseButton1Click:Connect(function()
@@ -82,7 +82,7 @@ function Menu:Init()
 		if not ui then
 			return
 		end
-		ui:SetVisible(true)
+		ui:SetVisible()
 	end))
 
 	self.Janitor:Add(self.UI.Lobby.Rebirth.MouseButton1Click:Connect(function()
@@ -91,7 +91,7 @@ function Menu:Init()
 		if not ui then
 			return
 		end
-		ui:SetVisible(true)
+		ui:SetVisible()
 	end))
 
 	self.Janitor:Add(self.UI.Lobby.Knives.MouseButton1Click:Connect(function()
@@ -119,7 +119,7 @@ function Menu:Init()
 			return
 		end
 		--ui:OpenPage("Coins")
-		ui:SetVisible(true)
+		ui:SetVisible()
 	end))
 
 	self.Janitor:Add(self.UI.InGame.Coins.MouseButton1Click:Connect(function()
@@ -129,7 +129,7 @@ function Menu:Init()
 			return
 		end
 		--ui:OpenPage("Coins")
-		ui:SetVisible(true)
+		ui:SetVisible()
 	end))
 
 	--Displays
@@ -178,8 +178,6 @@ function Menu:UpdateCurrencies()
 	local cash = Currencies["Cash"] or 0
 	cash = math.floor(cash)
 
-	warn(cash)
-
 	self.UI.InGame.Coins.Amount.Text = format:Format(cash)
 	self.UI.Lobby.Coins.Amount.Text = format:Format(cash)
 end
@@ -192,9 +190,6 @@ function Menu:UpdateStreaks()
 	local kills = GameStreaks.Kills or 0
 	hits = math.floor(hits)
 	kills = math.floor(kills)
-
-	warn(hits)
-	warn(kills)
 
 	self.UI.InGame.HighestStreak.Amount.Text = format:Format(hits)
 	self.UI.InGame.Wipeouts.Amount.Text = format:Format(kills)

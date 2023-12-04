@@ -17,7 +17,10 @@ local ItemData = require(ReplicatedStorage.Data.ItemData)
 local ItemService = knit.CreateService({
 	Name = "ItemService",
 	Client = {
-		Inventory = knit.CreateProperty({}),
+		--Inventory = knit.CreateProperty({}),
+
+		ItemAdded = knit.CreateSignal(),
+		ItemRemoved = knit.CreateSignal(),
 	},
 	Signals = {
 		ItemCreated = signal.new(),
@@ -28,6 +31,14 @@ local ItemService = knit.CreateService({
 
 local InventoryCache = {}
 local InventoryChangeSignals = {}
+
+function ItemService.Client:GetPlayersInventory(player, requestedPlayer)
+	--Get players inventory
+	local UserService = knit.GetService("UserService")
+	local user = UserService:WaitForUser(player)
+
+	return ItemService:GetUsersInventory(user)
+end
 
 function ItemService:GetItemData(item)
 	return ItemData[item]
@@ -51,7 +62,7 @@ end
 
 function ItemService:TransferItemToInventory(inventory, itemId, data)
 	if inventory[itemId] then
-		warn("Inventory already had a item with the id " .. itemId)
+		warn("❗Inventory already had a item with the id " .. itemId)
 		return
 	end
 
@@ -62,7 +73,6 @@ end
 
 function ItemService:TransferMultipleItemsToInventory(inventory, items)
 	for id, data in items do
-		warn(data)
 		inventory[id] = data
 	end
 
@@ -116,19 +126,22 @@ end
 function ItemService:GiveItemToInventory(inventory, item, quantity, metadata)
 	--Check if item exists
 	if not ItemData[item] then
-		warn("Item " .. item .. " was not found")
+		warn("❗Item " .. item .. " was not found")
 		return nil
 	end
+
+	local items = {}
 
 	for _ = 1, quantity do
 		local id, data = ItemService:CreateData(item, metadata)
 
 		inventory[id] = data
+		items[id] = data
 	end
 
 	ItemService.Signals.ItemCreated:Fire(item, quantity)
 
-	return inventory
+	return items
 end
 
 function ItemService:TakeItemFromInventory(inventory, itemId)
@@ -313,11 +326,10 @@ function ItemService:GiveUserItem(user, item, quantity, metadata)
 	user:WaitForDataLoaded()
 
 	local inventory = ItemService:GetUsersInventory(user)
-	ItemService:GiveItemToInventory(inventory, item, quantity, metadata)
-	warn(inventory)
-
+	local items = ItemService:GiveItemToInventory(inventory, item, quantity, metadata)
 	ItemService:SaveInventory(user, inventory)
-	ItemService:SyncInventory(user)
+
+	ItemService.Client.ItemAdded:Fire(user.Player, items)
 end
 
 function ItemService:TakeItemFromUser(user, itemId)
@@ -331,7 +343,8 @@ function ItemService:TakeItemFromUser(user, itemId)
 	ItemService:TakeItemFromInventory(inventory, itemId)
 
 	ItemService:SaveInventory(user, inventory)
-	ItemService:SyncInventory(user)
+
+	ItemService.Client.ItemRemoved:Fire(user.Player, { itemId })
 end
 
 function ItemService:GetUsersItemFromId(user, id)
@@ -345,7 +358,8 @@ function ItemService:UpdateId(user, id, newData)
 	Inventory[id] = newData
 
 	ItemService:SaveInventory(user, Inventory)
-	ItemService:SyncInventory(user)
+
+	ItemService.Client.ItemAdded:Fire(user.Player, { [id] = newData })
 end
 
 function ItemService:GetUsersDataFromId(user, id)
@@ -359,17 +373,16 @@ function ItemService:TransferItemToUsersInventory(user, itemId, data)
 	inventory = ItemService:TransferItemToInventory(inventory, itemId, data)
 
 	self:SaveInventory(user, inventory)
-	self:SyncInventory(user)
+	ItemService.Client.ItemAdded:Fire(user.Player, { itemId })
 end
 
 function ItemService:TransferMultipleItemsToUsersInventory(user, items)
 	local inventory = ItemService:GetUsersInventory(user)
 	inventory = ItemService:TransferMultipleItemsToInventory(inventory, items)
 
-	warn(inventory)
-
 	self:SaveInventory(user, inventory)
-	self:SyncInventory(user)
+
+	ItemService.Client.ItemAdded:Fire(user.Player, items)
 end
 
 function ItemService:RemoveItemWithIdFromUsersInventory(user, itemId)
@@ -377,7 +390,8 @@ function ItemService:RemoveItemWithIdFromUsersInventory(user, itemId)
 	ItemService:RemoveItemWithIdFromInventory(inventory, itemId)
 
 	self:SaveInventory(user, inventory)
-	self:SyncInventory(user)
+
+	ItemService.Client.ItemRemoved:Fire(user.Player, { itemId })
 end
 
 function ItemService:RemoveMultipleItemsWithIdFromUsersInventory(user, ids)
@@ -385,7 +399,10 @@ function ItemService:RemoveMultipleItemsWithIdFromUsersInventory(user, ids)
 	local success = ItemService:RemoveMultipleItemsWithIdFromInventory(inventory, ids)
 
 	self:SaveInventory(user, inventory)
-	self:SyncInventory(user)
+
+	if success then
+		ItemService.Client.ItemRemoved:Fire(user.Player, ids)
+	end
 
 	return success
 end
@@ -393,15 +410,21 @@ end
 function ItemService:GiveUserMultipleItems(user, items, metadata)
 	local inventory = ItemService:GetUsersInventory(user)
 
+	local addedItems = {}
 	for item, quantity in items do
-		ItemService:GiveItemToInventory(inventory, item, quantity, metadata)
+		local i = ItemService:GiveItemToInventory(inventory, item, quantity, metadata)
+		for id, data in i do
+			addedItems[id] = data
+		end
 	end
 
 	self:SaveInventory(user, inventory)
-	self:SyncInventory(user)
+	ItemService.Client.ItemAdded:Fire(user.Player, addedItems)
 end
 
 function ItemService:GetUsersInventory(user)
+	user:WaitForDataLoaded()
+
 	if InventoryCache[user] then
 		return InventoryCache[user]
 	end
@@ -422,16 +445,16 @@ function ItemService:SaveInventory(user, inventory)
 	local DataCompressionService = knit.GetService("DataCompressionService")
 
 	user.Data.Inventory = DataCompressionService:CompressData(HttpService:JSONEncode(inventory))
-
-	ItemService.Signals.UsersInventoryChanged:Fire(user)
 end
 
-function ItemService:SyncInventory(user)
-	user:WaitForDataLoaded()
+-- function ItemService:SyncInventory(user)
+-- 	user:WaitForDataLoaded()
 
-	InventoryChangeSignals[user]:Fire()
-	ItemService.Client.Inventory:SetFor(user.Player, ItemService:GetUsersInventory(user))
-end
+-- 	InventoryChangeSignals[user]:Fire()
+-- 	ItemService.Client.Inventory:SetFor(user.Player, ItemService:GetUsersInventory(user))
+
+-- 	ItemService.Signals.UsersInventoryChanged:Fire(user)
+-- end
 
 function ItemService:ListenForUserInventoryChange(user)
 	return InventoryChangeSignals[user]
@@ -442,9 +465,6 @@ function ItemService:KnitStart()
 
 	UserService.Signals.UserAdded:Connect(function(user)
 		InventoryChangeSignals[user] = signal.new()
-
-		user:WaitForDataLoaded()
-		self:SyncInventory(user)
 	end)
 
 	UserService.Signals.UserRemoving:Connect(function(user)

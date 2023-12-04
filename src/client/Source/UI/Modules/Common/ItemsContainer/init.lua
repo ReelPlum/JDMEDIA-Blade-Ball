@@ -6,10 +6,12 @@ Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 
 local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local SharedTableRegistry = game:GetService("SharedTableRegistry")
 
 local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
+local parallelworker = require(ReplicatedStorage.Packages.ParallelWorker)
 
 local Item = require(script.Parent.Item)
 local ToolTip = require(script.Parent.ToolTip)
@@ -30,6 +32,8 @@ function ItemsContainer.new(UI, items, clicked, itemTypes, check)
 	self.ToolTip = ToolTip.new(self.UI:FindFirstAncestorWhichIsA("ScreenGui"))
 	self.ItemTypes = itemTypes
 	self.Check = check
+
+	self.ParallelWorker = parallelworker.new(script.ItemCalculator)
 
 	self.CreatedItems = {}
 	self.ItemStacks = {}
@@ -84,9 +88,14 @@ local function CompareItems(a, b, alreadyCheckedOther)
 		end
 
 		if typeof(value) == "table" then
-			if not CompareItems(value, b[index]) then
+			if not CompareItems(value, b[index], true) then
 				return false
 			end
+			continue
+		end
+
+		if not (value == b[index]) then
+			return false
 		end
 	end
 
@@ -97,124 +106,7 @@ local function CompareItems(a, b, alreadyCheckedOther)
 	return CompareItems(b, a, true)
 end
 
-function ItemsContainer:Update(items)
-	--Update with new items
-	local ItemController = knit.GetController("ItemController")
-
-	self.CurrentData = items
-
-	--[[
-		self.CreatedItems will hold all shown items in the UI.
-		self.ItemStacks will hold all stacks for each different item.
-		self.Items hold 
-	]]
-
-	for id, data in self.CurrentData do
-		--Check item etc.
-		if self.ItemTypes then
-			local itmData = ItemController:GetItemData(data.Item)
-			if not table.find(self.ItemTypes, itmData.ItemType) then
-				if self.Items[id] then
-					local i = table.find(self.ItemStacks[self.Items[id].Item][self.Items[id].StackId].Hold, id)
-					if i then
-						table.remove(self.ItemStacks[self.Items[id].Item][self.Items[id].StackId].Hold, i)
-					end
-					self.Items[id] = nil
-				end
-				continue
-			end
-		end
-
-		if self.Check then
-			if not self.Check(id, data) then
-				if self.Items[id] then
-					local i = table.find(self.ItemStacks[self.Items[id].Item][self.Items[id].StackId].Hold, id)
-					if i then
-						table.remove(self.ItemStacks[self.Items[id].Item][self.Items[id].StackId].Hold, i)
-					end
-					self.Items[id] = nil
-				end
-				continue
-			end
-		end
-		if not self.ItemStacks[data.Item] then
-			--Add it
-			print(data.Item)
-			self.ItemStacks[data.Item] = {}
-		end
-
-		if self.Items[id] then
-			if self.ItemStacks[data.Item][self.Items[id].StackId] then
-				if CompareItems(self.ItemStacks[data.Item][self.Items[id].StackId].Data, data) then
-					continue
-				end
-
-				--Remove from stack
-				local i = table.find(self.ItemStacks[data.Item][self.Items[id].StackId].Hold, id)
-				if i then
-					table.remove(self.ItemStacks[data.Item][self.Items[id].StackId].Hold, i)
-				end
-				self.Items[id] = nil
-			end
-		end
-
-		local found = false
-		for stackId, stackData in self.ItemStacks[data.Item] do
-			if CompareItems(stackData.Data, data) then
-				--Is equal
-				found = true
-				self.Items[id] = { StackId = stackId, Item = data.Item }
-				table.insert(self.ItemStacks[data.Item][self.Items[id].StackId].Hold, id)
-			end
-		end
-
-		if not found then
-			--Create new stack
-			self.ItemStacks[data.Item][id] = {
-				Hold = {
-					id,
-				},
-				Data = data,
-			}
-			self.Items[id] = {
-				StackId = id,
-				Item = data.Item,
-			}
-		end
-	end
-
-	--Go through items and find the items not available anymore
-	for id, stackData in self.Items do
-		if not items[id] then
-			--Remove item
-			if not self.ItemStacks[stackData.Item] then
-				self.Items[id] = nil
-				continue
-			end
-			if not self.ItemStacks[stackData.Item][stackData.StackId] then
-				self.Items[id] = nil
-				continue
-			end
-
-			local i = table.find(self.ItemStacks[stackData.Item][stackData.StackId].Hold, id)
-			if i then
-				table.remove(self.ItemStacks[stackData.Item][stackData.StackId].Hold, i)
-			end
-			self.Items[id] = nil
-
-			continue
-		end
-	end
-
-	--Check stacks
-	for _, stacks in self.ItemStacks do
-		for id, data in stacks do
-			if #data.Hold <= 0 then
-				stacks[id] = nil
-			end
-		end
-	end
-
+function ItemsContainer:UpdateStacks()
 	--Update UI
 	for id, ui in self.CreatedItems do
 		local item = ui.Data.Item
@@ -253,6 +145,39 @@ function ItemsContainer:Update(items)
 	--Update scrolling
 	local list = self.UI:FindFirstChildWhichIsA("UIGridStyleLayout")
 	self.UI.CanvasSize = UDim2.new(0, 0, 0, list.AbsoluteContentSize.Y + 10)
+end
+
+function ItemsContainer:Update(items)
+	debug.profilebegin("Update itemscontainer")
+	--Update with new items
+	local ItemController = knit.GetController("ItemController")
+
+	local ui = self.UI:FindFirstAncestorWhichIsA("ScreenGui")
+
+	local ignore = {}
+	self.CurrentData = items
+
+	for id, data in items do
+		if self.Check then
+			if not self.Check(id, data) then
+				table.insert(ignore, id)
+				continue
+			end
+		end
+	end
+
+	task.spawn(function()
+		local success, stacks = self.ParallelWorker:Invoke(items, self.ItemTypes, ignore, self.Check)
+		if not success then
+			return
+		end
+
+		self.ItemStacks = stacks
+
+		self:UpdateStacks()
+	end)
+
+	debug.profileend()
 end
 
 function ItemsContainer:GetUI(id)

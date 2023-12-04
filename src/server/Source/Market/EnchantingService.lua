@@ -137,11 +137,9 @@ function EnchantingService:ApplyRandomEnchantOnUsersItem(user, id)
 
 	local ItemService = knit.GetService("ItemService")
 
-	warn(id)
-
 	local data = ItemService:GetUsersDataFromId(user, id)
 	if not data then
-		return warn("Data not found")
+		return warn("❗Data not found")
 	end
 
 	local enchant = user.Data.RandomEnchant
@@ -195,7 +193,6 @@ function EnchantingService:ApplyEnchantmentBookOnUsersItem(user, itemId, bookId)
 	local success = EnchantingService:ApplyEnchantOnItem(data, enchant, level)
 	if success then
 		--Take book away from user
-		warn("Taking away book!")
 		ItemService:UpdateId(user, itemId, success)
 		ItemService:TakeItemFromUser(user, bookId)
 
@@ -252,8 +249,6 @@ function EnchantingService:KnitInit()
 			table.insert(WeightedTable, enchant)
 		end
 	end
-
-	warn(WeightedTable)
 end
 
 return EnchantingService

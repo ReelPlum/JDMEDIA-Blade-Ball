@@ -58,8 +58,6 @@ function Trade.new(userA, userB)
 end
 
 function Trade:Init()
-	warn("Trade started!")
-
 	local UserService = knit.GetService("UserService")
 	local ItemService = knit.GetService("ItemService")
 	local TradingService = knit.GetService("TradingService")
@@ -175,8 +173,6 @@ function Trade:Complete()
 		return
 	end
 
-	warn("Trade completed!")
-
 	self.Completed = true
 	self.UserA:Lock()
 	self.UserB:Lock()
@@ -219,7 +215,7 @@ function Trade:Complete()
 
 		self.Completed = false
 
-		warn("Failed with user " .. FailedUser.Player.Name)
+		warn("❗Failed with user " .. FailedUser.Player.Name)
 
 		self:Cancel(FailedUser)
 		return
@@ -240,8 +236,6 @@ function Trade:Complete()
 		self.Inventories[self.UserA],
 		self.Inventories[self.UserB]
 	)
-
-	warn("Fully completed trade")
 
 	--Destroy trade
 	self:Destroy()
@@ -280,18 +274,18 @@ function Trade:AddItem(user, itemId)
 	local TradingService = knit.GetService("TradingService")
 
 	if not TradingService:ValidateItemForTrade(user, itemId) then
-		warn("Invalid")
+		warn("❗Invalid")
 		return
 	end
 
 	--Check if item can be added
 	if not ItemService:GetUsersItemFromId(user, itemId) then
-		warn("Cannot be added because not in inv")
+		warn("❗Cannot be added because not in inv")
 		return
 	end
 
 	if self:GetItem(itemId) then
-		warn("Item already added")
+		warn("❗Item already added")
 		return
 	end
 
@@ -355,8 +349,6 @@ function Trade:Cancel(user)
 		return
 	end
 	self.Cancelled = true
-
-	warn(user.Player.Name .. " cancelled the trade!")
 
 	--Tell other player user cancelled
 

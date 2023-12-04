@@ -57,11 +57,11 @@ function AbilityService:ExecuteAbility(user, cameraLookVector, characterLookVect
 	local ability = EquipmentService:GetEquippedItemOfType(user, "Ability")
 
 	if not ability then
-		warn("Users equipped ability was nil")
+		warn("❗Users equipped ability was nil")
 		return false
 	end
 	if not abilities[ability] then
-		warn(ability .. " was not found")
+		warn(ability .. " was not found❗")
 		return false
 	end
 

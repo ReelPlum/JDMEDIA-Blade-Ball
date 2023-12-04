@@ -25,13 +25,13 @@ function Inventory.new(UITemplate)
 	self.Janitor = janitor.new()
 
 	self.UITemplate = UITemplate
-	self.ItemTypes = {"HitEffect", "Tag", "Ball"}
+	self.ItemTypes = { "HitEffect", "Tag", "Ball" }
 
 	self.SelectedItemId = nil
 
 	self.Signals = {
 		Destroying = self.Janitor:Add(signal.new()),
-		VisibilityChanged = self.Janitor:Add(signal.new())
+		VisibilityChanged = self.Janitor:Add(signal.new()),
 	}
 
 	self:Init()
@@ -67,7 +67,15 @@ function Inventory:Init()
 	end))
 
 	--Listen for inventory changes
-	self.Janitor:Add(ItemController.Signals.InventoryChanged:Connect(function()
+	self.Janitor:Add(ItemController.Signals.InventoryLoaded:Connect(function()
+		self:Update()
+	end))
+
+	self.Janitor:Add(ItemController.Signals.ItemAdded:Connect(function()
+		self:Update()
+	end))
+
+	self.Janitor:Add(ItemController.Signals.ItemRemoved:Connect(function()
 		self:Update()
 	end))
 

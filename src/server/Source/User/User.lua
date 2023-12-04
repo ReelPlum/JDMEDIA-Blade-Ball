@@ -64,7 +64,6 @@ function User:LoadData()
 
 	local DataService = knit.GetService("DataService")
 
-	warn("Loading data...")
 	DataService:RequestData(self.Player):andThen(function(data)
 		self.Data = data.Data
 		self._d = data

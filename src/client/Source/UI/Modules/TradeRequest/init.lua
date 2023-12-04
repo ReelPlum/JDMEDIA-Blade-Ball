@@ -59,7 +59,6 @@ function TradeRequest:Init()
 
 	local CacheController = knit.GetController("CacheController")
 	self.Janitor:Add(CacheController.Signals.TradeRequestRecieved:Connect(function()
-		warn("Got request!")
 		self:Update()
 	end))
 
@@ -78,16 +77,11 @@ end
 
 function TradeRequest:Update()
 	--Update trade requests
-	warn("Updating!")
-
 	local CacheController = knit.GetController("CacheController")
 	local tradeRequests = CacheController.Cache.TradeRequests or {
 		Sent = {},
 		Recieved = {},
 	}
-
-	print(tradeRequests.Recieved)
-	print(tradeRequests.Sent)
 
 	for _, player in Players:GetPlayers() do
 		if player == LocalPlayer then
@@ -107,7 +101,6 @@ function TradeRequest:Update()
 			continue
 		end
 
-		print(table.find(tradeRequests.Sent, player.UserId))
 		if not table.find(tradeRequests.Sent, player.UserId) then
 			req:SetSent(false)
 		else
@@ -119,10 +112,8 @@ function TradeRequest:Update()
 	for id, data in tradeRequests.Recieved do
 		local player = Players:GetPlayerByUserId(tonumber(data.RequestingUser))
 		table.insert(found, player)
-		print(player)
 
 		if self.Requests[player] then
-			print("recieved")
 			self.Requests[player]:SetRecieved(true, id)
 			continue
 		end

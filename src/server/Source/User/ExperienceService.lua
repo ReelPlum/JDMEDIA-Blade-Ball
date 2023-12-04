@@ -87,7 +87,6 @@ function ExperienceService:KnitStart()
 
 	CurrencyService.Signals.UsersCurrenciesChanged:Connect(function(user, currency)
 		if currency == "Experience" then
-			print("Change!")
 			self:CheckUserForRankup(user)
 		end
 	end)

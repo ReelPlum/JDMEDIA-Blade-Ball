@@ -11,6 +11,8 @@ local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
 local CurrencyData = require(ReplicatedStorage.Data.CurrencyData)
+local StrangeItemData = require(ReplicatedStorage.Data.StrangeItemData)
+local StatData = require(ReplicatedStorage.Data.StatData)
 
 local Item = {}
 Item.ClassName = "Item"
@@ -34,13 +36,18 @@ function Item.new(unboxingFrame, ui, width, index)
 	return self
 end
 
-function Item:Update(newIndex, unboxable, newItemIndex)
+function Item:Update(newIndex, unboxable, newData)
 	self.ItemJanitor:Cleanup()
+	if not newData then
+		return
+	end
+
+	local newItemIndex = newData[1]
+	local IsStrange = newData[2]
 
 	self.Index = newIndex
 
 	if not newItemIndex then
-		warn("No index?")
 		return
 	end
 
@@ -58,14 +65,26 @@ function Item:Update(newIndex, unboxable, newItemIndex)
 		self.UI.ItemImage.Image = itemData.Image
 		self.UI.ItemName.Text = itemData.DisplayName
 		self.ItemJanitor:Add(rarityData.Effect(rarityData, self.UI))
+
+		if IsStrange then
+			--Add emoji for strange item
+			local strangeData = StrangeItemData.ItemTypes[itemData.ItemType]
+			if not strangeData then
+				return
+			end
+			local statData = StatData[strangeData.Stat]
+			if not statData then
+				return
+			end
+
+			self.UI.ItemName.Text = itemData.DisplayName .. " " .. statData.Emoji
+		end
 	elseif data.Type == "Currency" then
 		local cData = CurrencyData[data.Currency]
 
 		self.UI.BackgroundColor3 = cData.Color
 		self.UI.ItemImage.Image = cData.Image
 		self.UI.ItemName.Text = cData.DisplayName .. " - " .. data.Amount
-	else
-		warn(data.Type)
 	end
 end
 

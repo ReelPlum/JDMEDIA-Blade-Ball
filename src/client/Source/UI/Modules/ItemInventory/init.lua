@@ -25,7 +25,7 @@ function Inventory.new(UITemplate)
 	self.Janitor = janitor.new()
 
 	self.UITemplate = UITemplate
-	self.ItemTypes = {"Knife", "Ability"}
+	self.ItemTypes = { "Knife", "Ability" }
 
 	self.SelectedItemId = nil
 
@@ -67,7 +67,15 @@ function Inventory:Init()
 	end))
 
 	--Listen for inventory changes
-	self.Janitor:Add(ItemController.Signals.InventoryChanged:Connect(function()
+	self.Janitor:Add(ItemController.Signals.InventoryLoaded:Connect(function()
+		self:Update()
+	end))
+
+	self.Janitor:Add(ItemController.Signals.ItemAdded:Connect(function()
+		self:Update()
+	end))
+
+	self.Janitor:Add(ItemController.Signals.ItemRemoved:Connect(function()
 		self:Update()
 	end))
 
@@ -144,7 +152,7 @@ function Inventory:SetVisible(bool)
 	end
 
 	self.ItemsContainer.ToolTip:Update()
-	
+
 	self.UI.Enabled = bool
 	self.Visible = bool
 end

@@ -351,12 +351,9 @@ function Ball:Hit(user, cameraLookVector, characterLookVector)
 		return
 	end
 
-	warn("Trying hit")
-
 	--Check distance
 	local distance = self:GetDistanceToTarget()
 	if distance > BALLHITDISTANCE then
-		warn(distance)
 		return
 	end
 

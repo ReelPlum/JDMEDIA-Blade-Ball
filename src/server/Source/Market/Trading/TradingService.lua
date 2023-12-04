@@ -251,8 +251,6 @@ function TradingService:CancelTrade(user)
 		return
 	end
 
-	warn("Trying to cancel trade")
-
 	user.CurrentTrade:Cancel(user)
 end
 
@@ -275,7 +273,7 @@ function TradingService:ValidateItemForTrade(user, itemId)
 		return PolicyService:GetPolicyInfoForPlayerAsync(user.Player)
 	end)
 	if not success then
-		warn("Something went wrong while validating item " .. result)
+		warn("❗Something went wrong while validating item " .. result)
 		return
 	end
 

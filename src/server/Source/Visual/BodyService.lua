@@ -45,7 +45,7 @@ function BodyService:EquipOnBodyPart(character, bodypart, item, offset, name)
 		if not clone.PrimaryPart then
 			--No primarypart
 			warn(
-				"No primarypart was set to "
+				"❗No primarypart was set to "
 					.. clone:GetFullName()
 					.. " while trying to add it to the body part "
 					.. bodypart

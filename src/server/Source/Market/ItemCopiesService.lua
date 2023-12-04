@@ -57,7 +57,6 @@ function ItemCopiesService:SyncItemCopies()
 	end
 
 	ItemCopiesService.Client.Copies:Set(GlobalItems)
-	print(GlobalItems)
 end
 
 function ItemCopiesService:GetDataFromDatabase()

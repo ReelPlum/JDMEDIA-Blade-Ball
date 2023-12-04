@@ -49,7 +49,6 @@ function Trading:Init()
 	self.ItemsContainerLocal =
 		self.Janitor:Add(ItemsContainer.new(self.UI.Frame.Trade.Frame.LocalPlayer.Frame.ScrollingFrame, {}, function(id)
 			--Remove item from trade
-			warn(id)
 			TradingController:RemoveItemFromCurrentTrade(id)
 		end))
 	self.ItemsContainerB =
@@ -59,7 +58,6 @@ function Trading:Init()
 	self.Inventory = self.Janitor:Add(
 		ItemsContainer.new(self.UI.Frame.Inventory.Frame.Inventory.Holder.ScrollingFrame, {}, function(id)
 			--Add item to trade
-			warn(id)
 			TradingController:AddItemToCurrentTrade(id)
 		end)
 	)
@@ -67,7 +65,6 @@ function Trading:Init()
 	--Buttons
 	self.Janitor:Add(self.UI.Frame.Inventory.Frame.Buttons.Holder.Accept.MouseButton1Click:Connect(function()
 		--Trade
-		warn("Accept")
 
 		TradingController:SetStatusForCurrentTrade(true)
 	end))
@@ -78,14 +75,11 @@ function Trading:Init()
 
 	self.Janitor:Add(self.UI.Frame.Inventory.Frame.Buttons.Holder.Cancel.MouseButton1Click:Connect(function()
 		--Cancel trade
-		warn("Cancel trade")
 
 		TradingController:CancelCurrentTrade()
 	end))
 
 	--Listen for trade staring & ending
-	warn("Listening")
-
 	self.Janitor:Add(TradingController.Signals.TradeStarted:Connect(function()
 		self:Update()
 
@@ -97,7 +91,6 @@ function Trading:Init()
 	end))
 
 	--Listen for updates
-	warn("For updates")
 	self.Janitor:Add(TradingController.Signals.StatusChanged:Connect(function()
 		self:UpdateStatus()
 	end))
@@ -106,7 +99,15 @@ function Trading:Init()
 		self:UpdateInventories()
 	end))
 
-	self.Janitor:Add(ItemController.Signals.InventoryChanged:Connect(function()
+	self.Janitor:Add(ItemController.Signals.InventoryLoaded:Connect(function()
+		self:UpdateInventories()
+	end))
+
+	self.Janitor:Add(ItemController.Signals.ItemAdded:Connect(function()
+		self:UpdateInventories()
+	end))
+
+	self.Janitor:Add(ItemController.Signals.ItemRemoved:Connect(function()
 		self:UpdateInventories()
 	end))
 

@@ -28,7 +28,6 @@ function LoadingController:PreloadGame()
 end
 
 local requiredLoaded = {
-	"Inventory",
 	"Currencies",
 	"Tags",
 	"Equipment",
@@ -36,6 +35,8 @@ local requiredLoaded = {
 	"TradeRequests",
 	"UntradeableUsers",
 }
+
+--Rewrite this to be non dependent on cachecontroller and instead call IsLoaded on all the controllers instead.
 
 function LoadingController:KnitStart()
 	LoadingController:PreloadGame()

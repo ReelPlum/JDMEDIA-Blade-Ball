@@ -84,7 +84,7 @@ function DeveloperProductService:KnitStart()
 			return DeveloperProductService:GetUsersPurchaseHistory(user)
 		end)
 		if not success then
-			warn("Failed to get purchase history for user... " .. PurchaseHistory)
+			warn("❗Failed to get purchase history for user... " .. PurchaseHistory)
 			return Enum.ProductPurchaseDecision.NotProcessedYet
 		end
 
@@ -100,7 +100,7 @@ function DeveloperProductService:KnitStart()
 			data.OnPurchase(user)
 		end)
 		if not success then
-			warn(msg)
+			warn("❗ "..msg)
 			return Enum.ProductPurchaseDecision.NotProcessedYet
 		end
 
@@ -116,7 +116,7 @@ function DeveloperProductService:KnitStart()
 			DeveloperProductService:SavePurchase(user, recieptInfo.PurchaseId, data)
 		end)
 		if not success then
-			warn(msg)
+			warn("❗ "..msg)
 			return Enum.ProductPurchaseDecision.NotProcessedYet
 		end
 

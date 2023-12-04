@@ -152,7 +152,6 @@ function ShopService:GiveBundle(user, bundleId, priceInRobux)
 			metadata[t] = v
 		end
 
-		print("Giving item " .. item.Item)
 		ItemService:GiveUserItem(user, item.Item, 1, metadata)
 	end
 
@@ -208,6 +207,14 @@ function ShopService:Unbox(user, unboxableId, priceInRobux)
 	local unboxedItem = weightedTable[math.random(1, #weightedTable)]
 	local unboxedItemData = data.DropList[unboxedItem]
 
+	local IsStrange = false
+
+	if data.StrangeChance then
+		if math.random(0, 100) <= data.StrangeChance then
+			IsStrange = true
+		end
+	end
+
 	warn(unboxedItem)
 
 	if unboxedItemData.Type == "Item" then
@@ -221,8 +228,15 @@ function ShopService:Unbox(user, unboxableId, priceInRobux)
 			[MetadataTypes.Types.Robux] = priceInRobux,
 		}
 
-		for t, v in unboxedItemData.Item.Metadata do
-			metadata[t] = v
+		if IsStrange then
+			--Strange
+			metadata[MetadataTypes.Types.Strange] = 0
+		end
+
+		if unboxedItemData.Item.Metadata then
+			for t, v in unboxedItemData.Item.Metadata do
+				metadata[t] = v
+			end
 		end
 
 		ItemService:GiveUserItem(user, unboxedItemData.Item.Item, 1, metadata)
@@ -234,7 +248,7 @@ function ShopService:Unbox(user, unboxableId, priceInRobux)
 		return nil
 	end
 
-	ShopService.Client.UnboxablePurchased:Fire(user.Player, unboxableId, unboxedItem)
+	ShopService.Client.UnboxablePurchased:Fire(user.Player, unboxableId, unboxedItem, IsStrange)
 
 	return unboxedItem
 end

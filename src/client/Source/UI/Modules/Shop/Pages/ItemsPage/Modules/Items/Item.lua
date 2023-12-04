@@ -50,8 +50,6 @@ function Item:Init()
 
 	local itemData = ItemController:GetItemData(d.Item.Item)
 	if not itemData then
-		warn("No data")
-		warn(d.Item)
 		return
 	end
 
@@ -75,39 +73,7 @@ function Item:Init()
 		ShopController:PurchaseItem(self.ShopItem)
 	end))
 
-	self.ToolTipData = {
-		{
-			Type = "Header",
-			Text = itemData.DisplayName,
-			Item = d.Item.Item,
-		},
-		{
-			Type = "Rarity",
-			Data = rarityData,
-			Item = d.Item.Item,
-		},
-	}
-
-	for t, i in d.Item.Metadata do
-		table.insert(self.ToolTipData, {
-			Type = t,
-			Data = i,
-			Item = d.Item.Item,
-		})
-	end
-
-	if table.find(GeneralSettings.ItemTypesToTrackCopiesOf, itemData.ItemType) then
-		local amount = 0
-		if CacheController.Cache.ItemCopies then
-			amount = CacheController.Cache.ItemCopies[d.Item.Item]
-		end
-
-		table.insert(self.ToolTipData, {
-			Type = "Copies",
-			Copies = amount,
-			Item = d.Item.Item,
-		})
-	end
+	self:GetToolTipData()
 
 	--Tool tip
 	self.Janitor:Add(self.UI.MouseEnter:Connect(function()
@@ -136,8 +102,6 @@ function Item:GetToolTipData()
 
 	local itemData = ItemController:GetItemData(d.Item.Item)
 	if not itemData then
-		warn("No data")
-		warn(d.Item)
 		return
 	end
 
@@ -165,7 +129,6 @@ function Item:GetToolTipData()
 
 	if table.find(GeneralSettings.ItemTypesToTrackCopiesOf, itemData.ItemType) then
 		local amount = 0
-		warn(d.Item.Item)
 		if CacheController.Cache.ItemCopies then
 			amount = CacheController.Cache.ItemCopies[d.Item.Item]
 		end

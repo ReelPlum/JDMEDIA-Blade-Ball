@@ -18,6 +18,8 @@ local Item = require(script.Parent.Common.Item)
 local ToolTip = require(script.Parent.Common.ToolTip)
 
 local MetadataTypes = require(ReplicatedStorage.Data.MetadataTypes)
+local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
+local EnchantsData = require(ReplicatedStorage.Data.EnchantsData)
 
 local Enchanting = {}
 Enchanting.ClassName = "Enchanting"
@@ -46,6 +48,14 @@ function Enchanting:Init()
 	self.UI = self.Janitor:Add(self.UITemplate:Clone())
 	self.UI.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
+	local InputController = knit.GetController("InputController")
+	if self.UI:FindFirstChild(InputController.Platform) then
+		self.PlatformUI = self.UI:FindFirstChild(InputController.Platform)
+	else
+		self.PlatformUI = self.UI:FindFirstChild("Frame")
+	end
+	self.PlatformUI.Visible = true
+
 	self.ToolTip = ToolTip.new(self.UI)
 
 	--Enchants item UI
@@ -54,7 +64,7 @@ function Enchanting:Init()
 		self:UnselectItem(self.SelectedBook)
 	end, self.ToolTip))
 	--Parent, size and position
-	self.CombinedBookItemDisplay.UI.Parent = self.UI.Frame.Frame.CombineEnchants.Book
+	self.CombinedBookItemDisplay.UI.Parent = self.PlatformUI.Frame.CombineEnchants.Book
 	self.CombinedBookItemDisplay.UI.Size = UDim2.new(0.9, 0, 0.9, 0)
 	self.CombinedBookItemDisplay.UI.AnchorPoint = Vector2.new(0.5, 0.5)
 	self.CombinedBookItemDisplay.UI.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -63,7 +73,7 @@ function Enchanting:Init()
 		self:UnselectItem(self.SelectedItem)
 	end, self.ToolTip))
 	--Parent, size and position
-	self.CombinedKnifeItemDisplay.UI.Parent = self.UI.Frame.Frame.CombineEnchants.Item
+	self.CombinedKnifeItemDisplay.UI.Parent = self.PlatformUI.Frame.CombineEnchants.Item
 	self.CombinedKnifeItemDisplay.UI.Size = UDim2.new(0.9, 0, 0.9, 0)
 	self.CombinedKnifeItemDisplay.UI.AnchorPoint = Vector2.new(0.5, 0.5)
 	self.CombinedKnifeItemDisplay.UI.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -72,7 +82,7 @@ function Enchanting:Init()
 		self:UnselectItem(self.SelectedItem)
 	end, self.ToolTip))
 	--Parent, size and position
-	self.RandomKnifeItemDisplay.UI.Parent = self.UI.Frame.Frame.Enchant.Item
+	self.RandomKnifeItemDisplay.UI.Parent = self.PlatformUI.Frame.Enchant.Item
 	self.RandomKnifeItemDisplay.UI.Size = UDim2.new(0.9, 0, 0.9, 0)
 	self.RandomKnifeItemDisplay.UI.AnchorPoint = Vector2.new(0.5, 0.5)
 	self.RandomKnifeItemDisplay.UI.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -81,7 +91,7 @@ function Enchanting:Init()
 		self:UnselectItem(self.SelectedItem)
 	end, self.ToolTip))
 	--Parent, size and position
-	self.CraftedCombinedItem.UI.Parent = self.UI.Frame.Frame.CombineEnchants.CombinedItem
+	self.CraftedCombinedItem.UI.Parent = self.PlatformUI.Frame.CombineEnchants.CombinedItem
 	self.CraftedCombinedItem.UI.Size = UDim2.new(0.9, 0, 0.9, 0)
 	self.CraftedCombinedItem.UI.AnchorPoint = Vector2.new(0.5, 0.5)
 	self.CraftedCombinedItem.UI.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -90,7 +100,7 @@ function Enchanting:Init()
 		self:UnselectItem(self.SelectedItem)
 	end, self.ToolTip))
 	--Parent, size and position
-	self.CraftedRandomItem.UI.Parent = self.UI.Frame.Frame.Enchant.CombinedItem
+	self.CraftedRandomItem.UI.Parent = self.PlatformUI.Frame.Enchant.CombinedItem
 	self.CraftedRandomItem.UI.Size = UDim2.new(0.9, 0, 0.9, 0)
 	self.CraftedRandomItem.UI.AnchorPoint = Vector2.new(0.5, 0.5)
 	self.CraftedRandomItem.UI.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -99,13 +109,13 @@ function Enchanting:Init()
 	local ItemController = knit.GetController("ItemController")
 
 	self.Pages = {
-		["Combine"] = { ui = self.UI.Frame.Frame.CombineEnchants, itemTypes = { "Book", "Knife" } },
-		["Random"] = { ui = self.UI.Frame.Frame.Enchant, itemTypes = { "Knife" } },
-		["Default"] = { ui = self.UI.Frame.Frame.NoSelection, itemTypes = { "Knife", "Book" } },
+		["Combine"] = { ui = self.PlatformUI.Frame.CombineEnchants, itemTypes = { "Book", "Knife" } },
+		["Random"] = { ui = self.PlatformUI.Frame.Enchant, itemTypes = { "Knife" } },
+		["Default"] = { ui = self.PlatformUI.Frame.NoSelection, itemTypes = { "Knife", "Book" } },
 	}
 
 	self.ItemContainer = self.Janitor:Add(
-		ItemsContainer.new(self.UI.Frame.Frame.Inventory.ScrollingFrame, ItemController:GetInventory(), function(id)
+		ItemsContainer.new(self.PlatformUI.Frame.Inventory.ScrollingFrame, ItemController:GetInventory(), function(id)
 			--Check if book or knife.
 			self:SelectItem(id)
 		end, { self.Pages.Default.itemTypes }, function(id, data)
@@ -131,7 +141,17 @@ function Enchanting:Init()
 		end)
 	)
 
-	self.Janitor:Add(ItemController.Signals.InventoryChanged:Connect(function()
+	self.Janitor:Add(ItemController.Signals.InventoryLoaded:Connect(function()
+		self.ItemContainer:Update(ItemController:GetInventory())
+		self:Update()
+	end))
+
+	self.Janitor:Add(ItemController.Signals.ItemAdded:Connect(function()
+		self.ItemContainer:Update(ItemController:GetInventory())
+		self:Update()
+	end))
+
+	self.Janitor:Add(ItemController.Signals.ItemRemoved:Connect(function()
 		self.ItemContainer:Update(ItemController:GetInventory())
 		self:Update()
 	end))
@@ -152,7 +172,7 @@ function Enchanting:Init()
 		self:UnselectItem(self.SelectedItem)
 	end))
 
-	self.Janitor:Add(self.UI.Frame.Topbar.Close.MouseButton1Click:Connect(function()
+	self.Janitor:Add(self.PlatformUI.Topbar.Close.MouseButton1Click:Connect(function()
 		self:SetVisible(false)
 	end))
 
@@ -237,6 +257,19 @@ function Enchanting:Update()
 
 	if self.CurrentPage == "Combine" and (SelectedItemData and SelectedBookData) then
 		--Get combined price
+		local itemEnchant = SelectedBookData.Metadata[MetadataTypes.Types.Enchant][1]
+		if not itemEnchant then
+			return
+		end
+		local enchantData = EnchantsData[itemEnchant]
+
+		local price = enchantData.Price
+
+		local CurrencyController = knit.GetController("CurrencyController")
+		local currencyData = CurrencyController:GetCurrencyData(price.Currency)
+
+		self.Pages.Combine.ui.Price.Amount.Text = price.Amount
+		self.Pages.Combine.ui.Price.Coin.Image = currencyData.Image
 
 		--Position enchanted item at other end
 		local data = table.clone(SelectedItemData)
@@ -247,6 +280,11 @@ function Enchanting:Update()
 		self.CraftedCombinedItem.UI.Visible = true
 	elseif self.CurrentPage == "Random" and SelectedItemData then
 		--Get random enchantment price
+		self.Pages.Random.ui.Price.Amount.Text = GeneralSettings.User.EnchantmentPrice.Amount
+		local CurrencyController = knit.GetController("CurrencyController")
+		local currencyData = CurrencyController:GetCurrencyData(GeneralSettings.User.EnchantmentPrice.Currency)
+
+		self.Pages.Random.ui.Price.Coin.Image = currencyData.Image
 
 		--Position enchanted item at other end
 		local data = table.clone(SelectedItemData)

@@ -28,6 +28,24 @@ function UIController:RegisterUI(module, UITemplate)
 	end)
 end
 
+function UIController:ShowGameUI()
+	local ui = UIController:GetUI("Menu")
+	if not ui then
+		return
+	end
+
+	ui:SetVisible(true)
+end
+
+function UIController:HideAllUI()
+	for _, ui in UI do
+		if not ui.SetVisible then
+			continue
+		end
+		ui:SetVisible(false)
+	end
+end
+
 function UIController:KnitStart()
 	--Register all UI here
 	self:RegisterUI(script.Parent.Modules.IndicatorList, ReplicatedStorage.Assets.UI.IndicatorList)

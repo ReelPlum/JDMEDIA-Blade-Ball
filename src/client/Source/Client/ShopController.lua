@@ -108,7 +108,7 @@ function ShopController:KnitStart()
 	local ShopService = knit.GetService("ShopService")
 
 	--Listen for purchased and unboxes
-	ShopService.UnboxablePurchased:Connect(function(case, index)
+	ShopService.UnboxablePurchased:Connect(function(case, index, isStrange)
 		local data = ShopController:GetUnboxable(case)
 		if data.RequiresConfirmation then
 			table.insert(unboxedRequiringConfirmation, {
@@ -118,7 +118,7 @@ function ShopController:KnitStart()
 			return
 		end
 
-		ShopController.Signals.Unboxed:Fire(case, index)
+		ShopController.Signals.Unboxed:Fire(case, index, isStrange)
 	end)
 end
 

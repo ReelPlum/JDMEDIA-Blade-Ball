@@ -83,11 +83,9 @@ function Level:Init()
 
 	local CacheController = knit.GetController("CacheController")
 	if not CacheController.Cache.Currencies then
-		warn("No currencies")
 		CacheController.Signals.CurrenciesChanged:Wait()
 	end
 	if not CacheController.Cache.Level then
-		warn("No level")
 		CacheController.Signals.LevelChanged:Wait()
 	end
 

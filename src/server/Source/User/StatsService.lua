@@ -29,7 +29,7 @@ function StatsService:GetStat(user, stat)
 
 	local data = StatData[stat]
 	if not data then
-		warn("could not find stat " .. stat)
+		warn("❗could not find stat " .. stat)
 		return
 	end
 	local default = data.Default or 0

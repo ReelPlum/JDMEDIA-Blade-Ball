@@ -47,21 +47,17 @@ return {
 				--Left or right
 				if relMoveDirection.X < 0 then
 					--Left
-					print("Left")
 					track = humanoid.Animator:LoadAnimation(ReplicatedStorage.Assets.Animations.Dash.DashLeft)
 				else
 					--Right
-					print("Right")
 					track = humanoid.Animator:LoadAnimation(ReplicatedStorage.Assets.Animations.Dash.DashRight)
 				end
 			else
 				if relMoveDirection.Z > 0 then
 					--Back
-					print("Back")
 					track = humanoid.Animator:LoadAnimation(ReplicatedStorage.Assets.Animations.Dash.DashBack)
 				else
 					--Front
-					print("Front")
 					track = humanoid.Animator:LoadAnimation(ReplicatedStorage.Assets.Animations.Dash.DashFront)
 				end
 			end

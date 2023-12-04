@@ -111,7 +111,7 @@ return {
 		--Return a text label
 		local label = Instance.new("TextLabel")
 		label.AnchorPoint = Vector2.new(0.5, 0.5)
-		label.Text = "UNTRADEABLE"
+		label.Text = " UNTRADEABLE"
 		label.BackgroundTransparency = 1
 		label.TextSize = 10
 		label.LayoutOrder = priority

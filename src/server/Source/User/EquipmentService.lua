@@ -43,7 +43,7 @@ local function SetupUser(user)
 	for _, item in GeneralSettings.User.DefaultEquippedItems do
 		local data = ItemService:GetItemData(item)
 		if not data then
-			warn("The default equipped item " .. item .. " could not be found...")
+			warn("❗The default equipped item " .. item .. " could not be found...")
 		end
 
 		if EquipmentService:GetEquippedItemOfType(user, data.ItemType) then
@@ -64,12 +64,12 @@ function EquipmentService:EquipItemById(user, id)
 
 	local invData = ItemService:GetUsersDataFromId(user, id)
 	if not invData then
-		return warn("No inventory data for " .. id)
+		return warn("❗No inventory data for " .. id)
 	end
 
 	local data = ItemService:GetItemData(invData.Item)
 	if not data then
-		return warn("No data for item " .. invData.Item)
+		return warn("❗No data for item " .. invData.Item)
 	end
 
 	user.Data.Equipped[data.ItemType] = id
@@ -83,7 +83,6 @@ function EquipmentService:EquipItem(user, item)
 	user:WaitForDataLoaded()
 
 	if user.Game then
-		warn("cannot equip while in a game...")
 		return
 	end
 

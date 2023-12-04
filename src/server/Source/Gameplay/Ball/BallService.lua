@@ -59,8 +59,6 @@ function BallService:CreateNewBall(location: CFrame, currentGame)
 	-- CurrentBall = BallClass.new(location, ReplicatedStorage.Ball, function()
 	-- 	return currentGame:GetUsers()
 	-- end)
-	warn("Creating new ball..")
-
 	local ball = BallClass.new(location, ReplicatedStorage.Assets.Models.Balls:WaitForChild("DefaultBall"), function()
 		return currentGame:GetUsers()
 	end)

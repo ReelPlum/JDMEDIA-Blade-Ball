@@ -94,10 +94,6 @@ function ToolTip:Update(data)
 	}
 	table.sort(data, function(a, b)
 		--Check if ranked
-		if a.Type == "Untradeable" then
-			warn("Untradeable")
-		end
-
 		if rankings[a.Type] and not rankings[b.Type] then
 			return true
 		elseif not rankings[a.Type] and rankings[b.Type] then
