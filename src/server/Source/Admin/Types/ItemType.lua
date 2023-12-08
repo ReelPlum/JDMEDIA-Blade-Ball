@@ -6,12 +6,17 @@ Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local ItemData = require(ReplicatedStorage.Data.ItemData)
+local ItemData = ReplicatedStorage.Data.Items
 
 return function(registry)
 	local items = {}
 
-	for _, data in ItemData do
+	for _, item in ItemData:GetChildren() do
+		if not item:IsA("ModuleScript") then
+			continue
+		end
+
+		local data = require(item)
 		if not table.find(items, data.ItemType) then
 			table.insert(items, data.ItemType)
 		end

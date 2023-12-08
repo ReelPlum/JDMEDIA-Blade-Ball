@@ -6,13 +6,13 @@ Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local ItemData = require(ReplicatedStorage.Data.ItemData)
+local ItemData = ReplicatedStorage.Data.Items
 
 return function(registry)
 	local items = {}
 
-	for name, _ in ItemData do
-		table.insert(items, name)
+	for _, item in ItemData:GetChildren() do
+		table.insert(items, item.Name)
 	end
 
 	local itemEnum = registry.Cmdr.Util.MakeEnumType("Item", items)

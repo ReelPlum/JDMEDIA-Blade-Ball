@@ -68,23 +68,14 @@ function Trade:Init()
 		UserService:SetUserAFK(user, true)
 
 		TradingService.Client.TradeId:SetFor(user.Player, self.Id)
-		TradingService.Client.CurrentTrade:SetFor(user.Player, {
-			OtherPlayer = if user == self.UserA then self.UserB.Player.UserId else self.UserA.Player.UserId,
-			LocalInventory = self.Inventories[user],
-			InventoryB = if self.UserA == user then self.Inventories[self.UserB] else self.Inventories[self.UserA],
-		})
+		TradingService.Client.CurrentTrade:SetFor(
+			user.Player,
+			if user == self.UserA then self.UserB.Player.UserId else self.UserA.Player.UserId
+		)
 		TradingService.Client.TradeStatus:SetFor(user.Player, {
 			false,
 			false,
 		})
-
-		local otherInv = {}
-		if user == self.UserA then
-			otherInv = ItemService:GetUsersInventory(self.UserB)
-		else
-			otherInv = ItemService:GetUsersInventory(self.UserA)
-		end
-		TradingService.Client.OtherInventory:SetFor(user.Player, otherInv)
 	end
 
 	--Detect for user leave.
@@ -246,20 +237,22 @@ function Trade:GetItem(itemId)
 	local index = nil
 	local owner = nil
 
+	local ItemService = knit.GetService("ItemService")
+
+	local data = nil
+
 	for user, inventory in self.Inventories do
 		index = table.find(inventory, itemId)
 		if index then
 			owner = user
+			data = ItemService:GetUsersDataFromId(user, itemId)
+
 			break
 		end
 	end
 	if not index then
 		return
 	end
-
-	--If item is found, then return data from owners inventory, and owner.
-	local ItemService = knit.GetService("ItemService")
-	local data = ItemService:GetUsersDataFromId(itemId)
 
 	if not data then
 		return --Data is not there for some reason?
@@ -268,62 +261,87 @@ function Trade:GetItem(itemId)
 	return owner, data
 end
 
-function Trade:AddItem(user, itemId)
+function Trade:AddItem(user, itemIds)
 	--Adds item from users inventory with id
 	local ItemService = knit.GetService("ItemService")
 	local TradingService = knit.GetService("TradingService")
 
-	if not TradingService:ValidateItemForTrade(user, itemId) then
-		warn("❗Invalid")
-		return
+	for _, itemId in itemIds do
+		if not TradingService:ValidateItemForTrade(user, itemId) then
+			warn("❗Invalid")
+			return
+		end
+
+		--Check if item can be added
+		if not ItemService:GetUsersDataFromId(user, itemId) then
+			warn("❗Cannot be added because not in inv")
+			return
+		end
 	end
 
-	--Check if item can be added
-	if not ItemService:GetUsersItemFromId(user, itemId) then
-		warn("❗Cannot be added because not in inv")
-		return
-	end
+	local addedItems = {}
+	for _, itemId in itemIds do
+		if self:GetItem(itemId) then
+			warn("❗Item already added")
+			continue
+		end
 
-	if self:GetItem(itemId) then
-		warn("❗Item already added")
-		return
+		--Add item to users inventory
+		table.insert(addedItems, itemId)
+		table.insert(self.Inventories[user], itemId)
 	end
-
-	--Add item to users inventory
-	table.insert(self.Inventories[user], itemId)
 
 	--Update clients
 	self.Signals.TradeInventoryChanged:Fire(user)
 
 	for _, u in { self.UserA, self.UserB } do
-		TradingService.Client.CurrentTrade:SetFor(u.Player, {
-			OtherPlayer = if u == self.UserA then self.UserB.Player.UserId else self.UserA.Player.UserId,
-			LocalInventory = self.Inventories[u],
-			InventoryB = if self.UserA == u then self.Inventories[self.UserB] else self.Inventories[self.UserA],
-		})
+		TradingService.Client.CurrentTrade:SetFor(
+			u.Player,
+			if u == self.UserA then self.UserB.Player.UserId else self.UserA.Player.UserId
+		)
+
+		if u == user then
+			print(addedItems)
+			TradingService.Client.ItemsAdded:Fire(u.Player, user.Player, addedItems)
+			continue
+		end
+
+		local ItemsWithData = {}
+		for _, itemId in addedItems do
+			ItemsWithData[itemId] = ItemService:GetUsersDataFromId(user, itemId)
+		end
+
+		print(ItemsWithData)
+		TradingService.Client.ItemsAdded:Fire(u.Player, user.Player, ItemsWithData)
 	end
 end
 
-function Trade:RemoveItem(user, itemId)
+function Trade:RemoveItem(user, itemIds)
 	--Removes item with id
 	local TradingService = knit.GetService("TradingService")
 
-	local index = table.find(self.Inventories[user], itemId)
-	if not index then
-		return
-	end
+	local removedItems = {}
+	for _, itemId in itemIds do
+		local index = table.find(self.Inventories[user], itemId)
+		if not index then
+			continue
+		end
 
-	table.remove(self.Inventories[user], index)
+		table.insert(removedItems, itemId)
+		table.remove(self.Inventories[user], index)
+	end
 
 	--Update clients
 	self.Signals.TradeInventoryChanged:Fire(user)
 
 	for _, u in { self.UserA, self.UserB } do
-		TradingService.Client.CurrentTrade:SetFor(u.Player, {
-			OtherPlayer = if u == self.UserA then self.UserB.Player.UserId else self.UserA.Player.UserId,
-			LocalInventory = self.Inventories[u],
-			InventoryB = if self.UserA == u then self.Inventories[self.UserB] else self.Inventories[self.UserA],
-		})
+		TradingService.Client.CurrentTrade:SetFor(
+			u.Player,
+			if u == self.UserA then self.UserB.Player.UserId else self.UserA.Player.UserId
+		)
+
+		print(removedItems)
+		TradingService.Client.ItemsRemoved:Fire(u.Player, user.Player, removedItems)
 	end
 end
 
@@ -369,9 +387,8 @@ function Trade:Destroy()
 	for _, user in { self.UserA, self.UserB } do
 		UserService:SetUserAFK(user, false)
 		TradingService.Client.TradeId:SetFor(user.Player, nil)
-		TradingService.Client.CurrentTrade:SetFor(user.Player, {})
+		TradingService.Client.CurrentTrade:SetFor(user.Player, nil)
 		TradingService.Client.TradeStatus:SetFor(user.Player, {})
-		TradingService.Client.OtherInventory:SetFor(user.Player, {})
 	end
 
 	--Unregister trade

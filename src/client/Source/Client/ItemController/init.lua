@@ -12,7 +12,9 @@ local LocalPlayer = Players.LocalPlayer
 local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 
-local ItemData = require(ReplicatedStorage.Data.ItemData)
+local ItemStacksModule = require(ReplicatedStorage.Common.ItemsStacks)
+
+local ItemData = ReplicatedStorage.Data.Items
 local RarityData = require(ReplicatedStorage.Data.RarityData)
 
 local ItemController = knit.CreateController({
@@ -22,10 +24,15 @@ local ItemController = knit.CreateController({
 		ItemRemoved = signal.new(),
 
 		InventoryLoaded = signal.new(),
+
+		StacksUpdated = signal.new(),
 	},
 
 	Inventory = nil,
 })
+
+local ItemLookup = {}
+local ItemStacks = {}
 
 function ItemController:GetInventory()
 	if not ItemController.Inventory then
@@ -35,12 +42,29 @@ function ItemController:GetInventory()
 	return ItemController.Inventory
 end
 
+function ItemController:GetInventoryInStacks()
+	--Returns inventory in stacks
+	return ItemStacks, ItemLookup
+end
+
 function ItemController:GetToolTipDataFromItemData(itemData)
 	--Gets tooltip data from itemdata
 end
 
 function ItemController:GetItemData(item)
-	return ItemData[item]
+	if not item then
+		return nil
+	end
+
+	local data = ItemData:FindFirstChild(item)
+	if not data then
+		return nil
+	end
+	if not data:IsA("ModuleScript") then
+		return nil
+	end
+
+	return require(data)
 end
 
 function ItemController:GetRarityData(rarity)
@@ -180,7 +204,12 @@ function ItemController:KnitInit()
 
 	ItemService:GetPlayersInventory(LocalPlayer):andThen(function(inventory)
 		ItemController.Inventory = inventory
+
+		ItemStacks, ItemLookup = ItemStacksModule.GenerateStacks(inventory)
+		print(ItemStacks)
+
 		ItemController.Signals.InventoryLoaded:Fire()
+		ItemController.Signals.StacksUpdated:Fire()
 	end)
 
 	ItemService.ItemAdded:Connect(function(items)
@@ -192,7 +221,12 @@ function ItemController:KnitInit()
 			ItemController.Inventory[id] = data
 		end
 
+		print(items)
+
+		ItemStacksModule.ItemsAdded(ItemStacks, ItemLookup, items)
+
 		ItemController.Signals.ItemAdded:Fire(items)
+		ItemController.Signals.StacksUpdated:Fire()
 	end)
 
 	ItemService.ItemRemoved:Connect(function(items)
@@ -204,7 +238,10 @@ function ItemController:KnitInit()
 			ItemController.Inventory[id] = nil
 		end
 
+		ItemStacksModule.ItemsRemoved(ItemStacks, ItemLookup, items)
+
 		ItemController.Signals.ItemRemoved:Fire(items)
+		ItemController.Signals.StacksUpdated:Fire()
 	end)
 end
 

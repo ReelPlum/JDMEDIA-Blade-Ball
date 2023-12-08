@@ -103,15 +103,6 @@ function Menu:Init()
 		ui:SetVisible()
 	end))
 
-	self.Janitor:Add(self.UI.Lobby.Effects.MouseButton1Click:Connect(function()
-		--Open effects inv
-		local ui = UIController:GetUI("CosmeticsInventory")
-		if not ui then
-			return
-		end
-		ui:SetVisible()
-	end))
-
 	self.Janitor:Add(self.UI.Lobby.Coins.MouseButton1Click:Connect(function()
 		--Open coins shop
 		local ui = UIController:GetUI("Shop")
@@ -143,7 +134,6 @@ function Menu:Init()
 		self:UpdateCurrencies()
 	end))
 
-	self:ToggleIndicator("Effects", false)
 	self:ToggleIndicator("Knives", false)
 	self:ToggleIndicator("Rebirth", false)
 	self:ToggleIndicator("Shop", false)

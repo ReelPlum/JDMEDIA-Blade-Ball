@@ -83,7 +83,7 @@ function Ball:ChangeModelToUsersBall(user)
 	if not EquippedBall then
 		EquippedBall = "DefaultBall"
 	end
-	local itemData = ItemService:GetDataForItem(EquippedBall)
+	local itemData = ItemService:GetItemData(EquippedBall)
 
 	self.BallModel = self.BallJanitor:Add(itemData.Model:Clone())
 
@@ -280,6 +280,8 @@ function Ball:CheckForHit(newPosition)
 		self.BallModel.Parent = ReplicatedStorage
 
 		local EquipmentService = knit.GetService("EquipmentService")
+		local ItemService = knit.GetService("ItemService")
+
 		local equippedKillAnimation = nil
 		if self.LastTarget then
 			if not self.Kills[self.LastTarget] then
@@ -295,8 +297,8 @@ function Ball:CheckForHit(newPosition)
 		--Play kill animation if it exists
 		if equippedKillAnimation then
 			--Play animation
-			local data = EquipmentService:GetDataForItem(equippedKillAnimation)
-			data.Animation(self.Target)
+			local data = ItemService:GetItemData(equippedKillAnimation)
+			data.Animation(self.Position)
 		end
 
 		self.Signals.HitTarget:Fire(self.Target, self.LastTarget, self.Kills[self.LastTarget])
@@ -448,6 +450,8 @@ end
 
 function Ball:Destroy()
 	self.Destroyed = true
+
+	warn("Destroying ball!")
 
 	self.Signals.Destroying:Fire()
 	self.Janitor:Destroy()

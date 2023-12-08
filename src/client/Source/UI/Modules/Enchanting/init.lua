@@ -118,11 +118,33 @@ function Enchanting:Init()
 		ItemsContainer.new(self.PlatformUI.Frame.Inventory.ScrollingFrame, ItemController:GetInventory(), function(id)
 			--Check if book or knife.
 			self:SelectItem(id)
-		end, { self.Pages.Default.itemTypes }, function(id, data)
-			local itemData = ItemController:GetItemData(data.Item)
+		end, { self.Pages.Default.itemTypes }, function(stackData, stackId, itemLookup)
+			local data = stackData.Data
 
-			if id == self.SelectedItem or id == self.SelectedBook then
-				return false
+			local itemData = ItemController:GetItemData(data.Item)
+			if not itemData then
+				return
+			end
+
+			if itemLookup[self.SelectedItem] and itemLookup[self.SelectedBook] then
+				if
+					itemLookup[self.SelectedBook].StackId == stackId
+					and itemLookup[self.SelectedItem].StackId == stackId
+				then
+					return false, -2
+				end
+			end
+
+			if itemLookup[self.SelectedItem] then
+				if itemLookup[self.SelectedItem].StackId == stackId then
+					return false, -1
+				end
+			end
+
+			if itemLookup[self.SelectedBook] then
+				if itemLookup[self.SelectedBook].StackId == stackId then
+					return false, -1
+				end
 			end
 
 			if not data.Metadata then
@@ -141,18 +163,8 @@ function Enchanting:Init()
 		end)
 	)
 
-	self.Janitor:Add(ItemController.Signals.InventoryLoaded:Connect(function()
-		self.ItemContainer:Update(ItemController:GetInventory())
-		self:Update()
-	end))
-
-	self.Janitor:Add(ItemController.Signals.ItemAdded:Connect(function()
-		self.ItemContainer:Update(ItemController:GetInventory())
-		self:Update()
-	end))
-
-	self.Janitor:Add(ItemController.Signals.ItemRemoved:Connect(function()
-		self.ItemContainer:Update(ItemController:GetInventory())
+	self.Janitor:Add(ItemController.Signals.StacksUpdated:Connect(function()
+		self.ItemContainer:Update(ItemController:GetInventoryInStacks())
 		self:Update()
 	end))
 
@@ -198,6 +210,7 @@ function Enchanting:ChangePage(page)
 		if string.lower(name) == string.lower(page) then
 			data.ui.Visible = true
 			self.ItemContainer:UpdateItemTypes(data.itemTypes)
+			self.ItemContainer:UpdateStacks()
 			--self.ItemContainer:Update(ItemController:GetInventory())
 
 			continue

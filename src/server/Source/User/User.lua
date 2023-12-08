@@ -71,19 +71,19 @@ function User:LoadData()
 		if self.Data.FirstJoin then
 			--Players first join!
 			self.Signals.FirstJoin:Fire()
-			self.Data.FirstJoin = false
-
 			--Give items
 			local ItemService = knit.GetService("ItemService")
 			local inventory = ItemService:GetUsersInventory(self)
 
 			for _, item in GeneralSettings.User.StartItems do
+				print(item)
 				ItemService:GiveItemToInventory(inventory, item, 1, {
 					[MetadataTypes.Types.Untradeable] = true,
 				})
 			end
 
 			ItemService:SaveInventory(self, inventory)
+			self.Data.FirstJoin = false
 		end
 
 		self.DataLoaded = true

@@ -92,17 +92,21 @@ function ToolTip:Update(data)
 		[MetadataTypes.Types.Untradeable] = 10,
 		[MetadataTypes.Types.UnboxedBy] = 11,
 	}
+
+	local toRemove = {}
+	for i, d in data do
+		if not rankings[d.Type] then
+			table.insert(toRemove, d)
+		end
+	end
+
+	for _, d in toRemove do
+		table.remove(data, table.find(data, d))
+	end
+
 	table.sort(data, function(a, b)
 		--Check if ranked
-		if rankings[a.Type] and not rankings[b.Type] then
-			return true
-		elseif not rankings[a.Type] and rankings[b.Type] then
-			return false
-		elseif rankings[a.Type] and rankings[b.Type] then
-			return rankings[a.Type] < rankings[b.Type]
-		end
-
-		return true
+		return rankings[a.Type] <= rankings[b.Type]
 	end)
 
 	for index, text in data do

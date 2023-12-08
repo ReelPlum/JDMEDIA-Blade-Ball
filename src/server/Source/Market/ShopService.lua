@@ -176,7 +176,8 @@ function ShopService:GiveItem(user, itemShopId, priceInRobux)
 	end
 
 	local ItemService = knit.GetService("ItemService")
-	ItemService:GiveUserItem(user, data.Item.Item, 1, metadata)
+	print(data.Amount)
+	ItemService:GiveUserItem(user, data.Item.Item, data.Amount or 1, metadata)
 
 	ShopService.Client.ItemPurchased:Fire(user.Player, itemShopId)
 

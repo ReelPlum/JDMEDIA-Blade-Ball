@@ -5,6 +5,7 @@ Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 
 local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
@@ -18,6 +19,7 @@ local abbreviations = FormatNumber.Main.Notation.compactWithSuffixThousands({
 	"T",
 })
 local formatter = FormatNumber.Main.NumberFormatter.with():Notation(abbreviations)
+local ViewportFrameModel = require(ReplicatedStorage.Common.ViewportFrameModel)
 
 local MetadataTypes = require(ReplicatedStorage.Data.MetadataTypes)
 local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
@@ -36,7 +38,13 @@ function Item.new(UI, data, clicked, tooltip, stackSize)
 	self.Clicked = clicked
 	self.Data = data
 	self.ToolTip = tooltip
-	self.StackSize = stackSize
+	self.StackSize = stackSize or 0
+
+	self.Camera = self.Janitor:Add(Instance.new("Camera"))
+	self.Camera.Parent = workspace
+	self.UI.ItemViewport.CurrentCamera = self.Camera
+
+	self.VPF = ViewportFrameModel.new(self.UI.ItemViewport, self.Camera)
 
 	self.Signals = {
 		Destroying = self.Janitor:Add(signal.new()),
@@ -77,28 +85,43 @@ function Item:Init()
 	self.Janitor:Add(CacheController.Signals.ItemCopiesChanged:Connect(function()
 		self:Update(self.Data, self.StackSize)
 	end))
+
+	self:Update(self.Data, self.StackSize)
 end
 
-function Item:Update(information, stackSize)
+function Item:Update(information, stackSize, click)
 	--Updates with new data
+
 	if not information then
+		warn("Got no information...")
 		return
 	end
 
-	self.StackSize = stackSize
+	warn("Updating item!")
+
+	self.StackSize = stackSize or 0
 	self.ItemJanitor:Cleanup()
 
+	local ItemController = knit.GetController("ItemController")
 	local index = self.ToolTip:RemoveActor(self.ToolTipData)
 
+	local itemData = ItemController:GetItemData(information.Item)
+	if not itemData then
+		return
+	end
+
 	self.Data = information
-
-	local ItemController = knit.GetController("ItemController")
+	if click then
+		self.Clicked = click
+	end
 	local CacheController = knit.GetController("CacheController")
-
-	local itemData = ItemController:GetItemData(self.Data.Item)
 	local rarityData = ItemController:GetRarityData(itemData.Rarity)
 
 	if stackSize then
+		if stackSize <= 0 then
+			self.UI.Visible = false
+			return
+		end
 		if stackSize > 1 then
 			self.UI.StackSize.Visible = true
 			self.UI.StackSize.Text = "x" .. formatter:Format(stackSize)
@@ -147,7 +170,30 @@ function Item:Update(information, stackSize)
 
 	--self.UI:WaitForChild("ItemImage").Image = itemData.Image
 	self.UI.ItemName.Text = itemData.DisplayName
-	self.UI.ItemImage.Image = itemData.Image
+
+	if itemData.Image then
+		self.UI.ItemViewport.Visible = false
+		self.UI.ItemImage.Visible = true
+		self.UI.ItemImage.Image = itemData.Image
+	elseif itemData.Model then
+		self.UI.ItemViewport.Visible = true
+		self.UI.ItemImage.Visible = false
+
+		--Put in model
+		self.ViewportModel = self.ItemJanitor:Add(itemData.Model:Clone())
+		self.ViewportModel.Parent = self.UI.ItemViewport
+		self.ViewportModel:PivotTo(CFrame.new(0, 0, 0) * CFrame.Angles(0, math.rad(90), 0))
+		--Make item fit, and then apply offset.
+		self.VPF:SetModel(self.ViewportModel)
+		local cf = self.VPF:GetMinimumFitCFrame(CFrame.new(0, 0, 0))
+		if itemData.Offset then
+			cf = cf * itemData.Offset
+		end
+		self.Camera.CFrame = cf
+	else
+		self.UI.ItemImage.Visible = false
+		self.UI.ItemViewport.Visible = false
+	end
 	self.ItemJanitor:Add(rarityData.Effect(rarityData, self.UI))
 end
 

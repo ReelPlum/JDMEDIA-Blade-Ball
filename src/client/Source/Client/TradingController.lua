@@ -24,8 +24,9 @@ local TradingController = knit.CreateController({
 		TradeStarted = signal.new(),
 		TradeEnded = signal.new(),
 		StatusChanged = signal.new(),
-		InventoryUpdated = signal.new(),
 
+		ItemsAdded = signal.new(),
+		ItemsRemoved = signal.new(),
 		TimerUpdated = signal.new(),
 	},
 })
@@ -89,33 +90,16 @@ function TradingController:GetStatuses()
 	return Statuses
 end
 
-function TradingController:GetTradeableItems()
-	--Return items user can add to the trade
-	local ItemController = knit.GetController("ItemController")
-	local inventory = ItemController:GetInventory()
-
-	local tradeableItems = {}
-	for id, data in inventory do
-		if not TradingController:IsItemTradeable(data) then
-			continue
-		end
-
-		tradeableItems[id] = data
-	end
-
-	return tradeableItems
-end
-
 function TradingController:AddItemToCurrentTrade(itemId)
 	--Add item to trade
 	local TradingService = knit.GetService("TradingService")
-	TradingService:AddItemToTrade(itemId)
+	TradingService:AddItemsToTrade({ itemId })
 end
 
 function TradingController:RemoveItemFromCurrentTrade(itemId)
 	--Remove item from trade
 	local TradingService = knit.GetService("TradingService")
-	TradingService:RemoveItemFromTrade(itemId)
+	TradingService:RemoveItemsFromTrade({ itemId })
 end
 
 function TradingController:SetStatusForCurrentTrade(status)
@@ -209,20 +193,6 @@ function TradingController:KnitStart()
 		TradingController.Signals.TradeStarted:Fire()
 	end)
 
-	TradingService.CurrentTrade:Observe(function(data)
-		--Current trade updated
-		--[[
-		{
-		{
-			InventoryA = self.Inventories[self.UserA],
-			InventoryB = self.Inventories[self.UserB],
-		}
-		]]
-		TradeData = data
-
-		TradingController.Signals.InventoryUpdated:Fire()
-	end)
-
 	TradingService.TradeStatus:Observe(function(statuses)
 		--[[
 		{
@@ -241,10 +211,20 @@ function TradingController:KnitStart()
 		end
 	end)
 
-	TradingService.OtherInventory:Observe(function(inv)
-		--Update inventory for player
-		OtherInv = inv
-		TradingController.Signals.InventoryUpdated:Fire()
+	TradingService.CurrentTrade:Observe(function(otherPlayer)
+		return
+	end)
+
+	TradingService.ItemsAdded:Connect(function(player, items)
+		warn("Items add")
+		print(items)
+		TradingController.Signals.ItemsAdded:Fire(player == LocalPlayer, items)
+	end)
+
+	TradingService.ItemsRemoved:Connect(function(player, items)
+		warn("ITem remove")
+		print(items)
+		TradingController.Signals.ItemsRemoved:Fire(player == LocalPlayer, items)
 	end)
 
 	RunService.RenderStepped:Connect(function(deltaTime)

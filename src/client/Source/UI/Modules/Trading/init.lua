@@ -13,6 +13,8 @@ local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
+local ItemStacksModule = require(ReplicatedStorage.Common.ItemsStacks)
+
 local ItemsContainer = require(script.Parent.Common.ItemsContainer)
 
 local Trading = {}
@@ -26,7 +28,23 @@ function Trading.new(UITemplate)
 
 	self.UITemplate = UITemplate
 
-	self.Inventories = {}
+	self.Inventories = {
+		Local = {},
+		Other = {},
+	}
+
+	local localStacks, localLookup = ItemStacksModule.GenerateStacks({})
+	local otherStacks, otherLookup = ItemStacksModule.GenerateStacks({})
+
+	self.ItemStacks = {
+		Local = localStacks,
+		Other = otherStacks,
+	}
+
+	self.ItemLookups = {
+		Local = localLookup,
+		Other = otherLookup,
+	}
 
 	self.Signals = {
 		Destroying = self.Janitor:Add(signal.new()),
@@ -46,20 +64,63 @@ function Trading:Init()
 	self.UI = self.Janitor:Add(self.UITemplate:Clone())
 	self.UI.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
-	self.ItemsContainerLocal =
-		self.Janitor:Add(ItemsContainer.new(self.UI.Frame.Trade.Frame.LocalPlayer.Frame.ScrollingFrame, {}, function(id)
+	self.ItemsContainerLocal = self.Janitor:Add(
+		ItemsContainer.new(self.UI.Frame.Trade.Frame.LocalPlayer.Frame.ScrollingFrame, {}, function(_, ids)
 			--Remove item from trade
-			TradingController:RemoveItemFromCurrentTrade(id)
-		end))
-	self.ItemsContainerB =
-		self.Janitor:Add(ItemsContainer.new(self.UI.Frame.Trade.Frame.OtherPlayer.Frame.ScrollingFrame, {}, function()
+			--TradingController:RemoveItemFromCurrentTrade(id)
+			for _, id in ids do
+				if self.Inventories.Local[id] then
+					TradingController:RemoveItemFromCurrentTrade(id)
+					break
+				end
+			end
+		end),
+		nil,
+		nil
+	)
+	self.ItemsContainerB = self.Janitor:Add(
+		ItemsContainer.new(self.UI.Frame.Trade.Frame.OtherPlayer.Frame.ScrollingFrame, {}, function()
 			return
-		end))
+		end),
+		nil,
+		nil
+	)
 	self.Inventory = self.Janitor:Add(
-		ItemsContainer.new(self.UI.Frame.Inventory.Frame.Inventory.Holder.ScrollingFrame, {}, function(id)
-			--Add item to trade
-			TradingController:AddItemToCurrentTrade(id)
-		end)
+		ItemsContainer.new(
+			self.UI.Frame.Inventory.Frame.Inventory.Holder.ScrollingFrame,
+			{},
+			function(_, ids)
+				--Add item to trade
+				for _, id in ids do
+					if not self.Inventories.Local[id] then
+						TradingController:AddItemToCurrentTrade(id)
+						break
+					end
+				end
+			end,
+			nil,
+			function(stackData, stackId, itemLookup)
+				if not TradingController:IsItemTradeable(stackData.Data) then
+					return false
+				end
+
+				--Check if item has been added
+				local n = 0
+				for id, _ in self.Inventories.Local do
+					warn(id)
+					if itemLookup[id] then
+						if itemLookup[id].StackId == stackId then
+							n += 1
+						end
+					end
+				end
+				if n > 0 then
+					return false, -n
+				end
+
+				return true
+			end
+		)
 	)
 
 	--Buttons
@@ -95,20 +156,89 @@ function Trading:Init()
 		self:UpdateStatus()
 	end))
 
-	self.Janitor:Add(TradingController.Signals.InventoryUpdated:Connect(function()
-		self:UpdateInventories()
+	self.Janitor:Add(TradingController.Signals.ItemsAdded:Connect(function(isLocalPlayer, items)
+		warn("Items ADded")
+		print(isLocalPlayer)
+
+		--If is local player then it is only ids
+		local invCache = nil
+		local stacks = nil
+		local lookup = nil
+		local addedItems = {}
+
+		if isLocalPlayer then
+			invCache = self.Inventories.Local
+			stacks = self.ItemStacks.Local
+			lookup = self.ItemLookups.Local
+		else
+			invCache = self.Inventories.Other
+			stacks = self.ItemStacks.Other
+			lookup = self.ItemLookups.Other
+		end
+
+		if isLocalPlayer then
+			--Update stacks etc.
+			local localInv = ItemController:GetInventory()
+
+			for _, id in items do
+				--Get data and add it
+				local data = localInv[id]
+				invCache[id] = data
+				addedItems[id] = data
+			end
+		else
+			for id, data in items do
+				--Get data and add it
+				print(id)
+				invCache[id] = data
+			end
+			addedItems = items
+		end
+
+		print(addedItems)
+		print(lookup)
+		print(stacks)
+
+		--Update stacks and lookup
+		ItemStacksModule.ItemsAdded(stacks, lookup, addedItems)
+
+		self.ItemsContainerLocal:Update(self.ItemStacks.Local, self.ItemLookups.Local)
+		self.ItemsContainerB:Update(self.ItemStacks.Other, self.ItemLookups.Other)
+		self.Inventory:Update(ItemController:GetInventoryInStacks())
 	end))
 
-	self.Janitor:Add(ItemController.Signals.InventoryLoaded:Connect(function()
-		self:UpdateInventories()
+	self.Janitor:Add(TradingController.Signals.ItemsRemoved:Connect(function(isLocalPlayer, items)
+		warn("Items removed")
+		local invCache = nil
+		local stacks = nil
+		local lookup = nil
+
+		if isLocalPlayer then
+			invCache = self.Inventories.Local
+			stacks = self.ItemStacks.Local
+			lookup = self.ItemLookups.Local
+		else
+			invCache = self.Inventories.Other
+			stacks = self.ItemStacks.Other
+			lookup = self.ItemLookups.Other
+		end
+
+		for _, id in items do
+			--Get data and remove it
+			invCache[id] = nil
+		end
+
+		--Update stacks and lookup
+		ItemStacksModule.ItemsRemoved(stacks, lookup, items)
+
+		self.ItemsContainerLocal:Update(self.ItemStacks.Local, self.ItemLookups.Local)
+		self.ItemsContainerB:Update(self.ItemStacks.Other, self.ItemLookups.Other)
+		self.Inventory:Update(ItemController:GetInventoryInStacks())
 	end))
 
-	self.Janitor:Add(ItemController.Signals.ItemAdded:Connect(function()
-		self:UpdateInventories()
-	end))
-
-	self.Janitor:Add(ItemController.Signals.ItemRemoved:Connect(function()
-		self:UpdateInventories()
+	self.Janitor:Add(ItemController.Signals.StacksUpdated:Connect(function()
+		--Update Inventory
+		self.Inventory:Update(ItemController:GetInventoryInStacks())
 	end))
 
 	--Listen for timer change
@@ -134,68 +264,6 @@ function Trading:UpdateTimer()
 	--Show timer and set text formatted
 	self.UI.Frame.Trade.Frame.LocalPlayer.Frame.Time.Text = string.format("%0.2fs", t)
 	self.UI.Frame.Trade.Frame.LocalPlayer.Frame.Time.Visible = true
-end
-
-local function GetItems(items, inventory)
-	--Return wanted items from inventory
-	local wantedItems = {}
-
-	for _, id in items do
-		if not inventory[id] then
-			continue
-		end
-
-		wantedItems[id] = inventory[id]
-	end
-
-	return wantedItems
-end
-
-function Trading:GetPlayersInventory()
-	local TradingController = knit.GetController("TradingController")
-	local inv = TradingController:GetTradeableItems()
-
-	local tradeData = TradingController:GetItemsInCurrentTrade()
-
-	local items = {}
-
-	for id, data in inv do
-		if table.find(tradeData.LocalInventory, tostring(id)) then
-			continue
-		end
-
-		items[id] = data
-	end
-
-	return items
-end
-
-function Trading:UpdateInventories()
-	--Update inventories
-	local TradingController = knit.GetController("TradingController")
-	local ItemController = knit.GetController("ItemController")
-
-	local tradeData = TradingController:GetItemsInCurrentTrade()
-	local otherInv = TradingController:GetOtherInv()
-
-	if not tradeData.LocalInventory or not tradeData.InventoryB then
-		return
-	end
-	--Update Inventory
-	self.Inventory:Update(self:GetPlayersInventory())
-
-	--Update local players items
-	self.ItemsContainerLocal:Update(GetItems(tradeData.LocalInventory or {}, ItemController:GetInventory()))
-
-	--Update other players items
-	self.ItemsContainerB:Update(GetItems(tradeData.InventoryB or {}, otherInv))
-
-	--Set name of other player
-	local otherPlayer = Players:GetPlayerByUserId(tonumber(tradeData.OtherPlayer or 0))
-
-	if otherPlayer then
-		self.UI.Frame.Trade.Frame.OtherPlayer.Frame.Info.PlayerName.Text = `{otherPlayer.DisplayName}`
-	end
 end
 
 function Trading:UpdateStatus()
@@ -225,19 +293,37 @@ function Trading:UpdateStatus()
 end
 
 function Trading:Update()
+	local ItemController = knit.GetController("ItemController")
+
 	--Update all the data for the trade
 	self:UpdateStatus()
-	self:UpdateInventories()
 	self:UpdateTimer()
+
+	warn("Update")
+	self.Inventory:Update(ItemController:GetInventoryInStacks())
 
 	--Update with other players name
 end
 
 function Trading:Reset()
 	--Reset everything
-	self.ItemsContainerLocal:Update({})
-	self.ItemsContainerB:Update({})
-	self.Inventory:Update({})
+	self.Inventories = {
+		Local = {},
+		Other = {},
+	}
+
+	self.ItemStacks = {
+		Local = {},
+		Other = {},
+	}
+
+	self.ItemLookups = {
+		Local = {},
+		Other = {},
+	}
+
+	self.ItemsContainerLocal:Update(self.ItemStacks.Local, self.ItemLookups.Local)
+	self.ItemsContainerB:Update(self.ItemStacks.Other, self.ItemLookups.Other)
 end
 
 function Trading:SetVisible(bool)

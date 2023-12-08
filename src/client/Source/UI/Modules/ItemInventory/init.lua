@@ -25,7 +25,13 @@ function Inventory.new(UITemplate)
 	self.Janitor = janitor.new()
 
 	self.UITemplate = UITemplate
-	self.ItemTypes = { "Knife", "Ability" }
+	self.ItemTypes = {
+		"Knife",
+		"Ability",
+		"HitEffect",
+		"Tag",
+		"Ball",
+	}
 
 	self.SelectedItemId = nil
 
@@ -67,15 +73,9 @@ function Inventory:Init()
 	end))
 
 	--Listen for inventory changes
-	self.Janitor:Add(ItemController.Signals.InventoryLoaded:Connect(function()
-		self:Update()
-	end))
-
-	self.Janitor:Add(ItemController.Signals.ItemAdded:Connect(function()
-		self:Update()
-	end))
-
-	self.Janitor:Add(ItemController.Signals.ItemRemoved:Connect(function()
+	self.Janitor:Add(ItemController.Signals.StacksUpdated:Connect(function()
+		--self:Update()
+		self.ItemsContainer:Update(ItemController:GetInventoryInStacks())
 		self:Update()
 	end))
 
@@ -126,12 +126,7 @@ end
 
 function Inventory:Update()
 	--Update items
-	local ItemController = knit.GetController("ItemController")
 	local EquipmentController = knit.GetController("EquipmentController")
-
-	local inventoryData = ItemController:GetInventory()
-
-	self.ItemsContainer:Update(inventoryData)
 
 	--Update equipped items
 	if self.ItemsContainer.CreatedItems[self.SelectedItemId] and self.SelectedItemId ~= nil then

@@ -23,7 +23,9 @@ local TradingService = knit.CreateService({
 		CurrentTrade = knit.CreateProperty({}),
 		TradeStatus = knit.CreateProperty({}),
 		TradeId = knit.CreateProperty(nil),
-		OtherInventory = knit.CreateProperty({}), --Inventory of the user player is trading with
+
+		ItemsAdded = knit.CreateSignal(),
+		ItemsRemoved = knit.CreateSignal(),
 
 		TradeRequests = knit.CreateProperty({ Sent = {}, Recieved = {} }),
 		UntradeableUsers = knit.CreateProperty({}),
@@ -35,26 +37,34 @@ local TradeRequests = {}
 local Trades = {}
 local UntradeableUsers = {}
 
-function TradingService.Client:AddItemToTrade(player, itemId)
+function TradingService.Client:AddItemsToTrade(player, itemIds)
 	local UserService = knit.GetService("UserService")
 	local user = UserService:WaitForUser(player)
 
-	if not typeof(itemId) == "string" then
+	if not typeof(itemIds) == "table" then
 		return
 	end
 
-	TradingService:AddItemToTrade(user, itemId)
+	if #itemIds <= 0 then
+		return
+	end
+
+	TradingService:AddItemsToTrade(user, itemIds)
 end
 
-function TradingService.Client:RemoveItemFromTrade(player, itemId)
+function TradingService.Client:RemoveItemsFromTrade(player, itemIds)
 	local UserService = knit.GetService("UserService")
 	local user = UserService:WaitForUser(player)
 
-	if not typeof(itemId) == "string" then
+	if not typeof(itemIds) == "table" then
 		return
 	end
 
-	TradingService:RemoveItemFromTrade(user, itemId)
+	if #itemIds <= 0 then
+		return
+	end
+
+	TradingService:RemoveItemsFromTrade(user, itemIds)
 end
 
 function TradingService.Client:SetTradeAcceptanceStatus(player, status)
@@ -254,13 +264,13 @@ function TradingService:CancelTrade(user)
 	user.CurrentTrade:Cancel(user)
 end
 
-function TradingService:AddItemToTrade(user, itemId)
+function TradingService:AddItemsToTrade(user, itemIds)
 	--Adds item with Id to trade
 	if not user.CurrentTrade then
 		return
 	end
 
-	user.CurrentTrade:AddItem(user, itemId)
+	user.CurrentTrade:AddItem(user, itemIds)
 end
 
 function TradingService:ValidateItemForTrade(user, itemId)
@@ -294,13 +304,13 @@ function TradingService:ValidateItemForTrade(user, itemId)
 	return true
 end
 
-function TradingService:RemoveItemFromTrade(user, itemId)
+function TradingService:RemoveItemsFromTrade(user, itemIds)
 	--Removes item from trade
 	if not user.CurrentTrade then
 		return
 	end
 
-	user.CurrentTrade:RemoveItem(user, itemId)
+	user.CurrentTrade:RemoveItem(user, itemIds)
 end
 
 local TradeHistory = {}

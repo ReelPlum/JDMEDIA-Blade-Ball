@@ -66,8 +66,9 @@ function AbilityService:ExecuteAbility(user, cameraLookVector, characterLookVect
 	end
 
 	--Use ability
-	local finished = abilities[ability].Execute(user, cameraLookVector, characterLookVector)
+	local finished = abilities[ability].ExecuteServer(user, cameraLookVector, characterLookVector)
 	if finished then
+		AbilityService.Client.UsedAbility:Fire(user.Player, ability)
 		user.LastAbilityUse = tick()
 	end
 	return finished

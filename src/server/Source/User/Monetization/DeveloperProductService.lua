@@ -52,7 +52,7 @@ function DeveloperProductService:GetUsersPurchaseHistory(user)
 		return {}
 	end
 
-	return HttpService:JSONDecode(uncompressed)
+	return uncompressed
 end
 
 function DeveloperProductService:SavePurchase(user, id, data)
@@ -61,7 +61,7 @@ function DeveloperProductService:SavePurchase(user, id, data)
 	PurchaseHistory[id] = data
 
 	local DataCompressionService = knit.GetService("DataCompressionService")
-	user.Data.PurchaseHistory = DataCompressionService:CompressData(HttpService:JSONEncode(PurchaseHistory))
+	user.Data.PurchaseHistory = DataCompressionService:CompressData(PurchaseHistory)
 end
 
 function DeveloperProductService:KnitStart()
@@ -100,7 +100,7 @@ function DeveloperProductService:KnitStart()
 			data.OnPurchase(user)
 		end)
 		if not success then
-			warn("❗ "..msg)
+			warn("❗ " .. msg)
 			return Enum.ProductPurchaseDecision.NotProcessedYet
 		end
 
@@ -116,7 +116,7 @@ function DeveloperProductService:KnitStart()
 			DeveloperProductService:SavePurchase(user, recieptInfo.PurchaseId, data)
 		end)
 		if not success then
-			warn("❗ "..msg)
+			warn("❗ " .. msg)
 			return Enum.ProductPurchaseDecision.NotProcessedYet
 		end
 

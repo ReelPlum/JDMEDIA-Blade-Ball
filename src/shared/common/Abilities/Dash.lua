@@ -4,7 +4,9 @@ Dash
 Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 ]]
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 local knit = require(ReplicatedStorage.Packages.Knit)
@@ -14,10 +16,19 @@ local force = 2500
 return {
 	DisplayName = "Dash",
 
-	Execute = function(user, cameraLookVector, characterLookVector)
-		--Use dash
+	CooldownTime = 1,
+
+	Levels = {
+		[1] = {
+			Force = 2500,
+		},
+	},
+
+	ExecuteClient = function()
 		local j = janitor.new()
-		local character = user.Character
+		local LocalPlayer = Players.LocalPlayer
+
+		local character = LocalPlayer.Character
 		if not character then
 			return
 		end
@@ -40,8 +51,10 @@ return {
 
 		if moveDirection.Magnitude <= 0 then
 			--Forward
-			relMoveDirection = rootPart.CFrame:PointToObjectSpace(rootPart.CFrame.Position + Vector3.new(0, 0, -1))
+			moveDirection = rootPart.CFrame.lookVector
 			track = humanoid.Animator:LoadAnimation(ReplicatedStorage.Assets.Animations.Dash.DashFront)
+
+			warn("STill")
 		else
 			if math.abs(relMoveDirection.X) > math.abs(relMoveDirection.Z) then
 				--Left or right
@@ -74,20 +87,30 @@ return {
 
 		local m = rootPart.AssemblyMass
 
-		-- local vectorForce = j:Add(Instance.new("VectorForce"))
-		-- vectorForce.Parent = rootPart
-		-- vectorForce.RelativeTo = Enum.ActuatorRelativeTo.World
-		-- vectorForce.Attachment0 = attachment
-		-- vectorForce.Force = moveDirection.Unit * Vector3.new(force, 0, force)
-
-		--humanoid:ChangeState(Enum.HumanoidStateType.Freefall)
-		--humanoid.PlatformStand = true
-		--local force = m * 25
-
 		local ClientPhysicsService = knit.GetService("ClientPhysicsService")
 
+		local params = RaycastParams.new()
+		params.FilterType = Enum.RaycastFilterType.Exclude
+		params.FilterDescendantsInstances = { character }
+
+		local ray = workspace:Raycast(
+			(rootPart.CFrame * CFrame.new(0, -rootPart.Size.Y / 2, 0)).Position,
+			Vector3.new(0, -1, 0) * (humanoid.HipHeight + 0.1),
+			params
+		)
+
+		--Check if grounded.
+		local f = force
+		if not ray then
+			--Not grounded
+			warn("Ungrounded")
+			f = force * 0.75
+		end
+
 		--Check if character is in the air. If they are in the air then apply a smaller force, and play another animation
-		ClientPhysicsService:ApplyImpulseOnCharacter(user, moveDirection.Unit * Vector3.new(force, 0, force))
+		local ClientPhysicsController = knit.GetController("ClientPhysicsController")
+
+		ClientPhysicsController:ApplyImpulseOnCharacter(moveDirection.Unit * Vector3.new(f, 0, f))
 
 		task.spawn(function()
 			task.wait(0.25)
@@ -95,6 +118,9 @@ return {
 			--humanoid.PlatformStand = false
 			j:Destroy()
 		end)
+	end,
+	ExecuteServer = function(user, cameraLookVector, characterLookVector)
+		--Use dash
 
 		return true
 	end,

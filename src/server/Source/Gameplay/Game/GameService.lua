@@ -53,7 +53,7 @@ local GameSections = {
 	},
 	{ --Cooldown
 		Title = "Cooldown",
-		Time = GeneralSettings.Game.GameTimes.CoolDown,
+		Time = GeneralSettings.Game.GameTimes.Cooldown,
 		CheckUsers = true,
 		OnStart = function()
 			currentGame = nil

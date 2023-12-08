@@ -12,8 +12,6 @@ local TextChatService = game:GetService("TextChatService")
 local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 
-local ItemData = require(ReplicatedStorage.Data.ItemData)
-
 local ChatController = knit.CreateController({
 	Name = "ChatController",
 	Signals = {},
@@ -28,6 +26,7 @@ end
 function ChatController:KnitStart()
 	local CacheController = knit.GetController("CacheController")
 	local ChatService = knit.GetService("ChatService")
+	local ItemController = knit.GetController("ItemController")
 
 	ChatService.SendMessage:Connect(function(message, color)
 		ChatController:SendSystemMessage(message, color)
@@ -58,7 +57,11 @@ function ChatController:KnitStart()
 		end
 
 		if msg.TextSource then
-			local data = ItemData[CacheController.Cache.Tags[tostring(msg.TextSource.UserId)]]
+			local data = ItemController:GetItemData(CacheController.Cache.Tags[tostring(msg.TextSource.UserId)])
+			if not data then
+				return
+			end
+
 			local c = data.Color
 
 			if not c then

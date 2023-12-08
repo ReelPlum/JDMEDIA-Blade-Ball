@@ -130,6 +130,7 @@ end
 
 function EnchantingService:ApplyRandomEnchantOnUsersItem(user, id)
 	--Apply a random enchantment on a users item
+
 	local ShopService = knit.GetService("ShopService")
 	-- if ShopService:ArePaidRandomItemsRestricted(user) then
 	-- 	return warn("Paid randomg items are restricted!")
@@ -159,6 +160,7 @@ end
 
 function EnchantingService:ApplyEnchantmentBookOnUsersItem(user, itemId, bookId)
 	--Apply an enchantment book on a users item
+
 	local ItemService = knit.GetService("ItemService")
 	local data = ItemService:GetUsersDataFromId(user, itemId)
 	if not data then

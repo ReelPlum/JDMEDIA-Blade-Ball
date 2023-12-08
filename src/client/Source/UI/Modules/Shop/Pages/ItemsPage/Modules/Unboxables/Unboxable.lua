@@ -51,11 +51,11 @@ function Unboxable:Init()
 	self.UI.Visible = true
 
 	self.UI.Item.ItemName.Text = unboxableData.DisplayName
-	self.UI.Item.ItemImage.Image = unboxableData.Image
+	self.UI.Item.ItemImage.Image = unboxableData.Image or ""
 
 	--Display price
 	self.UI.TextLabel.TextLabel.Text = unboxableData.Price.Amount
-	self.UI.TextLabel.ImageLabel.Image = currencyData.Image
+	self.UI.TextLabel.ImageLabel.Image = currencyData.Image or ""
 
 	--Button
 	self.Janitor:Add(self.UI.MouseButton1Click:Connect(function()

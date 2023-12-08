@@ -12,7 +12,7 @@ local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
-local ItemData = require(ReplicatedStorage.Data.ItemData)
+local ItemData = ReplicatedStorage.Data.Items
 
 local ItemService = knit.CreateService({
 	Name = "ItemService",
@@ -37,11 +37,25 @@ function ItemService.Client:GetPlayersInventory(player, requestedPlayer)
 	local UserService = knit.GetService("UserService")
 	local user = UserService:WaitForUser(player)
 
+	user:WaitForDataLoaded()
+
 	return ItemService:GetUsersInventory(user)
 end
 
 function ItemService:GetItemData(item)
-	return ItemData[item]
+	if not item then
+		return nil
+	end
+
+	local data = ItemData:FindFirstChild(item)
+	if not data then
+		return nil
+	end
+	if not data:IsA("ModuleScript") then
+		return nil
+	end
+
+	return require(data)
 end
 
 function ItemService:GetDataFromId(inventory, id)
@@ -423,8 +437,6 @@ function ItemService:GiveUserMultipleItems(user, items, metadata)
 end
 
 function ItemService:GetUsersInventory(user)
-	user:WaitForDataLoaded()
-
 	if InventoryCache[user] then
 		return InventoryCache[user]
 	end
@@ -435,7 +447,7 @@ function ItemService:GetUsersInventory(user)
 
 	local DataCompressionService = knit.GetService("DataCompressionService")
 
-	local inv = HttpService:JSONDecode(DataCompressionService:DecompressData(user.Data.Inventory))
+	local inv = DataCompressionService:DecompressData(user.Data.Inventory)
 
 	InventoryCache[user] = inv
 	return inv
@@ -444,7 +456,7 @@ end
 function ItemService:SaveInventory(user, inventory)
 	local DataCompressionService = knit.GetService("DataCompressionService")
 
-	user.Data.Inventory = DataCompressionService:CompressData(HttpService:JSONEncode(inventory))
+	user.Data.Inventory = DataCompressionService:CompressData(inventory)
 end
 
 -- function ItemService:SyncInventory(user)
