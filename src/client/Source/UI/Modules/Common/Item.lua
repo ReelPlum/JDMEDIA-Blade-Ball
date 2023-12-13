@@ -10,6 +10,8 @@ local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
+local ViewportFrameModel = require(ReplicatedStorage.Common.ViewportFrameModel)
+
 local Item = {}
 Item.ClassName = "Item"
 Item.__index = Item
