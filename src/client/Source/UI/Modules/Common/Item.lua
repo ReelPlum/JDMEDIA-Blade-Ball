@@ -116,8 +116,6 @@ function Item:UpdateWithItemData(itemData)
 		return
 	end
 
-	print(itemData)
-
 	--Set name
 	self.ItemName.Text = itemData.DisplayName
 
