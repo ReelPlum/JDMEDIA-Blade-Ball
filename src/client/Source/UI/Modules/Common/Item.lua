@@ -54,6 +54,13 @@ function Item:Init()
 	self.StackText = self.UI.Config.StackSize.Value
 	self.EquippedFrame = self.UI.Config.Equipped.Value
 
+	--More ui
+	self.Camera = self.Janitor:Add(Instance.new("Camera"))
+	self.Camera.Parent = workspace
+	self.ViewportFrame.CurrentCamera = self.Camera
+
+	self.VPF = ViewportFrameModel.new(self.ViewportFrame, self.Camera)
+
 	--
 	self.Button.MouseButton1Click:Connect(function()
 		if not self.onClick then
