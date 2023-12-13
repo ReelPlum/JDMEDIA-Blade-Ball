@@ -28,6 +28,10 @@ function AnimationService:PlayDeflectAnimation(user, animation)
 
 	local ItemService = knit.GetService("ItemService")
 	local data = ItemService:GetItemData(knife)
+	if not data then
+		warn(`❗Failed to get {user.Player.Name}'s knife {knife}`)
+		return
+	end
 
 	--Spawn dust effect in
 

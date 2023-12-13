@@ -15,7 +15,7 @@ local signal = require(ReplicatedStorage.Packages.Signal)
 local ItemStacksModule = require(ReplicatedStorage.Common.ItemsStacks)
 
 local ItemData = ReplicatedStorage.Data.Items
-local RarityData = require(ReplicatedStorage.Data.RarityData)
+local RarityData = ReplicatedStorage.Data.Rarities
 
 local ItemController = knit.CreateController({
 	Name = "ItemController",
@@ -68,7 +68,20 @@ function ItemController:GetItemData(item)
 end
 
 function ItemController:GetRarityData(rarity)
-	return RarityData[rarity]
+	if not rarity then
+		return nil
+	end
+
+	local data = RarityData:FindFirstChild(rarity)
+	if not data then
+		return nil
+	end
+
+	if not data:IsA("ModuleScript") then
+		return nil
+	end
+
+	return require(data)
 end
 
 function ItemController:GetItemFromId(id)

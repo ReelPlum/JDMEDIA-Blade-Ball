@@ -93,11 +93,9 @@ function Item:Update(information, stackSize, click)
 	--Updates with new data
 
 	if not information then
-		warn("Got no information...")
+		warn("❗Got no information for item...")
 		return
 	end
-
-	warn("Updating item!")
 
 	self.StackSize = stackSize or 0
 	self.ItemJanitor:Cleanup()
@@ -154,7 +152,15 @@ function Item:Update(information, stackSize, click)
 	if table.find(GeneralSettings.ItemTypesToTrackCopiesOf, itemData.ItemType) then
 		local amount = 0
 		if CacheController.Cache.ItemCopies then
-			amount = CacheController.Cache.ItemCopies[self.Data.Item]
+			local Type = "Normal"
+			if self.Data.Metadata[MetadataTypes.Types.Strange] then
+				Type = "Strange"
+			end
+
+			amount = 0
+			if CacheController.Cache.ItemCopies[Type] then
+				amount = CacheController.Cache.ItemCopies[Type][self.Data.Item] or 0
+			end
 		end
 
 		table.insert(self.ToolTipData, {

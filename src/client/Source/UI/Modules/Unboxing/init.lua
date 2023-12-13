@@ -81,7 +81,7 @@ function Unboxing:Init()
 
 			local i = self.UnboxJanitor:Add(Item.new(ReplicatedStorage.Assets.UI.Item, d, function()
 				return
-			end, self.ToolTip))
+			end, self.ToolTip, 1))
 			i.UI.Parent = self.UI.UnboxedItem.Frame.Frame
 			i.UI.Position = UDim2.new(0.5, 0, 0.5, 0)
 		elseif data.Type == "Currency" then

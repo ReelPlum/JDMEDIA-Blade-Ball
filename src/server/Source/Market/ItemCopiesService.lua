@@ -12,6 +12,7 @@ local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
+local MetadataTypes = require(ReplicatedStorage.Data.MetadataTypes)
 local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
 
 local ItemCopiesService = knit.CreateService({
@@ -30,33 +31,57 @@ function ItemCopiesService:SaveCache()
 		return
 	end
 
-	for item, amount in Cache do
-		ItemCopiesService.Collection:UpdateOne({
-			["Item"] = item,
-		}, {
-			["$inc"] = {
-				Amount = amount,
-			},
-		}, true)
+	for t, data in Cache do
+		for item, amount in data do
+			ItemCopiesService.Collection:UpdateOne({
+				["Item"] = item,
+				["Type"] = t,
+			}, {
+				["$inc"] = {
+					Amount = amount,
+				},
+			}, true)
 
-		Cache[item] = nil
+			data[item] = nil
+		end
+
+		Cache[t] = nil
 	end
 end
 
 function ItemCopiesService:SyncItemCopies()
 	--Syncs data
-	local GlobalItems = table.clone(ItemCache)
-	local ServerItems = table.clone(Cache)
 
-	for item, amount in ServerItems do
-		if not GlobalItems[item] then
-			GlobalItems[item] = 0
+	local ToShare = {}
+
+	for t, data in ItemCache do
+		if not ToShare[t] then
+			ToShare[t] = {}
 		end
 
-		GlobalItems[item] += amount
+		for item, d in data do
+			ToShare[t][item] = d
+		end
 	end
 
-	ItemCopiesService.Client.Copies:Set(GlobalItems)
+	for t, data in Cache do
+		if not ToShare[t] then
+			ToShare[t] = {}
+		end
+
+		for item, d in data do
+			if not ToShare[t][item] then
+				if ItemCache[t] then
+					ToShare[t][item] = ItemCache[t][item] or 0
+				else
+					ToShare[t][item] = 0
+				end
+			end
+			ToShare[t][item] += d
+		end
+	end
+
+	ItemCopiesService.Client.Copies:Set(ToShare)
 end
 
 function ItemCopiesService:GetDataFromDatabase()
@@ -65,7 +90,15 @@ function ItemCopiesService:GetDataFromDatabase()
 
 	ItemCache = {}
 	for _, d in data do
-		ItemCache[d.Item] = d.Amount
+		if not d.Type then
+			continue
+		end
+
+		if not ItemCache[d.Type] then
+			ItemCache[d.Type] = {}
+		end
+
+		ItemCache[d.Type][d.Item] = d.Amount
 	end
 
 	ItemCopiesService:SyncItemCopies()
@@ -74,22 +107,35 @@ end
 function ItemCopiesService:KnitStart()
 	local ItemService = knit.GetService("ItemService")
 
-	ItemService.Signals.ItemCreated:Connect(function(item, quantity)
+	ItemService.Signals.ItemCreated:Connect(function(item, quantity, metadata)
 		local data = ItemService:GetItemData(item)
 		if not table.find(GeneralSettings.ItemTypesToTrackCopiesOf, data.ItemType) then
 			return
 		end
 
-		if not Cache[item] then
-			Cache[item] = 0
+		if not Cache["Normal"] then
+			Cache["Normal"] = {}
 		end
 
-		Cache[item] += quantity
+		local c = Cache["Normal"]
+
+		if metadata[MetadataTypes.Types.Strange] then
+			if not Cache["Strange"] then
+				Cache["Strange"] = {}
+			end
+			c = Cache["Strange"]
+		end
+
+		if not c[item] then
+			c[item] = 0
+		end
+
+		c[item] += quantity
 
 		ItemCopiesService:SyncItemCopies()
 	end)
 
-	ItemService.Signals.ItemDestroyed:Connect(function(item, quantity)
+	ItemService.Signals.ItemDestroyed:Connect(function(item, quantity, metadata)
 		local data = ItemService:GetItemData(item)
 		if not table.find(GeneralSettings.ItemTypesToTrackCopiesOf, data.ItemType) then
 			return

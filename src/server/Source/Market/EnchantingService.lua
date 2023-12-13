@@ -60,6 +60,10 @@ function EnchantingService:CanItemBeEnchanted(invItemData, enchant)
 	local ItemService = knit.GetService("ItemService")
 	local itemData = ItemService:GetDataForItem(invItemData.Item)
 
+	if not itemData then
+		return
+	end
+
 	if not table.find(data.SupportedItemTypes, itemData.ItemType) then
 		return false
 	end

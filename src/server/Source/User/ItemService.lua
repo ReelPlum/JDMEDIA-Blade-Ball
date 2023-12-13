@@ -13,6 +13,7 @@ local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
 local ItemData = ReplicatedStorage.Data.Items
+local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
 
 local ItemService = knit.CreateService({
 	Name = "ItemService",
@@ -153,13 +154,18 @@ function ItemService:GiveItemToInventory(inventory, item, quantity, metadata)
 		items[id] = data
 	end
 
-	ItemService.Signals.ItemCreated:Fire(item, quantity)
+	ItemService.Signals.ItemCreated:Fire(item, quantity, metadata)
 
 	return items
 end
 
 function ItemService:TakeItemFromInventory(inventory, itemId)
-	ItemService.Signals.ItemDestroyed:Fire(inventory[itemId].Item, 1)
+	local metadata = nil
+	if inventory[itemId] then
+		metadata = inventory[itemId].Metadata
+	end
+
+	ItemService.Signals.ItemDestroyed:Fire(inventory[itemId].Item, 1, metadata)
 
 	inventory[itemId] = nil
 
@@ -279,7 +285,7 @@ function ItemService:GetOneItemOfSeason(inventory, season)
 end
 
 function ItemService:GetDataForItem(item)
-	return ItemData[item]
+	return ItemService:GetItemData(item)
 end
 
 function ItemService:GetOneItemOfUser(user, item)
@@ -339,9 +345,14 @@ end
 function ItemService:GiveUserItem(user, item, quantity, metadata)
 	user:WaitForDataLoaded()
 
+	if not ItemService:DoesUserHaveSpaceForItems(user, quantity) then
+		return false
+	end
+
 	local inventory = ItemService:GetUsersInventory(user)
 	local items = ItemService:GiveItemToInventory(inventory, item, quantity, metadata)
 	ItemService:SaveInventory(user, inventory)
+	user.Data.ItemsInInventory += quantity
 
 	ItemService.Client.ItemAdded:Fire(user.Player, items)
 end
@@ -358,6 +369,7 @@ function ItemService:TakeItemFromUser(user, itemId)
 
 	ItemService:SaveInventory(user, inventory)
 
+	user.Data.ItemsInInventory -= 1
 	ItemService.Client.ItemRemoved:Fire(user.Player, { itemId })
 end
 
@@ -384,18 +396,34 @@ end
 
 function ItemService:TransferItemToUsersInventory(user, itemId, data)
 	local inventory = ItemService:GetUsersInventory(user)
+
+	if not ItemService:DoesUserHaveSpaceForItems(user, 1) then
+		return false
+	end
+
 	inventory = ItemService:TransferItemToInventory(inventory, itemId, data)
 
 	self:SaveInventory(user, inventory)
+	user.Data.ItemsInInventory += 1
 	ItemService.Client.ItemAdded:Fire(user.Player, { itemId })
 end
 
 function ItemService:TransferMultipleItemsToUsersInventory(user, items)
+	local n = 0
+	for _, _ in items do
+		n += 1
+	end
+
+	if not ItemService:DoesUserHaveSpaceForItems(user, n) then
+		return false
+	end
+
 	local inventory = ItemService:GetUsersInventory(user)
 	inventory = ItemService:TransferMultipleItemsToInventory(inventory, items)
 
 	self:SaveInventory(user, inventory)
 
+	user.Data.ItemsInInventory += n
 	ItemService.Client.ItemAdded:Fire(user.Player, items)
 end
 
@@ -405,6 +433,7 @@ function ItemService:RemoveItemWithIdFromUsersInventory(user, itemId)
 
 	self:SaveInventory(user, inventory)
 
+	user.Data.ItemsInInventory -= 1
 	ItemService.Client.ItemRemoved:Fire(user.Player, { itemId })
 end
 
@@ -416,6 +445,13 @@ function ItemService:RemoveMultipleItemsWithIdFromUsersInventory(user, ids)
 
 	if success then
 		ItemService.Client.ItemRemoved:Fire(user.Player, ids)
+
+		local n = 0
+		for _, _ in ids do
+			n += 1
+		end
+
+		user.Data.ItemsInInventory -= n
 	end
 
 	return success
@@ -424,6 +460,14 @@ end
 function ItemService:GiveUserMultipleItems(user, items, metadata)
 	local inventory = ItemService:GetUsersInventory(user)
 
+	local n = 0
+	for item, quantity in items do
+		n += quantity
+	end
+	if not ItemService:DoesUserHaveSpaceForItems(user, n) then
+		return false
+	end
+
 	local addedItems = {}
 	for item, quantity in items do
 		local i = ItemService:GiveItemToInventory(inventory, item, quantity, metadata)
@@ -431,6 +475,7 @@ function ItemService:GiveUserMultipleItems(user, items, metadata)
 			addedItems[id] = data
 		end
 	end
+	user.Data.ItemsInInventory += n
 
 	self:SaveInventory(user, inventory)
 	ItemService.Client.ItemAdded:Fire(user.Player, addedItems)
@@ -472,6 +517,16 @@ function ItemService:ListenForUserInventoryChange(user)
 	return InventoryChangeSignals[user]
 end
 
+function ItemService:DoesUserHaveSpaceForItems(user, quantity)
+	user:WaitForDataLoaded()
+
+	if user.Data.ItemsInInventory + quantity > GeneralSettings.User.MaxInventoryItems then
+		return false
+	end
+
+	return true
+end
+
 function ItemService:KnitStart()
 	local UserService = knit.GetService("UserService")
 
@@ -481,6 +536,10 @@ function ItemService:KnitStart()
 
 	UserService.Signals.UserRemoving:Connect(function(user)
 		InventoryCache[user] = nil
+
+		if not InventoryChangeSignals[user] then
+			return
+		end
 
 		InventoryChangeSignals[user]:Destroy()
 		InventoryChangeSignals[user] = nil

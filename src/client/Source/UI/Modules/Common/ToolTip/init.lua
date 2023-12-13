@@ -87,6 +87,7 @@ function ToolTip:Update(data)
 		[MetadataTypes.Types.Enchant] = 3,
 		[MetadataTypes.Types.Strange] = 4,
 		[MetadataTypes.Types.StrangeParts] = 5,
+		["UnboxChances"] = 6,
 
 		["Copies"] = 9,
 		[MetadataTypes.Types.Untradeable] = 10,

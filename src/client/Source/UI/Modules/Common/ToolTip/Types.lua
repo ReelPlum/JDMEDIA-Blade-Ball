@@ -184,8 +184,16 @@ return {
 
 		--Create chance uis
 		for _, itemData in data.Data do
-			local f = Instance.new("ImageLabel")
-			f.Image = itemData.Image
+			local f
+
+			if itemData.Image then
+				f = Instance.new("ImageLabel")
+				f.Image = itemData.Image
+			elseif itemData.Model then
+				f = Instance.new("ViewportFrame")
+			else
+				f = Instance.new("Frame")
+			end
 			f.LayoutOrder = itemData.Chance
 			local uicorner = Instance.new("UICorner")
 			uicorner.CornerRadius = UDim.new(0, 5)

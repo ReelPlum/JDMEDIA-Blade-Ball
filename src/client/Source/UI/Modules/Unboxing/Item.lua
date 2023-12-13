@@ -9,6 +9,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
+local ViewportFrameModel = require(ReplicatedStorage.Common.ViewportFrameModel)
 
 local CurrencyData = require(ReplicatedStorage.Data.CurrencyData)
 local StrangeItemData = require(ReplicatedStorage.Data.StrangeItemData)
@@ -28,6 +29,10 @@ function Item.new(unboxingFrame, ui, width, index)
 	self.UnboxingFrame = unboxingFrame
 	self.Width = width
 	self.Index = index
+
+	self.Camera = self.Janitor:Add(Instance.new("Camera"))
+	self.UI.ItemViewport.CurrentCamera = self.Camera
+	self.VPF = ViewportFrameModel.new(self.UI.ItemViewport, self.Camera)
 
 	self.Signals = {
 		Destroying = self.Janitor:Add(signal.new()),
@@ -62,7 +67,30 @@ function Item:Update(newIndex, unboxable, newData)
 
 		local rarityData = ItemController:GetRarityData(itemData.Rarity)
 
-		self.UI.ItemImage.Image = itemData.Image
+		if itemData.Image then
+			self.UI.ItemViewport.Visible = false
+			self.UI.ItemImage.Visible = true
+			self.UI.ItemImage.Image = itemData.Image
+		elseif itemData.Model then
+			self.UI.ItemViewport.Visible = true
+			self.UI.ItemImage.Visible = false
+
+			--Put in model
+			self.ViewportModel = self.ItemJanitor:Add(itemData.Model:Clone())
+			self.ViewportModel.Parent = self.UI.ItemViewport
+			self.ViewportModel:PivotTo(CFrame.new(0, 0, 0) * CFrame.Angles(0, math.rad(90), 0))
+			--Make item fit, and then apply offset.
+			self.VPF:SetModel(self.ViewportModel)
+			local cf = self.VPF:GetMinimumFitCFrame(CFrame.new(0, 0, 0))
+			if itemData.Offset then
+				cf = cf * itemData.Offset
+			end
+			self.Camera.CFrame = cf
+		else
+			self.UI.ItemImage.Visible = false
+			self.UI.ItemViewport.Visible = false
+		end
+
 		self.UI.ItemName.Text = itemData.DisplayName
 		self.ItemJanitor:Add(rarityData.Effect(rarityData, self.UI))
 

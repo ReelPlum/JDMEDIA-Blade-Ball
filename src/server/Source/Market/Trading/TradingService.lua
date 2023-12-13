@@ -230,6 +230,14 @@ function TradingService:StartTrade(userA, userB)
 		return
 	end
 
+	local FFlagService = knit.GetService("FFlagService")
+	local enabled = FFlagService:GetFFlag("Trading")
+	if enabled == false then
+		--Tell players that trading is disabled at the moment
+
+		return
+	end
+
 	--Starts a trade between userA and userB
 	local t = Trade.new(userA, userB)
 

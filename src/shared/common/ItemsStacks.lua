@@ -121,6 +121,7 @@ end
 
 local function ItemsAdded(stacks, lookup, items)
 	local n = 0
+
 	for id, data in items do
 		--Go through and find the matching item
 		if lookup[id] then
@@ -163,7 +164,6 @@ local function ItemsAdded(stacks, lookup, items)
 
 		if not found then
 			--Create new stack
-			stacks[data.Item] = {}
 			stacks[data.Item][id] = {
 				Data = data,
 				Hold = { id },

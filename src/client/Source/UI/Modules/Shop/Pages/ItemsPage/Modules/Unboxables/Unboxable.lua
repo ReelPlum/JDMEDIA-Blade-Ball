@@ -60,6 +60,7 @@ function Unboxable:Init()
 	--Button
 	self.Janitor:Add(self.UI.MouseButton1Click:Connect(function()
 		--Buy unboxable
+		self.Unboxables.ItemsPage.Shop.ToolTip:RemoveActor(self.ToolTipData)
 		ShopController:PurchaseUnboxable(self.UnboxableId)
 	end))
 
@@ -116,6 +117,7 @@ function Unboxable:Init()
 
 	self.Janitor:Add(self.UI.MouseEnter:Connect(function()
 		--Show tooltip
+
 		self.Unboxables.ItemsPage.Shop.ToolTip:AddActor(self.ToolTipData)
 	end))
 

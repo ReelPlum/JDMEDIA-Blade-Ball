@@ -3,6 +3,11 @@
 registry = "test"
 
 [[package]]
+name = "elttob/fusion"
+version = "0.2.0"
+dependencies = []
+
+[[package]]
 name = "evaera/cmdr"
 version = "1.12.0"
 dependencies = []
@@ -15,7 +20,7 @@ dependencies = []
 [[package]]
 name = "frede/resource-gathering-simulator"
 version = "0.1.0"
-dependencies = [["Cmdr", "evaera/cmdr@1.12.0"], ["FormatNumber", "kumarion/formatnumber@0.0.1"], ["Janitor", "howmanysmall/janitor@1.15.6"], ["Knit", "sleitnick/knit@1.6.0"], ["ParallelWorker", "maximumadhd/parallel-worker@1.0.0"], ["ProfileService", "surnautica/profileservice@1.0.0"], ["Promise", "evaera/promise@4.0.0"], ["Signal", "sleitnick/signal@2.0.1"], ["gameanalytics-sdk", "gameanalytics/gameanalytics-sdk@2.2.2"], ["moonlite", "maximumadhd/moonlite@0.9.0"]]
+dependencies = [["Cmdr", "evaera/cmdr@1.12.0"], ["FormatNumber", "kumarion/formatnumber@0.0.1"], ["Fusion", "elttob/fusion@0.2.0"], ["Janitor", "howmanysmall/janitor@1.15.6"], ["Knit", "sleitnick/knit@1.6.0"], ["ProfileService", "surnautica/profileservice@1.0.0"], ["Promise", "evaera/promise@4.0.0"], ["Signal", "sleitnick/signal@2.0.1"], ["gameanalytics-sdk", "gameanalytics/gameanalytics-sdk@2.2.2"], ["moonlite", "maximumadhd/moonlite@0.9.0"]]
 
 [[package]]
 name = "gameanalytics/gameanalytics-sdk"
@@ -35,11 +40,6 @@ dependencies = []
 [[package]]
 name = "maximumadhd/moonlite"
 version = "0.9.0"
-dependencies = []
-
-[[package]]
-name = "maximumadhd/parallel-worker"
-version = "1.0.0"
 dependencies = []
 
 [[package]]

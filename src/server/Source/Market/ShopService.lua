@@ -71,6 +71,17 @@ function ShopService:PurchaseBundle(user, bundleId)
 		return
 	end
 
+	local ItemService = knit.GetService("ItemService")
+	local n = 0
+
+	for _, itemData in data.Items do
+		n += itemData.Amount or 1
+	end
+
+	if not ItemService:DoesUserHaveSpaceForItems(user, n) then
+		return
+	end
+
 	local CurrencyService = knit.GetService("CurrencyService")
 	if not CurrencyService:TakeCurrency(user, data.Price.Currency, data.Price.Amount) then
 		return
@@ -87,6 +98,11 @@ function ShopService:PurchaseItem(user, itemShopId)
 	end
 
 	if not data.Price then
+		return
+	end
+
+	local ItemService = knit.GetService("ItemService")
+	if not ItemService:DoesUserHaveSpaceForItems(user, data.Amount or 1) then
 		return
 	end
 
@@ -117,6 +133,11 @@ function ShopService:PurchaseUnboxable(user, unboxableId)
 	end
 
 	if not data.Price then
+		return
+	end
+
+	local ItemService = knit.GetService("ItemService")
+	if not ItemService:DoesUserHaveSpaceForItems(user, 1) then
 		return
 	end
 

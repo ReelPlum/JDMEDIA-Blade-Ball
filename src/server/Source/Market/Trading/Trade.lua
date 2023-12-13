@@ -266,6 +266,19 @@ function Trade:AddItem(user, itemIds)
 	local ItemService = knit.GetService("ItemService")
 	local TradingService = knit.GetService("TradingService")
 
+	local other = self.UserA
+	if user == self.UserA then
+		other = self.UserB
+	end
+	if
+		not ItemService:DoesUserHaveSpaceForItems(other, #itemIds + #self.Inventories[user] - #self.Inventories[other])
+	then
+		--Notify user
+
+		warn("❗User does not have enough space for the items added to the trade!")
+		return
+	end
+
 	for _, itemId in itemIds do
 		if not TradingService:ValidateItemForTrade(user, itemId) then
 			warn("❗Invalid")

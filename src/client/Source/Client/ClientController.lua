@@ -8,6 +8,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 
 local UserInputService = game:GetService("UserInputService")
+local StarterGUI = game:GetService("StarterGui")
 
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
@@ -24,6 +25,15 @@ local ClientController = knit.CreateController({
 })
 
 function ClientController:KnitStart()
+	-- Roblox Services
+	-- Disables the Reset Button
+	----[ Creates a Loop to make sure that the ResetButtonCallBack works.
+	repeat
+		local success = pcall(function()
+			StarterGUI:SetCore("ResetButtonCallback", false)
+		end)
+		task.wait(1)
+	until success
 end
 
 function ClientController:KnitInit()

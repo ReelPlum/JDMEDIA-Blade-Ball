@@ -62,6 +62,13 @@ function Position:Update(userId, value)
 			return
 		end
 
+		if not result[1] then
+			self:SetDefault()
+			return
+		end
+
+		result = result[1]
+
 		if not result.Username then
 			result.Username = userId
 		end
