@@ -16,13 +16,14 @@ local ItemContainer = {}
 ItemContainer.ClassName = "ItemContainer"
 ItemContainer.__index = ItemContainer
 
-function ItemContainer.new(ui, itemTemplate, testing)
+function ItemContainer.new(ui, itemTemplate, tooltip, testing)
 	local self = setmetatable({}, ItemContainer)
 
 	self.Janitor = janitor.new()
 
 	self.UI = ui
 	self.ItemTemplate = itemTemplate
+	self.ToolTip = tooltip
 
 	self.OnClick = nil
 	self.OnRightClick = nil
@@ -299,7 +300,7 @@ function ItemContainer:CreateItemFromData(id, data)
 		return
 	end
 
-	local newItem = self.Janitor:Add(Item.new(self.ItemTemplate, self.UI, true))
+	local newItem = self.Janitor:Add(Item.new(self.ItemTemplate, self.UI, self.ToolTip, self.Testing))
 	newItem:UpdateData(data)
 	newItem:UpdateWithItemData(itemData)
 	newItem.OnClick = function()

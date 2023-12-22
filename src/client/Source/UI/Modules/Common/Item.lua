@@ -20,7 +20,7 @@ local Item = {}
 Item.ClassName = "Item"
 Item.__index = Item
 
-function Item.new(template, parent, testing)
+function Item.new(template, parent, tooltip, testing)
 	local self = setmetatable({}, Item)
 
 	self.Janitor = janitor.new()
@@ -28,6 +28,7 @@ function Item.new(template, parent, testing)
 
 	self.Template = template
 	self.Parent = parent
+	self.ToolTip = tooltip
 	self.Testing = testing
 
 	self.Enabled = true
@@ -98,10 +99,12 @@ function Item:Init()
 
 	self.Button.MouseEnter:Connect(function()
 		--Show tool tip
+		self.ToolTip:AddActor()
 	end)
 
 	self.Button.MouseLeave:Connect(function()
 		--Hide tool tip
+		self.ToolTip:RemoveActor()
 	end)
 
 	--Setup

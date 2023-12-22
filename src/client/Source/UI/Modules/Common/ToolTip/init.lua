@@ -47,7 +47,11 @@ function ToolTip:Init()
 	self.UI = self.Janitor:Add(ReplicatedStorage.Assets.UI.ToolTip:Clone())
 	self.UI.Parent = self.Parent
 
-	self:Update(self.Data)
+	local config = self.UI.Config
+	self.Holder = config:WaitForChild("Holder").Value
+	self.BorderColor = config:WaitForChild("BorderColor").Value
+
+	self.self:Update(self.Data)
 
 	self:Loop()
 	self:SetVisible(false)
@@ -116,13 +120,22 @@ function ToolTip:Update(data)
 		if not label then
 			continue
 		end
-		label.Parent = self.UI.Holder
+		label.Parent = self.Holder
+	end
+
+	--Set border color
+	if data.Rarity then
+		local ItemController = knit.GetController("ItemController")
+		local rarityData = ItemController:GetRarityData(data.Rarity)
+
+		self.ElementJanitor:Add(rarityData.Effect(rarityData, self.BorderColor))
+	else
+		self.BorderColor.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	end
 
 	--Set size
-	local size = self.UI.Holder:WaitForChild("UIListLayout").AbsoluteContentSize
-	self.UI.Size = UDim2.new(0, size.X + 20, 0, size.Y + 20)
-	self.UI.Holder.Size = UDim2.new(0, size.X + 10, 0, size.Y + 10)
+	local size = self.Holder:WaitForChild("UIListLayout").AbsoluteContentSize
+	self.UI.Size = UDim2.new(0, size.X + 10, 0, size.Y + 10)
 end
 
 function ToolTip:CheckForActor()

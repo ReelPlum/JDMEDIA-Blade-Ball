@@ -79,8 +79,14 @@ end
 
 function Inventory:Init()
 	--UI
-	local platform = "Normal"
-	self.UI = self.Janitor:Add(self.Template[platform]:Clone())
+	local InputController = knit.GetController("PlatforController")
+
+	if self.Template:FindFirstChild(InputController.Platform) then
+		self.UI = self.Janitor:Add(self.Template:FindFirstChild(InputController.Platform):Clone())
+	else
+		self.UI = self.Janitor:Add(self.Template["Normal"]:Clone())
+	end
+
 	self.UI.Parent = self.Parent
 
 	--Get ui
