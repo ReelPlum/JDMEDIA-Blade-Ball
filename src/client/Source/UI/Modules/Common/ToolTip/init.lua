@@ -162,6 +162,11 @@ function ToolTip:RemoveActor(data)
 	return index
 end
 
+function ToolTip:ClearAllActors()
+	self.Actors = {}
+	self:CheckForActor()
+end
+
 function ToolTip:SetVisible(bool)
 	if bool == nil then
 		bool = not self.Visible
