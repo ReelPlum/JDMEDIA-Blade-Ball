@@ -51,7 +51,7 @@ function ToolTip:Init()
 	self.Holder = config:WaitForChild("Holder").Value
 	self.BorderColor = config:WaitForChild("BorderColor").Value
 
-	self.self:Update(self.Data)
+	self:Update(self.Data)
 
 	self:Loop()
 	self:SetVisible(false)
@@ -117,21 +117,18 @@ function ToolTip:Update(data)
 	for index, text in data do
 		local label = self:CreateTextElement(text, index)
 
+		if text.Type == "Rarity" then
+			self.ElementJanitor:Add(text.Data.Effect(text.Data, self.BorderColor))
+		end
+
 		if not label then
 			continue
 		end
 		label.Parent = self.Holder
 	end
 
+	print(data)
 	--Set border color
-	if data.Rarity then
-		local ItemController = knit.GetController("ItemController")
-		local rarityData = ItemController:GetRarityData(data.Rarity)
-
-		self.ElementJanitor:Add(rarityData.Effect(rarityData, self.BorderColor))
-	else
-		self.BorderColor.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	end
 
 	--Set size
 	local size = self.Holder:WaitForChild("UIListLayout").AbsoluteContentSize

@@ -292,6 +292,10 @@ function Item:SetEquipped(bool)
 		bool = not self.Equipped
 	end
 
+	if bool == self.Equipped then
+		return
+	end
+
 	self.Equipped = bool
 
 	self.EquippedFrame.Visible = self.Equipped

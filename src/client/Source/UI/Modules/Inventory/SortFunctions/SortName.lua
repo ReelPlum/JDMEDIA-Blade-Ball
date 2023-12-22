@@ -9,7 +9,11 @@ return function(data, container)
 
 	for i, letter in data.Item:split("") do
 		letter = string.lower(letter)
-		n += (string.byte(letter) - 96) / (i * 10)
+		if letter == " " then
+			continue
+		end
+
+		n -= (string.byte(letter) - 96)
 	end
 
 	return n

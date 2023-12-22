@@ -6,6 +6,7 @@ Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
 local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
@@ -47,6 +48,29 @@ function ItemInteractionMenu:Init()
 	self.Element.Visible = false
 
 	self:SetVisible(false)
+
+	local mouseInputs = {
+		Enum.UserInputType.MouseButton1,
+		Enum.UserInputType.MouseButton2,
+		Enum.UserInputType.MouseButton3,
+		Enum.UserInputType.MouseWheel,
+		Enum.UserInputType.Touch,
+	}
+	self.Janitor:Add(UserInputService.InputBegan:Connect(function(input, processed)
+		if self.EnteredElement then
+			return
+		end
+		if not self.Visible then
+			return
+		end
+
+		for _, i in mouseInputs do
+			if input.UserInputType == i then
+				self:SetVisible(false)
+				break
+			end
+		end
+	end))
 end
 
 function ItemInteractionMenu:SetData(data, ids, position)
@@ -54,6 +78,7 @@ function ItemInteractionMenu:SetData(data, ids, position)
 	self.Data = data
 
 	self.ElementJanitor:Cleanup()
+	self.EnteredElement = false
 
 	--Setup data for ui
 	for _, interaction in self.Data do
@@ -66,6 +91,13 @@ function ItemInteractionMenu:SetData(data, ids, position)
 			interaction.Use(ids)
 			self:SetVisible(false)
 		end))
+		self.ElementJanitor:Add(element.MouseEnter:Connect(function()
+			self.EnteredElement = true
+		end))
+		self.ElementJanitor:Add(element.MouseLeave:Connect(function()
+			self.EnteredElement = false
+		end))
+
 		element.Parent = self.Holder
 	end
 

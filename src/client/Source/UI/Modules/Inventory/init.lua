@@ -14,6 +14,7 @@ local janitor = require(ReplicatedStorage.Packages.Janitor)
 
 local ItemContainer = require(script.Parent.Common.ItemContainer)
 local ItemInteractionMenu = require(script.Parent.Common.ItemInteractionMenu)
+local ToolTip = require(script.Parent.Common.ToolTip)
 
 local SortFunctions = script.SortFunctions
 local SortName = require(SortFunctions.SortName)
@@ -45,13 +46,6 @@ function Inventory.new(template, parent, testing)
 	self.Testing = testing
 
 	self.Pages = {
-		["Testing"] = {
-			-- ItemTypes = {
-			-- 	"Knife",
-			-- },
-			ItemTypes = nil,
-			Rank = 1,
-		},
 		["Knives"] = {
 			-- ItemTypes = {
 			-- 	"Knife",
@@ -66,6 +60,10 @@ function Inventory.new(template, parent, testing)
 			ItemTypes = { "Ability" },
 			Rank = 2,
 		},
+		["Cosmetics"] = {
+			ItemTypes = { "Tag", "Ball" },
+			Rank = 1,
+		},
 	}
 
 	self.Signals = {
@@ -79,7 +77,7 @@ end
 
 function Inventory:Init()
 	--UI
-	local InputController = knit.GetController("PlatforController")
+	local InputController = knit.GetController("InputController")
 
 	if self.Template:FindFirstChild(InputController.Platform) then
 		self.UI = self.Janitor:Add(self.Template:FindFirstChild(InputController.Platform):Clone())
@@ -88,6 +86,8 @@ function Inventory:Init()
 	end
 
 	self.UI.Parent = self.Parent
+
+	self.ToolTip = self.Janitor:Add(ToolTip.new(self.Parent))
 
 	--Get ui
 	local config = self.UI.Config
@@ -102,8 +102,9 @@ function Inventory:Init()
 	self.DefaultButtonColor = self.NavigationButtons:WaitForChild("Button").BackgroundColor3
 
 	--Create container
-	self.ItemContainer =
-		self.Janitor:Add(ItemContainer.new(self.ItemContainer, ReplicatedStorage.Assets.UI.Item, self.Testing))
+	self.ItemContainer = self.Janitor:Add(
+		ItemContainer.new(self.ItemContainer, ReplicatedStorage.Assets.UI.Item, self.ToolTip, self.Testing)
+	)
 	self.ItemContainer.GetItemInformation = function(item)
 		if self.Testing then
 			return require(ReplicatedStorage.Data.Items[item])
@@ -127,7 +128,7 @@ function Inventory:Init()
 		end
 
 		local useData = require(ItemTypes:FindFirstChild(itemData.ItemType))
-		useData.Use(ids[1])
+		useData.Use(ids)
 	end
 
 	self.ItemContainer.OnRightClick = function(ids, data)
@@ -154,7 +155,7 @@ function Inventory:Init()
 
 		local interactions = {}
 		for index, interaction in useData.Interactions do
-			if not interaction.Check(data) then
+			if not interaction.Check(data, itemData, ids, self.Equipped) then
 				continue
 			end
 
@@ -162,7 +163,7 @@ function Inventory:Init()
 		end
 
 		--Show interaction frame
-		ItemInteractionMenu:SetData(interactions)
+		self.InteractionMenu:SetData(interactions, ids, UDim2.new(0, pos.X, 0, pos.Y))
 	end
 
 	--Sort buttons
@@ -178,22 +179,6 @@ function Inventory:Init()
 
 	self.Janitor:Add(self.UniquenessSort.MouseButton1Click:Connect(function()
 		self.ItemContainer:UpdateSort(SortUniqueness)
-	end))
-
-	local mouseInputs = {
-		Enum.UserInputType.MouseButton1,
-		Enum.UserInputType.MouseButton2,
-		Enum.UserInputType.MouseButton3,
-		Enum.UserInputType.MouseWheel,
-		Enum.UserInputType.Touch,
-	}
-	self.Janitor:Add(UserInputService.InputBegan:Connect(function(input, processed)
-		for _, i in mouseInputs do
-			if input.UserInputType == i then
-				self.InteractionMenu:SetVisible(false)
-				break
-			end
-		end
 	end))
 
 	--Create navigation buttons
@@ -228,12 +213,16 @@ function Inventory:Init()
 		return
 	end
 
-	self:SetVisible(false)
+	self:ChangePage("Knives")
+	self:SetVisible(true)
 
 	local ItemController = knit.GetController("ItemController")
 	local EquipmentController = knit.GetController("EquipmentController")
 
-	self.Janitor:Add(ItemController.Signals.StacksUpdated:Connect(function(stacks, lookup)
+	self.Janitor:Add(ItemController.Signals.StacksUpdated:Connect(function()
+		print("Hi")
+
+		local stacks, lookup = ItemController:GetInventoryInStacks()
 		self:UpdateWithStack(stacks, lookup)
 	end))
 

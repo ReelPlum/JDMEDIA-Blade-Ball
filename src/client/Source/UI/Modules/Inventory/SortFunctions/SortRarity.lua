@@ -21,7 +21,7 @@ return function(data, container)
 		n = -rarityData.Rank
 	else
 		local ItemController = knit.GetController("ItemController")
-		local rarityData = knit.GetRarityData(itemData.Rarity)
+		local rarityData = ItemController:GetRarityData(itemData.Rarity)
 		if not rarityData then
 			return
 		end

@@ -261,7 +261,14 @@ function ItemContainer:UpdateEquippedItems(newEquippedItems)
 				continue
 			end
 
-			if not table.find(newEquippedItems, id) then
+			local found = false
+			for _, equip in newEquippedItems do
+				if equip == id then
+					found = true
+					break
+				end
+			end
+			if not found then
 				self.Items[self.Lookup[id]]:SetEquipped(false)
 				continue
 			end
@@ -275,7 +282,6 @@ function ItemContainer:UpdateEquippedItems(newEquippedItems)
 	end
 
 	for _, id in self.EquippedItems do
-		print(id)
 		if not self.Lookup[id] then
 			continue
 		end
