@@ -6,6 +6,10 @@ Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local TweenService = game:GetService("TweenService")
+
+local TI = TweenInfo.new(0.1, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+
 local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
@@ -28,6 +32,8 @@ function Item.new(template, parent, testing)
 
 	self.Enabled = true
 	self.OnClick = nil
+	self.OnRightClick = nil
+	self.Visible = true
 
 	self.Data = nil
 	self.StackSize = 0
@@ -53,8 +59,12 @@ function Item:Init()
 	self.ItemName = self.UI.Config.ItemName.Value
 	self.StackText = self.UI.Config.StackSize.Value
 	self.EquippedFrame = self.UI.Config.Equipped.Value
+	self.SelectedObj = self.UI.Config.Selected.Value
 
 	self.EquippedDefaultSize = self.EquippedFrame.Size
+	self.StackTextDefaultSize = self.StackText.Size
+
+	self.EquippedFrame.Size = UDim2.new(0, 0, 0, 0)
 
 	--More ui
 	self.Camera = self.Janitor:Add(Instance.new("Camera"))
@@ -68,8 +78,22 @@ function Item:Init()
 		if not self.OnClick then
 			return
 		end
+		if not self.Enabled then
+			return
+		end
 
 		self.OnClick()
+	end)
+
+	self.Button.MouseButton2Click:Connect(function()
+		if not self.OnRightClick then
+			return
+		end
+		if not self.Enabled then
+			return
+		end
+
+		self.OnRightClick()
 	end)
 
 	self.Button.MouseEnter:Connect(function()
@@ -82,17 +106,30 @@ function Item:Init()
 
 	--Setup
 	self:SetEquipped(false)
+	self:SetVisible(true)
+	self:SetSelected(false)
 end
 
 function Item:SetParent(parent)
+	self.Parent = parent
+
 	self.UI.Parent = parent
 end
 
 function Item:UpdateStack(stackSize)
 	--Change stack size
+	if stackSize == self.StackSize and self.StackSize ~= nil then
+		return
+	end
+
 	self.StackSize = stackSize
 
 	if self.StackSize <= 0 then
+		self.UI.Visible = false
+		return
+	end
+
+	if not self.Visible then
 		self.UI.Visible = false
 		return
 	end
@@ -104,8 +141,22 @@ function Item:UpdateStack(stackSize)
 		return
 	end
 
+	self.StackText.Size = UDim2.new(0, 0, 0, 0)
+	local Tween = TweenService:Create(self.StackText, TI, { Size = self.StackTextDefaultSize })
+	Tween:Play()
+
 	self.StackText.Visible = true
 	self.StackText.Text = `x{self.StackSize}`
+end
+
+function Item:SetLayoutOrder(value)
+	self.LayoutOrder = value
+
+	if not self.Enabled then
+		return
+	end
+
+	self.UI.LayoutOrder = value
 end
 
 function Item:SetEmpty()
@@ -143,6 +194,8 @@ function Item:UpdateWithItemData(itemData)
 		return
 	end
 
+	self.ItemData = itemData
+
 	self.ItemJanitor:Cleanup()
 
 	--Set name
@@ -179,11 +232,10 @@ function Item:UpdateWithItemData(itemData)
 			return
 		end
 
-		self.ItemJanitor:Add(rarity.Effect(rarity, self.Button))
+		self.ItemJanitor:Add(rarity.Effect(rarity, self.ItemName))
 	else
 		local rarity = require(ReplicatedStorage.Data.Rarities[itemData.Rarity])
-		print(rarity)
-		self.ItemJanitor:Add(rarity.Effect(rarity, self.Button))
+		self.ItemJanitor:Add(rarity.Effect(rarity, self.ItemName))
 	end
 end
 
@@ -196,9 +248,11 @@ function Item:SetEquipped(bool)
 
 	self.EquippedFrame.Visible = self.Equipped
 
-	self.EquippedFrame.Size = UDim2.new(0, 0, 0, 0)
 	if self.Equipped then
-		self.EquippedFrame:TweenSize(self.EquippedDefaultSize, "Out", "Back", 0.1, true)
+		local Tween = TweenService:Create(self.EquippedFrame, TI, { Size = self.EquippedDefaultSize })
+		Tween:Play()
+	else
+		self.EquippedFrame.Size = UDim2.new(0, 0, 0, 0)
 	end
 end
 
@@ -208,14 +262,40 @@ function Item:SetEnabled(bool)
 	end
 
 	self.Enabled = bool
+	self.ItemName.Visible = self.Enabled
 
 	if self.Enabled then
 		self.ItemImage.ImageColor3 = Color3.fromRGB(255, 255, 255)
 		self.ViewportFrame.ImageColor3 = Color3.fromRGB(255, 255, 255)
+
+		self.UI.LayoutOrder = 10000
 	else
 		self.ItemImage.ImageColor3 = Color3.fromRGB(0, 0, 0)
 		self.ViewportFrame.ImageColor3 = Color3.fromRGB(0, 0, 0)
+
+		self.UI.LayoutOrder = self.LayoutOrder or 1
 	end
+end
+
+function Item:SetSelected(bool)
+	if bool == nil then
+		bool = not self.Selected
+	end
+
+	--Show selected UI
+	self.SelectedObj.Enabled = bool
+	self.Selected = bool
+end
+
+function Item:SetVisible(bool)
+	if bool == nil then
+		bool = not self.Visible
+	end
+
+	self.Visible = bool
+	self.UI.Visible = bool
+
+	self:UpdateStack(self.StackSize)
 end
 
 function Item:Destroy()

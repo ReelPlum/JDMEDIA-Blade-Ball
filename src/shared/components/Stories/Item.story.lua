@@ -17,7 +17,7 @@ return function(target)
 
 	--Create item
 	local itm = ItemClass.new(Item, holder, true)
-	itm:UpdateWithItemData(require(ReplicatedStorage.Data.Items.InflateableKnife))
+	itm:UpdateWithItemData(require(ReplicatedStorage.Data.Items.TestItem))
 	itm:SetEnabled(true)
 	itm.OnClick = function()
 		itm:SetEquipped()

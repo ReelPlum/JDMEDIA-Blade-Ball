@@ -97,7 +97,10 @@ function DeveloperProductService:KnitStart()
 			if not data then
 				error("Product not found " .. recieptInfo.ProductId)
 			end
-			data.OnPurchase(user)
+			local finished = data.OnPurchase(user, data)
+			if not finished then
+				error("Could not purchase item!")
+			end
 		end)
 		if not success then
 			warn("❗ " .. msg)

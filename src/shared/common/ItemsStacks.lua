@@ -56,33 +56,25 @@ local function GenerateStacks(items)
 
 	for id, data in items do
 		--Check item etc.
-		if not itemStacks[data.Item] then
-			--Add it
-			itemStacks[data.Item] = {}
-		end
-
 		local found = false
-		for stackId, stackData in itemStacks[data.Item] do
+		for stackId, stackData in itemStacks do
 			if CompareItems(stackData.Data, data) then
 				--Is equal
 				found = true
-				itemLookup[id] = { StackId = stackId, Item = data.Item }
-				table.insert(itemStacks[data.Item][itemLookup[id].StackId].Hold, id)
+				itemLookup[id] = stackId
+				table.insert(itemStacks[itemLookup[id]].Hold, id)
 			end
 		end
 
 		if not found then
 			--Create new stack
-			itemStacks[data.Item][id] = {
+			itemStacks[id] = {
 				Hold = {
 					id,
 				},
 				Data = data,
 			}
-			itemLookup[id] = {
-				StackId = id,
-				Item = data.Item,
-			}
+			itemLookup[id] = id
 		end
 	end
 
@@ -94,17 +86,12 @@ local function RemoveFromStack(stacks, lookup, id)
 		return
 	end
 
-	if not stacks[lookup[id].Item] then
+	if not stacks[lookup[id]] then
 		lookup[id] = nil
 		return
 	end
 
-	if not stacks[lookup[id].Item][lookup[id].StackId] then
-		lookup[id] = nil
-		return
-	end
-
-	local stack = stacks[lookup[id].Item][lookup[id].StackId]
+	local stack = stacks[lookup[id]]
 	local index = table.find(stack.Hold, id)
 
 	if not index then
@@ -114,7 +101,7 @@ local function RemoveFromStack(stacks, lookup, id)
 	table.remove(stack.Hold, index)
 
 	if #stack.Hold <= 0 then
-		stacks[lookup[id].Item][lookup[id].StackId] = nil
+		stacks[lookup[id]] = nil
 	end
 	lookup[id] = nil
 end
@@ -130,33 +117,25 @@ local function ItemsAdded(stacks, lookup, items)
 		end
 
 		n += 1
-		if not stacks[data.Item] then
+		if not stacks[id] then
 			--Create new stack
-			stacks[data.Item] = {}
-			stacks[data.Item][id] = {
+			stacks[id] = {
 				Data = data,
 				Hold = { id },
 			}
 
-			lookup[id] = {
-				StackId = id,
-				Item = data.Item,
-			}
-
+			lookup[id] = id
 			continue
 		end
 
 		local found = false
-		for stackId, stack in stacks[data.Item] do
+		for stackId, stack in stacks do
 			n += 1
 			if CompareItems(data, stack.Data) then
 				table.insert(stack.Hold, id)
 
 				found = true
-				lookup[id] = {
-					StackId = stackId,
-					Item = data.Item,
-				}
+				lookup[id] = stackId
 
 				break
 			end
@@ -164,15 +143,12 @@ local function ItemsAdded(stacks, lookup, items)
 
 		if not found then
 			--Create new stack
-			stacks[data.Item][id] = {
+			stacks[id] = {
 				Data = data,
 				Hold = { id },
 			}
 
-			lookup[id] = {
-				StackId = id,
-				Item = data.Item,
-			}
+			lookup[id] = id
 		end
 	end
 
