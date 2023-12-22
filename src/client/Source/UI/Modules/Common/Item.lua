@@ -16,6 +16,9 @@ local janitor = require(ReplicatedStorage.Packages.Janitor)
 
 local ViewportFrameModel = require(ReplicatedStorage.Common.ViewportFrameModel)
 
+local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
+local MetadataTypes = require(ReplicatedStorage.Data.MetadataTypes)
+
 local Item = {}
 Item.ClassName = "Item"
 Item.__index = Item
@@ -99,12 +102,12 @@ function Item:Init()
 
 	self.Button.MouseEnter:Connect(function()
 		--Show tool tip
-		self.ToolTip:AddActor()
+		self.ToolTip:AddActor(self.ToolTipData)
 	end)
 
 	self.Button.MouseLeave:Connect(function()
 		--Hide tool tip
-		self.ToolTip:RemoveActor()
+		self.ToolTip:RemoveActor(self.ToolTipData)
 	end)
 
 	--Setup
@@ -233,6 +236,48 @@ function Item:UpdateWithItemData(itemData)
 		local rarity = ItemController:GetRarityData(itemData.Rarity)
 		if not rarity then
 			return
+		end
+
+		local CacheController = knit.GetController("CacheController")
+		--Setup data for tooltip
+
+		self.ToolTipData = {}
+		table.insert(self.ToolTipData, {
+			Type = "Header",
+			Text = itemData.DisplayName,
+			Item = self.Data.Item,
+		})
+		table.insert(self.ToolTipData, {
+			Type = "Rarity",
+			Data = rarity,
+			Item = self.Data.Item,
+		})
+		--Add metadata
+		if self.Data.Metadata then
+			for metadata, data in self.Data.Metadata do
+				table.insert(self.ToolTipData, { Type = metadata, Data = data, Item = self.Data.Item })
+			end
+		end
+
+		if table.find(GeneralSettings.ItemTypesToTrackCopiesOf, itemData.ItemType) then
+			local amount = 0
+			if CacheController.Cache.ItemCopies then
+				local Type = "Normal"
+				if self.Data.Metadata[MetadataTypes.Types.Strange] then
+					Type = "Strange"
+				end
+
+				amount = 0
+				if CacheController.Cache.ItemCopies[Type] then
+					amount = CacheController.Cache.ItemCopies[Type][self.Data.Item] or 0
+				end
+			end
+
+			table.insert(self.ToolTipData, {
+				Type = "Copies",
+				Copies = amount,
+				Item = self.Data.Item,
+			})
 		end
 
 		self.ItemJanitor:Add(rarity.Effect(rarity, self.ItemName))
