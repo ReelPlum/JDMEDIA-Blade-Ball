@@ -355,6 +355,8 @@ function ItemService:GiveUserItem(user, item, quantity, metadata)
 	user.Data.ItemsInInventory += quantity
 
 	ItemService.Client.ItemAdded:Fire(user.Player, items)
+
+	return items
 end
 
 function ItemService:TakeItemFromUser(user, itemId)

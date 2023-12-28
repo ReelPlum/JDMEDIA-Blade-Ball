@@ -202,6 +202,9 @@ function Game:Leave(user)
 
 	local CurrencyService = knit.GetService("CurrencyService")
 	local GameStreakService = knit.GetService("GameStreakService")
+	local BoostService = knit.GetService("BoostService")
+
+	local boosts = BoostService:GetUsersBoosts(user)
 
 	local rewards = {}
 	if self.StartTime then
@@ -210,14 +213,14 @@ function Game:Leave(user)
 			rewards[currency] = 0
 
 			if self.Ball.Hits[user] then
-				rewards[currency] += self.Ball.Hits[user] * data.Hit
+				rewards[currency] += self.Ball.Hits[user] * data.Hit * boosts.Hit
 			end
 
 			if self.Ball.Kills[user] then
-				rewards[currency] += self.Ball.Kills[user] * data.Kill
+				rewards[currency] += self.Ball.Kills[user] * data.Kill * boosts.Kill
 			end
 
-			rewards[currency] += (tick() - self.StartTime) * data.Second
+			rewards[currency] += (tick() - self.StartTime) * data.Second * boosts.Time
 		end
 	end
 	--Add reward to users cash
@@ -334,9 +337,12 @@ function Game:End()
 
 	--Reward winner with extra reward
 	local CurrencyService = knit.GetService("CurrencyService")
+	local BoostService = knit.GetService("BoostService")
+
+	local boosts = BoostService:GetUsersBoosts(winner)
 
 	for currency, data in GeneralSettings.Game.Rewards.Currency do
-		CurrencyService:GiveCurrency(winner, currency, data.Win)
+		CurrencyService:GiveCurrency(winner, currency, data.Win * boosts.Win)
 	end
 
 	--Save win to winners stats

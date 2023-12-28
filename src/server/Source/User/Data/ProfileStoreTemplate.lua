@@ -11,6 +11,9 @@ return {
 	Subscriptions = {}, --Users active subscriptions for their last play session.
 	PurchaseHistory = {}, --All developer product purchases made by user
 
+	RankItems = {},
+	State = {},
+
 	ItemsInInventory = 0,
 	Currencies = {}, --Users currencies
 	Stats = {}, --Users stats

@@ -231,8 +231,8 @@ function TradingService:StartTrade(userA, userB)
 	end
 
 	local FFlagService = knit.GetService("FFlagService")
-	local enabled = FFlagService:GetFFlag("Trading")
-	if enabled == false then
+	local disabled = FFlagService:GetFFlag("Trading")
+	if disabled then
 		--Tell players that trading is disabled at the moment
 
 		return

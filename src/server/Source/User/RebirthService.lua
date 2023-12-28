@@ -10,6 +10,8 @@ local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
+local RebirthsData = ReplicatedStorage.Data.Rebirths
+
 local RebirthService = knit.CreateService({
 	Name = "RebirthService",
 	Client = {
@@ -27,6 +29,22 @@ function RebirthService.Client:Rebirth(player)
 	RebirthService:Rebirth(user)
 end
 
+function RebirthService:GetDataForRebirthLevel(level)
+	if not level then
+		return
+	end
+
+	local data = RebirthsData:FindFirstChild(level)
+	if not data then
+		return
+	end
+	if not data:IsA("ModuleScript") then
+		return
+	end
+
+	return require(data)
+end
+
 function RebirthService:GetUsersRebirthLevel(user)
 	local StatsService = knit.GetService("StatsService")
 
@@ -37,6 +55,11 @@ function RebirthService:Rebirth(user)
 	--Rebirth user.
 	local ExperienceService = knit.GetService("ExperienceService")
 	if ExperienceService:GetNextLevel(user) then
+		return
+	end
+
+	local rebirthLevel = RebirthService:GetUsersRebirthLevel(user)
+	if not RebirthService:GetDataForRebirthLevel(rebirthLevel + 1) then
 		return
 	end
 
