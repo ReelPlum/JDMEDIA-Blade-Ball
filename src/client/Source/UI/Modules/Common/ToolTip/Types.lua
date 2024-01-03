@@ -7,9 +7,12 @@ Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 local TextService = game:GetService("TextService")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local UserService = game:GetService("UserService")
 
 local knit = require(ReplicatedStorage.Packages.Knit)
 local FormatNumber = require(ReplicatedStorage.Packages.FormatNumber)
+local ViewportFrameModel = require(ReplicatedStorage.Common.ViewportFrameModel)
 
 local abbreviations = FormatNumber.Main.Notation.compactWithSuffixThousands({
 	"K",
@@ -185,21 +188,42 @@ return {
 		--Create chance uis
 		for _, itemData in data.Data do
 			local f
-
 			if itemData.Image then
 				f = Instance.new("ImageLabel")
 				f.Image = itemData.Image
+				local uicorner = Instance.new("UICorner")
+				uicorner.CornerRadius = UDim.new(0, 5)
+				uicorner.Parent = f
 			elseif itemData.Model then
 				f = Instance.new("ViewportFrame")
+				f.Parent = frame
+
+				local UICorner = Instance.new("UICorner")
+				UICorner.Parent = f
+				UICorner.CornerRadius = UDim.new(1, 0)
+
+				local m = itemData.Model:Clone()
+				m.Parent = f
+				local c = Instance.new("Camera")
+				c.Parent = f
+				f.CurrentCamera = c
+
+				m:PivotTo(CFrame.new(0, 0, 0) * CFrame.Angles(0, math.rad(90), 0))
+
+				local VPF = ViewportFrameModel.new(f, c)
+				VPF:SetModel(m)
+				local cf = VPF:GetMinimumFitCFrame(CFrame.new(0, 0, 0))
+				if itemData.Offset then
+					cf = cf * itemData.Offset
+				end
+				c.CFrame = cf
 			else
 				f = Instance.new("Frame")
 			end
 			f.LayoutOrder = itemData.Chance
-			local uicorner = Instance.new("UICorner")
-			uicorner.CornerRadius = UDim.new(0, 5)
-			uicorner.Parent = f
+
 			local label = Instance.new("TextLabel")
-			label.Text = itemData.Chance .. "%"
+			label.Text = math.floor(itemData.Chance) .. "%"
 			label.Size = UDim2.new(1, 0, 0, 15)
 			label.AnchorPoint = Vector2.new(0.5, 1)
 			label.Position = UDim2.new(0.5, 0, 1, 0)
@@ -302,5 +326,43 @@ return {
 		frame.LayoutOrder = priority
 
 		return frame
+	end,
+
+	[MetadataTypes.Types.Autograph] = function(ToolTip, data, priority)
+		--Return a text label
+		local success, info = pcall(function()
+			return UserService:GetUserInfosByUserIdsAsync({
+				data.UserId,
+			})
+		end)
+		if not success then
+			return
+		end
+		if not info[1] then
+			return
+		end
+		local playerInfo = info[1]
+
+		local label = Instance.new("TextLabel")
+		label.AnchorPoint = Vector2.new(0.5, 0.5)
+		label.Text = `{playerInfo.Username}`
+		label.TextSize = 14
+		label.LayoutOrder = priority
+		label.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json")
+		label.TextColor3 = Color3.fromRGB(255, 136, 39)
+		label.BackgroundTransparency = 1
+
+		local params = Instance.new("GetTextBoundsParams")
+		params.Text = label.Text
+		params.Font = label.FontFace
+		params.Size = 14
+		params.Width = MAXWIDTH
+
+		local size = TextService:GetTextBoundsAsync(params)
+		--local size = TextService:GetTextSize(data.Text, 20, Enum.Font.SourceSans, Vector2.new(100, 1000))
+		label.Size = UDim2.new(0, size.X, 0, size.Y)
+
+		params:Destroy()
+		return label
 	end,
 }

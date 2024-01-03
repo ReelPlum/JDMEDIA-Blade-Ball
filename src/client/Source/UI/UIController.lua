@@ -60,6 +60,7 @@ function UIController:KnitStart()
 	--Register all UI here
 	self:RegisterUI(script.Parent.Modules.Inventory, ReplicatedStorage.Assets.UI.Inventory)
 	self:RegisterUI(script.Parent.Modules.BallPointer, ReplicatedStorage.Assets.UI.BallPointer)
+	self:RegisterUI(script.Parent.Modules.ItemSelection, ReplicatedStorage.Assets.UI.ItemSelection)
 end
 
 function UIController:KnitInit()

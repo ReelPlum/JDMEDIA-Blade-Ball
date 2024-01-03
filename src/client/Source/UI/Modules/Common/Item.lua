@@ -200,6 +200,8 @@ function Item:UpdateWithItemData(itemData)
 		return
 	end
 
+	self.ToolTip:RemoveActor(self.ToolTipData)
+
 	self.ItemData = itemData
 
 	self.ItemJanitor:Cleanup()
@@ -257,6 +259,36 @@ function Item:UpdateWithItemData(itemData)
 			for metadata, data in self.Data.Metadata do
 				table.insert(self.ToolTipData, { Type = metadata, Data = data, Item = self.Data.Item })
 			end
+		end
+
+		if itemData.ItemType == "Unboxable" then
+			local chances = {}
+			local UnboxingController = knit.GetController("UnboxingController")
+			local unboxableData = UnboxingController:GetUnboxable(itemData.Unboxable)
+			local totalWeight = unboxableData.TotalWeight
+
+			if not totalWeight then
+				totalWeight = 0
+				for _, loot in unboxableData.DropList do
+					totalWeight += loot.Weight
+				end
+
+				unboxableData.TotalWeight = totalWeight
+			end
+
+			for i, loot in unboxableData.DropList do
+				if not (loot.Type == "Item") then
+					continue
+				end
+				local d = ItemController:GetItemData(loot.Item.Item)
+				chances[i] = { Chance = loot.Weight / totalWeight * 100, Model = d.Model, Offset = d.Offset }
+			end
+
+			table.insert(self.ToolTipData, {
+				Type = "UnboxChances",
+				Data = chances,
+				Item = self.Data.Item,
+			})
 		end
 
 		if table.find(GeneralSettings.ItemTypesToTrackCopiesOf, itemData.ItemType) then
@@ -347,10 +379,14 @@ function Item:SetVisible(bool)
 	self.Visible = bool
 	self.UI.Visible = bool
 
+	self.Entered = false
+	self.ToolTip:RemoveActor(self.ToolTipData)
 	self:UpdateStack(self.StackSize)
 end
 
 function Item:Destroy()
+	self.ToolTip:RemoveActor(self.ToolTipData)
+
 	self.Signals.Destroying:Fire()
 	self.Janitor:Destroy()
 	self = nil

@@ -24,7 +24,9 @@ local ShopService = knit.CreateService({
 		BundlePurchased = knit.CreateSignal(),
 		UnboxablePurchased = knit.CreateSignal(),
 	},
-	Signals = {},
+	Signals = {
+		UnboxedItem = knit.CreateSignal(),
+	},
 })
 
 function ShopService.Client:PurchaseItem(player, id)
@@ -219,12 +221,18 @@ function ShopService:Unbox(user, unboxableId, priceInRobux)
 		return warn("Not enought loot to make unbox " .. unboxableId)
 	end
 
-	local weightedTable = {}
-	for index, data in data.DropList do
-		for i = 1, data.Weight do
-			table.insert(weightedTable, index)
+	local weightedTable = data.WeightedTable
+
+	if not data.WeightedTable then
+		weightedTable = {}
+		for index, data in data.DropList do
+			for i = 1, data.Weight do
+				table.insert(weightedTable, index)
+			end
 		end
 	end
+
+	data.WeightedTable = weightedTable
 
 	local unboxedItem = weightedTable[math.random(1, #weightedTable)]
 	local unboxedItemData = data.DropList[unboxedItem]
@@ -271,6 +279,8 @@ function ShopService:Unbox(user, unboxableId, priceInRobux)
 	end
 
 	ShopService.Client.UnboxablePurchased:Fire(user.Player, unboxableId, unboxedItem, IsStrange)
+
+	ShopService.Signals.UnboxedItem:Fire(user, unboxableId, unboxedItem, IsStrange)
 
 	return unboxedItem
 end

@@ -6,6 +6,8 @@ Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local knit = require(ReplicatedStorage.Packages.Knit)
+
 local MetadataTypes = require(ReplicatedStorage.Data.MetadataTypes)
 
 local IndexesToIgnore = {
@@ -14,7 +16,6 @@ local IndexesToIgnore = {
 	MetadataTypes.Types.UnboxedBy,
 	MetadataTypes.Types.Unboxable,
 	MetadataTypes.Types.Bundle,
-	MetadataTypes.Types.Admin,
 	MetadataTypes.Types.Robux,
 }
 
@@ -54,8 +55,24 @@ local function GenerateStacks(items)
 	local itemStacks = {}
 	local itemLookup = {}
 
+	local ItemController = knit.GetController("ItemController")
+
 	for id, data in items do
 		--Check item etc.
+		local itemData = ItemController:GetItemData(data.Item)
+		if not itemData then
+			continue
+		end
+		if itemData.DontStack then
+			itemStacks[id] = {
+				Data = data,
+				Hold = { id },
+			}
+
+			itemLookup[id] = id
+			continue
+		end
+
 		local found = false
 		for stackId, stackData in itemStacks do
 			if CompareItems(stackData.Data, data) then
@@ -109,16 +126,15 @@ end
 local function ItemsAdded(stacks, lookup, items)
 	local n = 0
 
+	local ItemController = knit.GetController("ItemController")
+
 	for id, data in items do
 		--Go through and find the matching item
-		if lookup[id] then
-			--Remove from other stack
-			RemoveFromStack(stacks, lookup, id)
+		local itemData = ItemController:GetItemData(data.Item)
+		if not itemData then
+			continue
 		end
-
-		n += 1
-		if not stacks[id] then
-			--Create new stack
+		if itemData.DontStack then
 			stacks[id] = {
 				Data = data,
 				Hold = { id },
@@ -127,6 +143,13 @@ local function ItemsAdded(stacks, lookup, items)
 			lookup[id] = id
 			continue
 		end
+
+		if lookup[id] then
+			--Remove from other stack
+			RemoveFromStack(stacks, lookup, id)
+		end
+
+		n += 1
 
 		local found = false
 		for stackId, stack in stacks do
@@ -151,8 +174,6 @@ local function ItemsAdded(stacks, lookup, items)
 			lookup[id] = id
 		end
 	end
-
-	print("Did " .. n .. " operations!")
 end
 
 local function ItemsRemoved(stacks, lookup, items)

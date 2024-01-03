@@ -72,8 +72,12 @@ function ToolTip:CreateTextElement(data, priority)
 	if not Types[data.Type] then
 		return
 	end
+	local label = Types[data.Type](self, data, priority)
 
-	return self.ElementJanitor:Add(Types[data.Type](self, data, priority))
+	if not label then
+		return
+	end
+	return self.ElementJanitor:Add(label)
 end
 
 function ToolTip:Update(data)
@@ -116,6 +120,9 @@ function ToolTip:Update(data)
 
 	for index, text in data do
 		local label = self:CreateTextElement(text, index)
+		if not label then
+			continue
+		end
 
 		if text.Type == "Rarity" then
 			self.ElementJanitor:Add(text.Data.Effect(text.Data, self.BorderColor))
@@ -126,8 +133,6 @@ function ToolTip:Update(data)
 		end
 		label.Parent = self.Holder
 	end
-
-	print(data)
 	--Set border color
 
 	--Set size

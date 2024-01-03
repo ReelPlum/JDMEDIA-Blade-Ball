@@ -23,6 +23,7 @@ return {
 		Progress = {},
 		Completed = {},
 	},
+	ItemIndex = {},
 
 	RandomEnchant = nil,
 	LeaderboardRewards = {},

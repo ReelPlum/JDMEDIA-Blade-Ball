@@ -16,7 +16,7 @@ local ItemContainer = require(script.Parent.Common.ItemContainer)
 local ItemInteractionMenu = require(script.Parent.Common.ItemInteractionMenu)
 local ToolTip = require(script.Parent.Common.ToolTip)
 
-local SortFunctions = script.SortFunctions
+local SortFunctions = script.Parent.Common.SortFunctions
 local SortName = require(SortFunctions.SortName)
 local SortRarity = require(SortFunctions.SortRarity)
 local SortUniqueness = require(SortFunctions.SortUniqueness)
@@ -61,7 +61,7 @@ function Inventory.new(template, parent, testing)
 			Rank = 2,
 		},
 		["Cosmetics"] = {
-			ItemTypes = { "Tag", "Ball" },
+			ItemTypes = { "Tag", "Ball", "Unboxable", "Autograph", "NameTag" },
 			Rank = 1,
 		},
 	}
@@ -128,7 +128,7 @@ function Inventory:Init()
 		end
 
 		local useData = require(ItemTypes:FindFirstChild(itemData.ItemType))
-		useData.Use(ids)
+		useData.Use(ids, data)
 	end
 
 	self.ItemContainer.OnRightClick = function(ids, data)
@@ -163,11 +163,11 @@ function Inventory:Init()
 		end
 
 		--Show interaction frame
-		self.InteractionMenu:SetData(interactions, ids, UDim2.new(0, pos.X, 0, pos.Y))
+		self.InteractionMenu:SetData(interactions, ids, UDim2.new(0, pos.X, 0, pos.Y), data)
 	end
 
 	--Sort buttons
-	self.ItemContainer:UpdateSort(SortName)
+	self.ItemContainer:UpdateSort(SortRarity)
 
 	self.Janitor:Add(self.NameSort.MouseButton1Click:Connect(function()
 		self.ItemContainer:UpdateSort(SortName)
@@ -220,8 +220,6 @@ function Inventory:Init()
 	local EquipmentController = knit.GetController("EquipmentController")
 
 	self.Janitor:Add(ItemController.Signals.StacksUpdated:Connect(function()
-		print("Hi")
-
 		local stacks, lookup = ItemController:GetInventoryInStacks()
 		self:UpdateWithStack(stacks, lookup)
 	end))
@@ -273,6 +271,7 @@ function Inventory:SetVisible(bool)
 		bool = not self.Visible
 	end
 
+	self.ToolTip:ClearAllActors()
 	self.InteractionMenu:SetVisible(false)
 
 	self.Visible = bool

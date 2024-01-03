@@ -27,6 +27,9 @@ local ItemService = knit.CreateService({
 		ItemCreated = signal.new(),
 		ItemDestroyed = signal.new(),
 		UsersInventoryChanged = signal.new(),
+
+		ItemAdded = signal.new(),
+		ItemRemoved = signal.new(),
 	},
 })
 
@@ -355,6 +358,7 @@ function ItemService:GiveUserItem(user, item, quantity, metadata)
 	user.Data.ItemsInInventory += quantity
 
 	ItemService.Client.ItemAdded:Fire(user.Player, items)
+	ItemService.Signals.ItemAdded:Fire(user, item)
 
 	return items
 end
@@ -408,6 +412,7 @@ function ItemService:TransferItemToUsersInventory(user, itemId, data)
 	self:SaveInventory(user, inventory)
 	user.Data.ItemsInInventory += 1
 	ItemService.Client.ItemAdded:Fire(user.Player, { itemId })
+	ItemService.Signals.ItemAdded:Fire(user, data.Item)
 end
 
 function ItemService:TransferMultipleItemsToUsersInventory(user, items)
@@ -427,6 +432,10 @@ function ItemService:TransferMultipleItemsToUsersInventory(user, items)
 
 	user.Data.ItemsInInventory += n
 	ItemService.Client.ItemAdded:Fire(user.Player, items)
+
+	for _, data in items do
+		ItemService.Signals.ItemAdded:Fire(user, data.Item)
+	end
 end
 
 function ItemService:RemoveItemWithIdFromUsersInventory(user, itemId)
@@ -473,6 +482,7 @@ function ItemService:GiveUserMultipleItems(user, items, metadata)
 	local addedItems = {}
 	for item, quantity in items do
 		local i = ItemService:GiveItemToInventory(inventory, item, quantity, metadata)
+		ItemService.Signals.ItemAdded:Fire(user, item)
 		for id, data in i do
 			addedItems[id] = data
 		end

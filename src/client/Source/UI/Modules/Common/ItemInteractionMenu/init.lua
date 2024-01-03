@@ -73,7 +73,7 @@ function ItemInteractionMenu:Init()
 	end))
 end
 
-function ItemInteractionMenu:SetData(data, ids, position)
+function ItemInteractionMenu:SetData(data, ids, position, d)
 	self.UI.Position = position
 	self.Data = data
 
@@ -88,7 +88,7 @@ function ItemInteractionMenu:SetData(data, ids, position)
 		element.Visible = true
 
 		self.ElementJanitor:Add(element.MouseButton1Click:Connect(function()
-			interaction.Use(ids)
+			interaction.Use(ids, d)
 			self:SetVisible(false)
 		end))
 		self.ElementJanitor:Add(element.MouseEnter:Connect(function()
