@@ -295,12 +295,13 @@ function TradingService:ValidateItemForTrade(user, itemId)
 		return
 	end
 
-	if not result.IsPaidItemTradingAllowed and data.Metadata[MetadataTypes.Types.Robux] then
+	local metadata = ItemService:GetMetadataFromItem(data)
+	if not result.IsPaidItemTradingAllowed and metadata[MetadataTypes.Types.Robux] then
 		return
 	end
 
 	--Check other metadata
-	for t, v in data.Metadata do
+	for t, v in metadata do
 		local d = MetadataTypes.Data[t]
 		if d then
 			if d.Untradeable then

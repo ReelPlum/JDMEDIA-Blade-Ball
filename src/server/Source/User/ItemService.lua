@@ -120,7 +120,27 @@ function ItemService:GetMetadataFromItem(data)
 		return {}
 	end
 
-	return data.Metadata
+	local metadata = data.Metadata
+
+	if data.Item then
+		metadata = table.clone(data.Metadata)
+		local itemData = ItemService:GetDataForItem(data.Item)
+		if not itemData then
+			return metadata
+		end
+
+		if itemData.Metadata then
+			for index, value in itemData.Metadata do
+				if metadata[index] then
+					continue
+				end 
+				metadata[index] = value
+			end
+		end
+	end
+
+
+	return metadata
 end
 
 function ItemService:CreateData(item, metadata)

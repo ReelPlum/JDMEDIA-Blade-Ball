@@ -330,18 +330,8 @@ return {
 
 	[MetadataTypes.Types.Autograph] = function(ToolTip, data, priority)
 		--Return a text label
-		local success, info = pcall(function()
-			return UserService:GetUserInfosByUserIdsAsync({
-				data.UserId,
-			})
-		end)
-		if not success then
-			return
-		end
-		if not info[1] then
-			return
-		end
-		local playerInfo = info[1]
+		local ClientController = knit.GetController("ClientController")
+		local playerInfo = ClientController:GetPlayerInfo(data.Data)
 
 		local label = Instance.new("TextLabel")
 		label.AnchorPoint = Vector2.new(0.5, 0.5)

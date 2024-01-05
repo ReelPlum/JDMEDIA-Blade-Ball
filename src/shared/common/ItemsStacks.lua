@@ -4,6 +4,7 @@ ItemsStacks
 Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 ]]
 
+local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local knit = require(ReplicatedStorage.Packages.Knit)
@@ -64,34 +65,37 @@ local function GenerateStacks(items)
 			continue
 		end
 		if itemData.DontStack then
-			itemStacks[id] = {
+			local stackId = HttpService:GenerateGUID(false)
+			itemStacks[stackId] = {
 				Data = data,
 				Hold = { id },
 			}
 
-			itemLookup[id] = id
+			itemLookup[id] = stackId
 			continue
 		end
 
 		local found = false
 		for stackId, stackData in itemStacks do
-			if CompareItems(stackData.Data, data) then
+			if CompareItems(stackData.Data, data) or (stackData.Data.Item == data.Item and itemData.OneCopyAllowed) then
 				--Is equal
 				found = true
 				itemLookup[id] = stackId
 				table.insert(itemStacks[itemLookup[id]].Hold, id)
+				break
 			end
 		end
 
 		if not found then
 			--Create new stack
-			itemStacks[id] = {
+			local stackId = HttpService:GenerateGUID(false)
+			itemStacks[stackId] = {
 				Hold = {
 					id,
 				},
 				Data = data,
 			}
-			itemLookup[id] = id
+			itemLookup[id] = stackId
 		end
 	end
 
@@ -135,12 +139,13 @@ local function ItemsAdded(stacks, lookup, items)
 			continue
 		end
 		if itemData.DontStack then
-			stacks[id] = {
+			local stackId = HttpService:GenerateGUID(false)
+			stacks[stackId] = {
 				Data = data,
 				Hold = { id },
 			}
 
-			lookup[id] = id
+			lookup[id] = stackId
 			continue
 		end
 
@@ -154,7 +159,7 @@ local function ItemsAdded(stacks, lookup, items)
 		local found = false
 		for stackId, stack in stacks do
 			n += 1
-			if CompareItems(data, stack.Data) then
+			if CompareItems(data, stack.Data) or (stack.Data.Item == data.Item and itemData.OneCopyAllowed) then
 				table.insert(stack.Hold, id)
 
 				found = true
@@ -166,12 +171,13 @@ local function ItemsAdded(stacks, lookup, items)
 
 		if not found then
 			--Create new stack
-			stacks[id] = {
+			local stackId = HttpService:GenerateGUID(false)
+			stacks[stackId] = {
 				Data = data,
 				Hold = { id },
 			}
 
-			lookup[id] = id
+			lookup[id] = stackId
 		end
 	end
 end

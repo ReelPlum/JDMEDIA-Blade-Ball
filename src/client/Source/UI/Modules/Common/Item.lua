@@ -127,8 +127,17 @@ function Item:UpdateStack(stackSize)
 	if stackSize == self.StackSize and self.StackSize ~= nil then
 		return
 	end
+	if not self.Data then
+		return
+	end
 
 	self.StackSize = stackSize
+	
+	local ItemController = knit.GetController("ItemController")
+	local itemData = ItemController:GetItemData(self.Data.Item)
+	if not itemData then
+		return
+	end
 
 	if self.StackSize <= 0 then
 		self.UI.Visible = false
@@ -142,7 +151,7 @@ function Item:UpdateStack(stackSize)
 
 	self.UI.Visible = true
 
-	if self.StackSize == 1 then
+	if self.StackSize == 1 or itemData.OneCopyAllowed then
 		self.StackText.Visible = false
 		return
 	end
@@ -240,77 +249,7 @@ function Item:UpdateWithItemData(itemData)
 			return
 		end
 
-		local CacheController = knit.GetController("CacheController")
-		--Setup data for tooltip
-
-		self.ToolTipData = {}
-		table.insert(self.ToolTipData, {
-			Type = "Header",
-			Text = itemData.DisplayName,
-			Item = self.Data.Item,
-		})
-		table.insert(self.ToolTipData, {
-			Type = "Rarity",
-			Data = rarity,
-			Item = self.Data.Item,
-		})
-		--Add metadata
-		if self.Data.Metadata then
-			for metadata, data in self.Data.Metadata do
-				table.insert(self.ToolTipData, { Type = metadata, Data = data, Item = self.Data.Item })
-			end
-		end
-
-		if itemData.ItemType == "Unboxable" then
-			local chances = {}
-			local UnboxingController = knit.GetController("UnboxingController")
-			local unboxableData = UnboxingController:GetUnboxable(itemData.Unboxable)
-			local totalWeight = unboxableData.TotalWeight
-
-			if not totalWeight then
-				totalWeight = 0
-				for _, loot in unboxableData.DropList do
-					totalWeight += loot.Weight
-				end
-
-				unboxableData.TotalWeight = totalWeight
-			end
-
-			for i, loot in unboxableData.DropList do
-				if not (loot.Type == "Item") then
-					continue
-				end
-				local d = ItemController:GetItemData(loot.Item.Item)
-				chances[i] = { Chance = loot.Weight / totalWeight * 100, Model = d.Model, Offset = d.Offset }
-			end
-
-			table.insert(self.ToolTipData, {
-				Type = "UnboxChances",
-				Data = chances,
-				Item = self.Data.Item,
-			})
-		end
-
-		if table.find(GeneralSettings.ItemTypesToTrackCopiesOf, itemData.ItemType) then
-			local amount = 0
-			if CacheController.Cache.ItemCopies then
-				local Type = "Normal"
-				if self.Data.Metadata[MetadataTypes.Types.Strange] then
-					Type = "Strange"
-				end
-
-				amount = 0
-				if CacheController.Cache.ItemCopies[Type] then
-					amount = CacheController.Cache.ItemCopies[Type][self.Data.Item] or 0
-				end
-			end
-
-			table.insert(self.ToolTipData, {
-				Type = "Copies",
-				Copies = amount,
-				Item = self.Data.Item,
-			})
-		end
+		self.ToolTipData = ItemController:GetToolTipData(self.Data)
 
 		self.ItemJanitor:Add(rarity.Effect(rarity, self.ItemName))
 	else

@@ -60,13 +60,15 @@ end
 
 function TradingController:IsItemTradeable(data)
 	--Check if item is tradeable
+	local ItemController = knit.GetController("ItemController")
+	local metadata = ItemController:GetMetadata(data)
 
-	if not CanTradeRobux and data.Metadata[MetadataTypes.Types.Robux] then
+	if not CanTradeRobux and metadata[MetadataTypes.Types.Robux] then
 		return false
 	end
 
 	--Check other metadata
-	for t, v in data.Metadata do
+	for t, v in metadata do
 		local d = MetadataTypes.Data[t]
 		if d then
 			if d.Untradeable then
