@@ -311,6 +311,23 @@ function ItemService:GetDataForItem(item)
 	return ItemService:GetItemData(item)
 end
 
+function ItemService:CanUserRecieveItem(user, item)
+	local itemData = ItemService:GetDataForItem(item)
+	if not itemData then
+		return false
+	end
+
+	if not itemData.OneCopyAllowed then
+		return true
+	end
+
+	if ItemService:UserHasItem(user, item) then
+		return false
+	end
+
+	return true
+end
+
 function ItemService:GetOneItemOfUser(user, item)
 	user:WaitForDataLoaded()
 
@@ -372,6 +389,10 @@ function ItemService:GiveUserItem(user, item, quantity, metadata)
 		return false
 	end
 
+	if not ItemService:CanUserRecieveItem(user, item) then
+		return false
+	end
+
 	local inventory = ItemService:GetUsersInventory(user)
 	local items = ItemService:GiveItemToInventory(inventory, item, quantity, metadata)
 	ItemService:SaveInventory(user, inventory)
@@ -427,6 +448,10 @@ function ItemService:TransferItemToUsersInventory(user, itemId, data)
 		return false
 	end
 
+	if not ItemService:CanUserRecieveItem(user, data.Item) then
+		return false
+	end
+
 	inventory = ItemService:TransferItemToInventory(inventory, itemId, data)
 
 	self:SaveInventory(user, inventory)
@@ -437,8 +462,12 @@ end
 
 function ItemService:TransferMultipleItemsToUsersInventory(user, items)
 	local n = 0
-	for _, _ in items do
+	for _, data in items do
 		n += 1
+
+		if not ItemService:CanUserRecieveItem(data.Item) then
+			return false
+		end
 	end
 
 	if not ItemService:DoesUserHaveSpaceForItems(user, n) then
@@ -494,6 +523,10 @@ function ItemService:GiveUserMultipleItems(user, items, metadata)
 	local n = 0
 	for item, quantity in items do
 		n += quantity
+
+		if not ItemService:CanUserRecieveItem(item) then
+			return
+		end
 	end
 	if not ItemService:DoesUserHaveSpaceForItems(user, n) then
 		return false
