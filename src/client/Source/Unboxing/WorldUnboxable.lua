@@ -98,11 +98,11 @@ function WorldUnboxable:FinishedUnboxing()
 	local data = UnboxingController:GetLootFromUnboxable(self.Unboxable, self.UnboxedItem)
 
 	local WorldUnboxablesController = knit.GetController("WorldUnboxablesController")
-	local model = self.Janitor:Add(WorldUnboxablesController:CreateModelForItem(data))
+	local model = WorldUnboxablesController:CreateModelForItem(data)
 	model.Parent = workspace
 
 	local nt = 0
-	if not self.isLocalPlayer or true then
+	if not self.isLocalPlayer then
 		--Move item to unboxing player
 		local target = self.Player.Character.HumanoidRootPart.CFrame.Position
 
@@ -121,6 +121,7 @@ function WorldUnboxable:FinishedUnboxing()
 
 			if nt >= t then
 				--Finish
+				model:Destroy()
 				self:Destroy()
 			end
 		end))
@@ -128,6 +129,13 @@ function WorldUnboxable:FinishedUnboxing()
 		return
 	end
 	--If localplayer then show on players screen
+	local UIController = knit.GetController("UIController")
+	local UnboxedItemUI = UIController:GetUI("UnboxedItem")
+	UnboxedItemUI:AddItem(data, model)
+	task.spawn(function()
+		task.wait(2)
+		self:Destroy()
+	end)
 end
 
 function WorldUnboxable:Luck()

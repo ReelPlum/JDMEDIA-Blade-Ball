@@ -464,7 +464,7 @@ function ItemService:TransferMultipleItemsToUsersInventory(user, items)
 	local n = 0
 	for _, data in items do
 		n += 1
-
+		
 		if not ItemService:CanUserRecieveItem(data.Item) then
 			return false
 		end
@@ -524,7 +524,7 @@ function ItemService:GiveUserMultipleItems(user, items, metadata)
 	for item, quantity in items do
 		n += quantity
 
-		if not ItemService:CanUserRecieveItem(item) then
+		if not ItemService:CanUserRecieveItem(user, item) then
 			return
 		end
 	end
