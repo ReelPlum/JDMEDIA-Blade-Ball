@@ -102,40 +102,35 @@ function WorldUnboxable:FinishedUnboxing()
 	model.Parent = workspace
 
 	local nt = 0
-	if not self.isLocalPlayer then
-		--Move item to unboxing player
-		local target = self.Player.Character.HumanoidRootPart.CFrame.Position
-
-		local g = Vector3.new(0, -workspace.Gravity, 0)
-		local t = (target - self.Location).Magnitude / 35
-		local v0 = (target - self.Location - 0.5 * g * t * t) / t
-
-		self.Animation = self.Janitor:Add(RunService.RenderStepped:Connect(function(dt)
-			nt = math.min(nt + dt, t)
-			model:PivotTo(
-				CFrame.new(
-					0.5 * g * nt * nt + v0 * nt + self.Location,
-					0.5 * g * (nt + dt) * (nt + dt) + v0 * (nt + dt) + self.Location
-				)
-			)
-
-			if nt >= t then
-				--Finish
-				model:Destroy()
-				self:Destroy()
-			end
-		end))
-
-		return
+	if self.isLocalPlayer then
+		--If localplayer then show on players screen
+		local UIController = knit.GetController("UIController")
+		local UnboxedItemUI = UIController:GetUI("UnboxedItem")
+		UnboxedItemUI:AddItem(data, model:Clone())
 	end
-	--If localplayer then show on players screen
-	local UIController = knit.GetController("UIController")
-	local UnboxedItemUI = UIController:GetUI("UnboxedItem")
-	UnboxedItemUI:AddItem(data, model)
-	task.spawn(function()
-		task.wait(2)
-		self:Destroy()
-	end)
+
+	--Move item to unboxing player
+	local target = self.Player.Character.HumanoidRootPart.CFrame.Position
+
+	local g = Vector3.new(0, -workspace.Gravity, 0)
+	local t = (target - self.Location).Magnitude / 35
+	local v0 = (target - self.Location - 0.5 * g * t * t) / t
+
+	self.Animation = self.Janitor:Add(RunService.RenderStepped:Connect(function(dt)
+		nt = math.min(nt + dt, t)
+		model:PivotTo(
+			CFrame.new(
+				0.5 * g * nt * nt + v0 * nt + self.Location,
+				0.5 * g * (nt + dt) * (nt + dt) + v0 * (nt + dt) + self.Location
+			)
+		)
+
+		if nt >= t then
+			--Finish
+			model:Destroy()
+			self:Destroy()
+		end
+	end))
 end
 
 function WorldUnboxable:Luck()
