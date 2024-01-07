@@ -214,7 +214,7 @@ function Inventory:Init()
 	end
 
 	self:ChangePage("Knives")
-	self:SetVisible(true)
+	self:SetVisible(false)
 
 	local ItemController = knit.GetController("ItemController")
 	local EquipmentController = knit.GetController("EquipmentController")
