@@ -124,6 +124,9 @@ function ItemController:GetToolTipData(data)
 			local d = ItemController:GetItemData(loot.Item.Item)
 			chances[i] = { Chance = loot.Weight / totalWeight * 100, Model = d.Model, Offset = d.Offset }
 		end
+		table.sort(chances, function(a, b)
+			return a.Chance >= b.Chance
+		end)
 
 		table.insert(ToolTipData, {
 			Type = "UnboxChances",

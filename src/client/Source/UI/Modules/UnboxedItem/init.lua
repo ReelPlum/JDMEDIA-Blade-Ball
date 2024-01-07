@@ -75,7 +75,7 @@ function UnboxedItem:UpdateItems()
 
 	for _, i in self.UI:GetChildren() do
 		if tonumber(i.Name) then
-			if tonumber(i.Name) > math.ceil(#self.Items/3) then
+			if tonumber(i.Name) > math.ceil(#self.Items/4) then
 				i:Destroy()
 			end
 		end

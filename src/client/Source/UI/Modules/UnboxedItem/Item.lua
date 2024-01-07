@@ -6,6 +6,7 @@ Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 
 local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
@@ -42,6 +43,7 @@ function Item:Init()
 	self.UI.Name = "UnboxedItem"
 	self.UI.Parent = self.Holder.UI
 
+	local Offset = CFrame.new()
 	if self.UnboxData.Type == "Item" then
 		--Set UI
 		local ItemController = knit.GetController("ItemController")
@@ -51,7 +53,9 @@ function Item:Init()
 		local rarityData = ItemController:GetRarityData(ItemData.Rarity)
 		self.UI.Display.Rarity.Text = rarityData.DisplayName
 		self.Janitor:Add(rarityData.Effect(rarityData, self.UI.Display.Rarity))
-
+		if ItemData.Offset then
+			Offset = ItemData.Offset
+		end
 	end
 
 	if self.Model:IsA("BasePart") then
@@ -65,25 +69,48 @@ function Item:Init()
 		end
 	end
 
-	self.Model:PivotTo(CFrame.new(0,0,0))
+	self.Model:PivotTo(CFrame.new(0, 0, 0))
 
-	local Controller3D = self.Janitor:Add(Module3D:Attach3D(self.UI.Item, self.Model), "End")
-	Controller3D:SetActive(true)
-	Controller3D:SetCFrame(CFrame.new(0,0,0) * CFrame.Angles(0, math.rad(90), 0))
+	self.Controller3D = self.Janitor:Add(Module3D:Attach3D(self.UI.Item, self.Model), "End")
+	self.Controller3D:SetActive(true)
+	self.Controller3D:SetCFrame(CFrame.new(0, 0, 0) * CFrame.Angles(0, math.rad(90), 0))
 
 	task.spawn(function()
 		task.wait(5)
-		self:Destroy()
+		local i = 0
+
+		self.Loop = self.Janitor:Add(RunService.RenderStepped:Connect(function(dt)
+			i += dt
+
+			local a = TweenService:GetValue(i / 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+			self.Controller3D:SetCFrame(CFrame.new(0, 0, a * 10) * CFrame.Angles(0, math.rad(90), 0))
+
+			if i >= 0.5 then
+				self:Destroy()
+			end
+		end))
 	end)
 
-	--Play particle effect at item location.
+	--Play particle effect at item location & ANIMATE ITEM.
+	local i = 0
+
+	self.Loop = self.Janitor:Add(RunService.RenderStepped:Connect(function(dt)
+		i += dt
+
+		local a = TweenService:GetValue(i / 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+		self.Controller3D:SetCFrame(CFrame.new(0, 0, (1 - a) * 10) * CFrame.Angles(0, math.rad(90), 0))
+
+		if i >= 0.5 then
+			self.Loop:Disconnect()
+		end
+	end))
 end
 
 function Item:Position(index)
 	--Calculate position for UI
 	self.Index = index
 
-	local y = math.ceil(index / 3)
+	local y = math.ceil(index / 4)
 	local parent = self.Holder.UI:FindFirstChild(y)
 	if not parent then
 		parent = self.Holder.UI.YHolder:Clone()
@@ -97,12 +124,13 @@ function Item:Position(index)
 	self.UI.Visible = true
 
 	--
-	local size = (workspace.CurrentCamera.ViewportSize.Y / math.ceil(#self.Holder.Items/3)) / workspace.CurrentCamera.ViewportSize.Y
+	local size = (workspace.CurrentCamera.ViewportSize.Y / math.ceil(#self.Holder.Items / 4))
+		/ workspace.CurrentCamera.ViewportSize.Y
 	print(size)
 	for _, i in self.Holder.UI:GetChildren() do
 		if i:IsA("Frame") then
 			if i.Visible then
-				i.Size = UDim2.new(1, 0, size, 0)
+				i.Size = UDim2.new(1, 0, math.min(size, .75), 0)
 			end
 		end
 	end

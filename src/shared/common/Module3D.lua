@@ -104,8 +104,8 @@ end
 local Instancenew = Instance.new
 function ModuleAPI:Attach3D(GuiObj,Model,SizeOverride)
 	local Index = {}
-	local M = Instancenew("Model")
-	M.Name = ""
+	local M = Instance.new("Model")
+	M.Name = "Model"
 	M.Parent = Camera
 	local Objs = {}
 	if Model:IsA("BasePart") then
@@ -195,7 +195,11 @@ function ModuleAPI:Attach3D(GuiObj,Model,SizeOverride)
 				AngleX = MaxFieldOfView
 			end
 			
-			local PositionRay = ScreenPointToRay(Camera,PointX,PointY,GetDepthForWidth(Width,(SizeX < SizeY and SizeX or SizeY),ViewportX,ViewportY,FieldOfView))
+			-- local PositionRay = ScreenPointToRay(Camera,PointX,PointY,GetDepthForWidth(Width,(SizeX < SizeY and SizeX or SizeY),ViewportX,ViewportY,FieldOfView))
+			local PositionRay = ScreenPointToRay(Camera,PointX,PointY,1)
+
+			local scale = 1.5 / GetDepthForWidth(Width,(SizeX < SizeY and SizeX or SizeY),ViewportX,ViewportY,FieldOfView)
+
 			local Position = PositionRay.Origin + PositionRay.Direction
 			local PositionX,PositionY,PositionZ = Position.X,Position.Y,Position.Z
 			local _,_,_,A,B,C,D,E,F,G,H,I = components(Camera.CFrame)
@@ -205,6 +209,7 @@ function ModuleAPI:Attach3D(GuiObj,Model,SizeOverride)
 			
 			local NewCF = CFramenew(PositionX,PositionY,PositionZ,A,B,C,D,E,F,G,H,I) * CFrameAngles(-rad(AngleY/2) * CenterYMult,-rad(AngleX/2) * CenterXMult,0)
 			SetPrimaryPartCFrame(M,NewCF * CF)
+			M:ScaleTo(scale)
 			WasMoved = false
 		elseif WasMoved == false then
 			SetPrimaryPartCFrame(M,HighCF)
