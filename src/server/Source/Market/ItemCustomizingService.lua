@@ -21,6 +21,10 @@ local ItemCustomizingService = knit.CreateService({
 })
 
 function ItemCustomizingService.Client:ApplyNameTagToItem(player, itemId, nametagItemId, name)
+	if #name > 20 then
+		return false
+	end
+
 	local UserService = knit.GetService("UserService")
 	local user = UserService:WaitForUser(player)
 

@@ -26,6 +26,7 @@ return {
 			return true
 		end)
 		ItemSelectionUI:SetVisible(true, InventoryUI)
+		InventoryUI:SetVisible(false)
 	end,
 	Interactions = {
 		{

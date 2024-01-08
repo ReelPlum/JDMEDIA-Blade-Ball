@@ -4,6 +4,7 @@ ItemsStacks
 Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 ]]
 
+local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local knit = require(ReplicatedStorage.Packages.Knit)
@@ -64,12 +65,13 @@ local function GenerateStacks(items)
 			continue
 		end
 		if itemData.DontStack then
-			itemStacks[id] = {
+			local stackId = HttpService:GenerateGUID(false)
+			itemStacks[stackId] = {
 				Data = data,
 				Hold = { id },
 			}
 
-			itemLookup[id] = id
+			itemLookup[id] = stackId
 			continue
 		end
 
@@ -85,13 +87,14 @@ local function GenerateStacks(items)
 
 		if not found then
 			--Create new stack
-			itemStacks[id] = {
+			local stackId = HttpService:GenerateGUID(false)
+			itemStacks[stackId] = {
 				Hold = {
 					id,
 				},
 				Data = data,
 			}
-			itemLookup[id] = id
+			itemLookup[id] = stackId
 		end
 	end
 
@@ -119,6 +122,7 @@ local function RemoveFromStack(stacks, lookup, id)
 
 	if #stack.Hold <= 0 then
 		stacks[lookup[id]] = nil
+		print("Fully removed?!")
 	end
 	lookup[id] = nil
 end
@@ -147,6 +151,7 @@ local function ItemsAdded(stacks, lookup, items)
 		if lookup[id] then
 			--Remove from other stack
 			RemoveFromStack(stacks, lookup, id)
+			print(id)
 		end
 
 		n += 1
@@ -155,6 +160,7 @@ local function ItemsAdded(stacks, lookup, items)
 		for stackId, stack in stacks do
 			n += 1
 			if CompareItems(data, stack.Data) then
+				print("Found a matching stack")
 				table.insert(stack.Hold, id)
 
 				found = true
@@ -165,13 +171,15 @@ local function ItemsAdded(stacks, lookup, items)
 		end
 
 		if not found then
+			print("Creating new stack!")
 			--Create new stack
-			stacks[id] = {
+			local stackId = HttpService:GenerateGUID(false)
+			stacks[stackId] = {
 				Data = data,
 				Hold = { id },
 			}
 
-			lookup[id] = id
+			lookup[id] = stackId
 		end
 	end
 end

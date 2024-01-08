@@ -51,6 +51,11 @@ function ToolTip:Init()
 	self.Holder = config:WaitForChild("Holder").Value
 	self.BorderColor = config:WaitForChild("BorderColor").Value
 
+	self.Holder:WaitForChild("UIListLayout"):GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+		local size = self.Holder:WaitForChild("UIListLayout").AbsoluteContentSize
+		self.UI.Size = UDim2.new(0, size.X + 10, 0, size.Y + 10)
+	end)
+
 	self:Update(self.Data)
 
 	self:Loop()
@@ -91,6 +96,7 @@ function ToolTip:Update(data)
 
 	local rankings = {
 		["Header"] = 1,
+		[MetadataTypes.Types.Autograph] = 1.5,
 		["Rarity"] = 2,
 		[MetadataTypes.Types.Enchant] = 3,
 		[MetadataTypes.Types.Strange] = 4,
@@ -134,10 +140,6 @@ function ToolTip:Update(data)
 		label.Parent = self.Holder
 	end
 	--Set border color
-
-	--Set size
-	local size = self.Holder:WaitForChild("UIListLayout").AbsoluteContentSize
-	self.UI.Size = UDim2.new(0, size.X + 10, 0, size.Y + 10)
 end
 
 function ToolTip:CheckForActor()
