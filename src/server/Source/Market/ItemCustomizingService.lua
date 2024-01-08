@@ -28,7 +28,7 @@ function ItemCustomizingService.Client:ApplyNameTagToItem(player, itemId, nameta
 	local UserService = knit.GetService("UserService")
 	local user = UserService:WaitForUser(player)
 
-	ItemCustomizingService:ApplyNameTagToItem(user, itemId, nametagItemId, name)
+	return ItemCustomizingService:ApplyNameTagToItem(user, itemId, nametagItemId, name)
 end
 
 function ItemCustomizingService.Client:SignItem(player, itemId, autographItemId)

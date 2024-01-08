@@ -330,6 +330,9 @@ return {
 
 	[MetadataTypes.Types.Autograph] = function(ToolTip, data, priority)
 		--Return a text label
+		local ClientController = knit.GetController("ClientController")
+		local playerInfo = ClientController:GetPlayerInfo(data.Data)
+
 		local label = Instance.new("TextLabel")
 		label.AnchorPoint = Vector2.new(0.5, 0.5)
 		label.TextSize = 14

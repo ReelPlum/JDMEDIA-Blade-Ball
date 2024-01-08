@@ -18,6 +18,7 @@ return {
 		local itemData = ItemController:GetItemData(data.Item)
 
 		ItemSelectionUI:SetItemTypes(itemData.ApplyableItemTypes)
+		ItemSelectionUI:SetTitle("Autograph Item")
 		ItemSelectionUI:SetOnClick(function(selectedItemIds, selectedItemData)
 			--Open name item page.
 			local ItemCustomizingService = knit.GetService("ItemCustomizingService")
@@ -33,7 +34,24 @@ return {
 			DisplayName = "Use",
 			Use = function(ids, data) end,
 			Check = function(data, itemData, ids, equipped)
-				return true
+				local UIController = knit.GetController("UIController")
+				local ItemSelectionUI = UIController:GetUI("ItemSelection")
+				local InventoryUI = UIController:GetUI("Inventory")
+
+				local ItemController = knit.GetController("ItemController")
+				local itemData = ItemController:GetItemData(data.Item)
+
+				ItemSelectionUI:SetItemTypes(itemData.ApplyableItemTypes)
+				ItemSelectionUI:SetTitle("Autograph Item")
+				ItemSelectionUI:SetOnClick(function(selectedItemIds, selectedItemData)
+					--Open name item page.
+					local ItemCustomizingService = knit.GetService("ItemCustomizingService")
+
+					ItemCustomizingService:SignItem(selectedItemIds[1], ids[1])
+					return true
+				end)
+				ItemSelectionUI:SetVisible(true, InventoryUI)
+				InventoryUI:SetVisible(false)
 			end,
 		},
 		-- {

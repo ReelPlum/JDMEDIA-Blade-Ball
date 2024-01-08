@@ -77,11 +77,12 @@ local function GenerateStacks(items)
 
 		local found = false
 		for stackId, stackData in itemStacks do
-			if CompareItems(stackData.Data, data) then
+			if CompareItems(stackData.Data, data) or (stackData.Data.Item == data.Item and itemData.OneCopyAllowed) then
 				--Is equal
 				found = true
 				itemLookup[id] = stackId
 				table.insert(itemStacks[itemLookup[id]].Hold, id)
+				break
 			end
 		end
 
@@ -139,12 +140,13 @@ local function ItemsAdded(stacks, lookup, items)
 			continue
 		end
 		if itemData.DontStack then
-			stacks[id] = {
+			local stackId = HttpService:GenerateGUID(false)
+			stacks[stackId] = {
 				Data = data,
 				Hold = { id },
 			}
 
-			lookup[id] = id
+			lookup[id] = stackId
 			continue
 		end
 
@@ -159,8 +161,7 @@ local function ItemsAdded(stacks, lookup, items)
 		local found = false
 		for stackId, stack in stacks do
 			n += 1
-			if CompareItems(data, stack.Data) then
-				print("Found a matching stack")
+			if CompareItems(data, stack.Data) or (stack.Data.Item == data.Item and itemData.OneCopyAllowed) then
 				table.insert(stack.Hold, id)
 
 				found = true

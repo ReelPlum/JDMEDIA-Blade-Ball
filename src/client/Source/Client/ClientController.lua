@@ -25,11 +25,11 @@ local ClientController = knit.CreateController({
 	Signals = {},
 })
 
-local userInfoCache = {}
+local playerInfoCache = {}
 
-function ClientController:GetUserInfo(userId)
-	if userInfoCache[userId] then
-		return userInfoCache[userId]
+function ClientController:GetPlayerInfo(userId)
+	if playerInfoCache[userId] then
+		return playerInfoCache[userId]
 	end
 
 	local success, info = pcall(function()
@@ -44,8 +44,8 @@ function ClientController:GetUserInfo(userId)
 		return
 	end
 	local playerInfo = info[1]
+	playerInfoCache[userId] = playerInfo
 
-	userInfoCache[userId] = playerInfo
 	return playerInfo
 end
 

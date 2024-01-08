@@ -73,7 +73,10 @@ end
 
 function EnchantingService:GetEnchantOnInventoryItem(invItemData)
 	--Returns enchants on item
-	local enchantOnItem = invItemData.Metadata[MetaDataTypes.Types.Enchant]
+	local ItemService = knit.GetService("ItemService")
+
+	local metadata = ItemService:GetMetadataFromItem(invItemData)
+	local enchantOnItem = metadata[MetaDataTypes.Types.Enchant]
 	if not enchantOnItem then
 		return
 	end

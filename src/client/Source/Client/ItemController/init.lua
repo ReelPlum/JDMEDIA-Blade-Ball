@@ -16,6 +16,8 @@ local ItemStacksModule = require(ReplicatedStorage.Common.ItemsStacks)
 
 local ItemData = ReplicatedStorage.Data.Items
 local RarityData = ReplicatedStorage.Data.Rarities
+local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
+local MetadataTypes = require(ReplicatedStorage.Data.MetadataTypes)
 
 local ItemController = knit.CreateController({
 	Name = "ItemController",
@@ -42,13 +44,119 @@ function ItemController:GetInventory()
 	return ItemController.Inventory
 end
 
+function ItemController:GetMetadata(data)
+	if not data.Metadata then
+		return {}
+	end
+
+	local metadata = data.Metadata
+
+	local ItemData = ItemController:GetItemData(data.Item)
+	if ItemData.Metadata then
+		for index, value in ItemData.Metadata do
+			if metadata[index] then
+				continue
+			end
+
+			metadata[index] = value
+		end
+	end
+
+	return metadata
+end
+
 function ItemController:GetInventoryInStacks()
 	--Returns inventory in stacks
 	return ItemStacks, ItemLookup
 end
 
-function ItemController:GetToolTipDataFromItemData(itemData)
+function ItemController:GetToolTipData(data)
 	--Gets tooltip data from itemdata
+	local ItemController = knit.GetController("ItemController")
+	local itemData = ItemController:GetItemData(data.Item)
+
+	local rarity = ItemController:GetRarityData(itemData.Rarity)
+	if not rarity then
+		return
+	end
+
+	local CacheController = knit.GetController("CacheController")
+	--Setup data for tooltip
+
+	local ToolTipData = {}
+	table.insert(ToolTipData, {
+		Type = "Header",
+		Text = itemData.DisplayName,
+		Item = data.Item,
+	})
+	table.insert(ToolTipData, {
+		Type = "Rarity",
+		Data = rarity,
+		Item = data.Item,
+	})
+	--Add metadata
+	local metadata = ItemController:GetMetadata(data)
+	if metadata then
+		for t, d in metadata do
+			table.insert(ToolTipData, { Type = t, Data = d, Item = data.Item })
+		end
+	end
+
+	if itemData.ItemType == "Unboxable" then
+		local chances = {}
+		local UnboxingController = knit.GetController("UnboxingController")
+		local unboxableData = UnboxingController:GetUnboxable(itemData.Unboxable)
+		local totalWeight = unboxableData.TotalWeight
+
+		if not totalWeight then
+			totalWeight = 0
+			for _, loot in unboxableData.DropList do
+				totalWeight += loot.Weight
+			end
+
+			unboxableData.TotalWeight = totalWeight
+		end
+
+		for i, loot in unboxableData.DropList do
+			if not (loot.Type == "Item") then
+				continue
+			end
+			local d = ItemController:GetItemData(loot.Item.Item)
+			chances[i] = { Chance = loot.Weight / totalWeight * 100, Model = d.Model, Offset = d.Offset }
+		end
+		table.sort(chances, function(a, b)
+			return a.Chance >= b.Chance
+		end)
+
+		table.insert(ToolTipData, {
+			Type = "UnboxChances",
+			Data = chances,
+			Item = data.Item,
+		})
+	end
+
+	if table.find(GeneralSettings.ItemTypesToTrackCopiesOf, itemData.ItemType) then
+		local amount = 0
+		if CacheController.Cache.ItemCopies then
+			local Type = "Normal"
+			if metadata[MetadataTypes.Types.Strange] then
+				Type = "Strange"
+			end
+
+			amount = 0
+			if CacheController.Cache.ItemCopies[Type] then
+				amount = CacheController.Cache.ItemCopies[Type][data.Item] or 0
+			end
+		end
+
+		table.insert(ToolTipData, {
+			Type = "Copies",
+			Copies = amount,
+			Item = data.Item,
+		})
+	end
+
+	return ToolTipData
 end
 
 function ItemController:GetItemData(item)
