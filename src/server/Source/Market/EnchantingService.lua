@@ -14,6 +14,8 @@ local MetaDataTypes = require(ReplicatedStorage.Data.MetadataTypes)
 local EnchantsData = ReplicatedStorage.Data.Enchants
 local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
 
+local deepCopy = require(ReplicatedStorage.Common.DeepCopy)
+
 local EnchantingService = knit.CreateService({
 	Name = "EnchantingService",
 	Client = {
@@ -133,6 +135,7 @@ function EnchantingService:ApplyEnchantOnItem(data, enchant, level)
 		warn("Fail")
 		return false
 	end
+	--data = deepCopy(data)
 
 	if foundLevel then
 		if level ~= tonumber(foundLevel) then
@@ -149,7 +152,6 @@ function EnchantingService:ApplyEnchantOnItem(data, enchant, level)
 		warn("Fail")
 		return
 	end
-
 	data.Metadata[MetaDataTypes.Types.Enchant] = { enchant, level }
 
 	return data
@@ -161,36 +163,6 @@ function EnchantingService:GetRandomEnchant()
 	local level = 1
 
 	return enchant, level
-end
-
-function EnchantingService:ApplyRandomEnchantOnUsersItem(user, id)
-	--Apply a random enchantment on a users item
-
-	local ShopService = knit.GetService("ShopService")
-	-- if ShopService:ArePaidRandomItemsRestricted(user) then
-	-- 	return warn("Paid randomg items are restricted!")
-	-- end
-
-	local ItemService = knit.GetService("ItemService")
-
-	local data = ItemService:GetUsersDataFromId(user, id)
-	if not data then
-		return warn("❗Data not found")
-	end
-
-	local enchant = user.Data.RandomEnchant
-
-	local success = EnchantingService:ApplyEnchantOnItem(data, enchant, 1)
-	if not success then
-		return
-	end
-
-	user.Data.RandomEnchant = EnchantingService:GetRandomEnchant()
-	EnchantingService.Client.RandomEnchant:SetFor(user.Player, user.Data.RandomEnchant)
-
-	ItemService:UpdateId(user, id, success)
-
-	return success
 end
 
 function EnchantingService:ApplyEnchantmentBookOnUsersItem(user, itemId, bookId)
@@ -214,9 +186,11 @@ function EnchantingService:ApplyEnchantmentBookOnUsersItem(user, itemId, bookId)
 	if not bookItemData then
 		return warn("No item data")
 	end
-	if not bookItemData.ItemType == "Book" then
-		if itemData.ItemTyppe == "Book" then
+
+	if not (bookItemData.ItemType == "Book") then
+		if itemData.ItemType == "Book" then
 			--Swap
+
 			local bookIdCache = bookId
 			bookId = itemId
 			itemId = bookIdCache
@@ -260,65 +234,8 @@ function EnchantingService:ApplyEnchantmentBookOnUsersItem(user, itemId, bookId)
 	--Did not enchant
 end
 
-function EnchantingService:BuyRandomEnchantment(user, itemId)
-	local CurrencyService = knit.GetService("CurrencyService")
+function EnchantingService:KnitStart() end
 
-	if
-		not CurrencyService:UserHasEnough(
-			user,
-			GeneralSettings.User.EnchantmentPrice.Currency,
-			GeneralSettings.User.EnchantmentPrice.Amount
-		)
-	then
-		return
-	end
-
-	if not EnchantingService:ApplyRandomEnchantOnUsersItem(user, itemId) then
-		return
-	end
-
-	CurrencyService:TakeCurrency(
-		user,
-		GeneralSettings.User.EnchantmentPrice.Currency,
-		GeneralSettings.User.EnchantmentPrice.Amount
-	)
-
-	return true
-end
-
-function EnchantingService:KnitStart()
-	local UserService = knit.GetService("UserService")
-
-	for _, user in UserService:GetUsers() do
-		user:WaitForDataLoaded()
-		if not user.Data.RandomEnchant then
-			user.Data.RandomEnchant = EnchantingService:GetRandomEnchant()
-		end
-
-		EnchantingService.Client.RandomEnchant:SetFor(user.Player, user.Data.RandomEnchant)
-	end
-
-	UserService.Signals.UserAdded:Connect(function(user)
-		user:WaitForDataLoaded()
-		if not user.Data.RandomEnchant then
-			user.Data.RandomEnchant = EnchantingService:GetRandomEnchant()
-		end
-
-		EnchantingService.Client.RandomEnchant:SetFor(user.Player, user.Data.RandomEnchant)
-	end)
-end
-
-function EnchantingService:KnitInit()
-	for _, enchant in EnchantsData:GetChildren() do
-		if not enchant:IsA("ModuleScript") then
-			continue
-		end
-		local data = require(enchant)
-
-		for _ = 1, data.Weight do
-			table.insert(WeightedTable, enchant.Name)
-		end
-	end
-end
+function EnchantingService:KnitInit() end
 
 return EnchantingService

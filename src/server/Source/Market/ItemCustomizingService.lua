@@ -12,6 +12,8 @@ local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
+local deepCopy = require(ReplicatedStorage.Common.DeepCopy)
+
 local MetadataTypes = require(ReplicatedStorage.Data.MetadataTypes)
 
 local ItemCustomizingService = knit.CreateService({
@@ -67,6 +69,7 @@ function ItemCustomizingService:SignItem(user, itemId, autographItemId)
 
 	ItemService:TakeItemFromUser(user, autographItemId)
 
+	--local item = deepCopy(item)
 	item.Metadata[MetadataTypes.Types.Autograph] = user.Player.UserId
 
 	--Sign item
@@ -117,6 +120,7 @@ function ItemCustomizingService:ApplyNameTagToItem(user, itemId, nametagItemId, 
 	ItemService:TakeItemFromUser(user, nametagItemId)
 
 	--Apply name to item
+	--local item = deepCopy(item)
 	item.Metadata[MetadataTypes.Types.NameTag] = filteredName
 
 	--Sign item

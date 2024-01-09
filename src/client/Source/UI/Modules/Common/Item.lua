@@ -127,7 +127,6 @@ end
 
 function Item:UpdateStack(stackSize)
 	--Change stack size
-	print(stackSize)
 	if not self.Data then
 		return
 	end
@@ -187,8 +186,6 @@ function Item:UpdateData(newData)
 		self:SetEmpty()
 		return
 	end
-
-	print(newData)
 
 	self.Data = newData
 

@@ -69,13 +69,6 @@ function Enchanting:Init()
 	local NoSelectionPage = Config.NoSelection
 	self.NoSelectionPage = NoSelectionPage.NoSelectionPage.Value
 
-	local RandomEnchantsPage = Config.RandomEnchants
-	self.RandomEnchantsPage = RandomEnchantsPage.RandomEnchantsPage.Value
-	self.RandomEnchantPrice = RandomEnchantsPage.Price.Value
-	self.RandomItem = RandomEnchantsPage.Item.Value
-	self.EnchantButton = RandomEnchantsPage.EnchantButton.Value
-	self.RandomCreatedItem = RandomEnchantsPage.CreatedItem.Value
-
 	local CombineEnchantsPage = Config.CombineEnchants
 	self.CombineEnchantsPage = CombineEnchantsPage.CombineEnchantsPage.Value
 	self.CombineBook = CombineEnchantsPage.Book.Value
@@ -106,16 +99,6 @@ function Enchanting:Init()
 		self:UnselectItem(self.SelectedItemOne)
 	end
 
-	self.RandomKnifeItemDisplay =
-		self.Janitor:Add(Item.new(ReplicatedStorage.Assets.UI.Item, self.RandomItem, self.ToolTip))
-	--Parent, size and position
-	self.RandomKnifeItemDisplay.UI.Size = UDim2.new(0.9, 0, 0.9, 0)
-	self.RandomKnifeItemDisplay.UI.AnchorPoint = Vector2.new(0.5, 0.5)
-	self.RandomKnifeItemDisplay.UI.Position = UDim2.new(0.5, 0, 0.5, 0)
-	self.RandomKnifeItemDisplay.OnClick = function()
-		self:UnselectItem(self.SelectedItemOne)
-	end
-
 	self.CraftedCombinedItem =
 		self.Janitor:Add(Item.new(ReplicatedStorage.Assets.UI.Item, self.CombinedItem, self.ToolTip))
 	--Parent, size and position
@@ -126,16 +109,6 @@ function Enchanting:Init()
 		self:UnselectItem(self.SelectedItemOne)
 	end
 
-	self.CraftedRandomItem =
-		self.Janitor:Add(Item.new(ReplicatedStorage.Assets.UI.Item, self.RandomCreatedItem, self.ToolTip))
-	--Parent, size and position
-	self.CraftedRandomItem.UI.Size = UDim2.new(0.9, 0, 0.9, 0)
-	self.CraftedRandomItem.UI.AnchorPoint = Vector2.new(0.5, 0.5)
-	self.CraftedRandomItem.UI.Position = UDim2.new(0.5, 0, 0.5, 0)
-	self.CraftedRandomItem.OnClick = function()
-		self:UnselectItem(self.SelectedItemOne)
-	end
-
 	--Setup inventory
 	local ItemController = knit.GetController("ItemController")
 
@@ -143,11 +116,6 @@ function Enchanting:Init()
 		["Combine"] = {
 			ui = self.CombineEnchantsPage,
 			itemTypes = { "Book", "Knife" },
-			shouldEnchantedItemsBeEnabled = true,
-		},
-		["Random"] = {
-			ui = self.RandomEnchantsPage,
-			itemTypes = { "Book" },
 			shouldEnchantedItemsBeEnabled = true,
 		},
 		["Default"] = {
@@ -210,74 +178,156 @@ function Enchanting:Init()
 			return false
 		end
 
+		if not data.Metadata[MetadataTypes.Types.Enchant] and itemData.ItemType == "Book" then
+			return false
+		end
+
+		if self.SelectedItemOne and self.SelectedItemTwo then
+			return false
+		end
+
+		local selectedItem
+		if self.SelectedItemOne then
+			selectedItem = self.SelectedItemOne
+		elseif self.SelectedItemTwo then
+			selectedItem = self.SelectedItemTwo
+		else
+			return true
+		end
+
+		local d = ItemController:GetItemFromId(selectedItem)
+		local itmd = ItemController:GetItemData(d.Item)
+
+		--Check for itemtype
+		if itmd.ItemType ~= "Book" and itemData.ItemType ~= "Book" then
+			warn("Book")
+			return false
+		end
+
 		local page = self.Pages[self.CurrentPage]
 		if table.find(page.itemTypes, itemData.ItemType) then
-			if data.Metadata[MetadataTypes.Types.Enchant] and not page.shouldEnchantedItemsBeEnabled then
-				return false
-			end
-
-			if data.Metadata[MetadataTypes.Types.Enchant] then
-				if self.SelectedItemOne then
-					local d = ItemController:GetItemFromId(self.SelectedItemOne)
-					if d.Metadata[MetadataTypes.Types.Enchant] then
-						local EnchantData = ItemController:GetEnchantData(d.Metadata[MetadataTypes.Types.Enchant][1])
-						if not EnchantData then
-							return false
-						end
-
-						if
-							d.Metadata[MetadataTypes.Types.Enchant][1] ~= data.Metadata[MetadataTypes.Types.Enchant][1]
-						then
-							return false
-						end
-
-						if
-							d.Metadata[MetadataTypes.Types.Enchant][2] == data.Metadata[MetadataTypes.Types.Enchant][2]
-						then
-							if not EnchantData.Statistics[d.Metadata[MetadataTypes.Types.Enchant][2] + 1] then
-								return false
-							end
-						end
-
-						if
-							d.Metadata[MetadataTypes.Types.Enchant][2] > data.Metadata[MetadataTypes.Types.Enchant][2]
-						then
-							return false
-						end
-					end
+			if d.Metadata[MetadataTypes.Types.Enchant] and data.Metadata[MetadataTypes.Types.Enchant] then
+				--Book is enchanted
+				local EnchantData = ItemController:GetEnchantData(d.Metadata[MetadataTypes.Types.Enchant][1])
+				if not EnchantData then
+					return false
 				end
-				if self.SelectedItemTwo then
-					local d = ItemController:GetItemFromId(self.SelectedItemTwo)
-					if d.Metadata[MetadataTypes.Types.Enchant] then
-						local EnchantData = ItemController:GetEnchantData(d.Metadata[MetadataTypes.Types.Enchant][1])
-						if not EnchantData then
-							return false
-						end
+				--Check if enchant is the same
+				if d.Metadata[MetadataTypes.Types.Enchant][1] ~= data.Metadata[MetadataTypes.Types.Enchant][1] then
+					return false
+				end
+				--Check if enchant on selected is lower than item
+				if d.Metadata[MetadataTypes.Types.Enchant][2] ~= data.Metadata[MetadataTypes.Types.Enchant][2] then
+					return false
+				end
 
-						if
-							d.Metadata[MetadataTypes.Types.Enchant][1] ~= data.Metadata[MetadataTypes.Types.Enchant][1]
-						then
-							return false
-						end
+				--Check if next enchant exists
+				if not EnchantData.Statistics[d.Metadata[MetadataTypes.Types.Enchant][2] + 1] then
+					return false
+				end
 
-						if
-							d.Metadata[MetadataTypes.Types.Enchant][2] < data.Metadata[MetadataTypes.Types.Enchant][2]
-						then
-							return false
-						end
-
-						if not EnchantData.Statistics[d.Metadata[MetadataTypes.Types.Enchant][2] + 1] then
-							return false
-						end
-					else
-						return false
-					end
+				--Check if item is supported
+				if not table.find(EnchantData.SupportedItemTypes, itemData.ItemType) then
+					return false
 				end
 			end
 
 			return true
 		end
+
+		--Not found in page
 		return false
+
+		-- local page = self.Pages[self.CurrentPage]
+		-- if table.find(page.itemTypes, itemData.ItemType) then
+		-- 	if data.Metadata[MetadataTypes.Types.Enchant] and not page.shouldEnchantedItemsBeEnabled then
+		-- 		return false
+		-- 	end
+
+		-- 	if data.Metadata[MetadataTypes.Types.Enchant] then
+		-- 		local selectedItem
+		-- 		if self.SelectedItemOne then
+		-- 			selectedItem = self.SelectedItemOne
+		-- 		elseif self.SelectedItemTwo then
+		-- 			selectedItem = self.SelectedItemTwo
+		-- 		else
+		-- 			return true
+		-- 		end
+
+		-- 		local d = ItemController:GetItemFromId(selectedItem)
+		-- 		local itmd = ItemController:GetItemData(d.Item)
+
+		-- 		if itmd.ItemType == "Book" then
+		-- 			if d.Metadata[MetadataTypes.Types.Enchant] then
+		-- 				local EnchantData = ItemController:GetEnchantData(d.Metadata[MetadataTypes.Types.Enchant][1])
+		-- 				if not EnchantData then
+		-- 					return false
+		-- 				end
+
+		-- 				if
+		-- 					d.Metadata[MetadataTypes.Types.Enchant][1]
+		-- 					~= data.Metadata[MetadataTypes.Types.Enchant][1]
+		-- 				then
+		-- 					return false
+		-- 				end
+
+		-- 				if
+		-- 					d.Metadata[MetadataTypes.Types.Enchant][2]
+		-- 					< data.Metadata[MetadataTypes.Types.Enchant][2]
+		-- 				then
+		-- 					return false
+		-- 				end
+
+		-- 				if not EnchantData.Statistics[d.Metadata[MetadataTypes.Types.Enchant][2] + 1] then
+		-- 					return false
+		-- 				end
+
+		-- 				if not table.find(EnchantData.SupportedItemTypes, itemData.ItemType) then
+		-- 					return false
+		-- 				end
+		-- 			else
+		-- 				return false
+		-- 			end
+		-- 		else
+		-- 			if itmd.ItemType == itemData.ItemType then
+		-- 				return false
+		-- 			end
+
+		-- 			if d.Metadata[MetadataTypes.Types.Enchant] then
+		-- 				local EnchantData = ItemController:GetEnchantData(d.Metadata[MetadataTypes.Types.Enchant][1])
+		-- 				if not EnchantData then
+		-- 					return false
+		-- 				end
+
+		-- 				if
+		-- 					d.Metadata[MetadataTypes.Types.Enchant][1]
+		-- 					~= data.Metadata[MetadataTypes.Types.Enchant][1]
+		-- 				then
+		-- 					return false
+		-- 				end
+
+		-- 				if
+		-- 					d.Metadata[MetadataTypes.Types.Enchant][2]
+		-- 					== data.Metadata[MetadataTypes.Types.Enchant][2]
+		-- 				then
+		-- 					if not EnchantData.Statistics[d.Metadata[MetadataTypes.Types.Enchant][2] + 1] then
+		-- 						return false
+		-- 					end
+		-- 				end
+
+		-- 				if
+		-- 					d.Metadata[MetadataTypes.Types.Enchant][2]
+		-- 					> data.Metadata[MetadataTypes.Types.Enchant][2]
+		-- 				then
+		-- 					return false
+		-- 				end
+		-- 			end
+		-- 		end
+		-- 	end
+
+		-- 	return true
+		-- end
+		-- return false
 	end
 
 	self.ItemContainer:UpdateItemTypes({
@@ -302,25 +352,9 @@ function Enchanting:Init()
 		self:UnselectItem(self.SelectedItemTwo)
 	end))
 
-	self.Janitor:Add(self.EnchantButton.MouseButton1Click:Connect(function()
-		local itm = nil
-		if self.SelectedItemOne then
-			itm = self.SelectedItemOne
-		elseif self.SelectedItemTwo then
-			itm = self.SelectedItemTwo
-		end
-
-		EnchantingService:RandomlyEnchantItem(itm)
-		self:UnselectItem(itm)
-	end))
-
 	self.Janitor:Add(self.CloseButton.MouseButton1Click:Connect(function()
 		self:SetVisible(false)
 	end))
-
-	-- self.Janitor:Add(self.Pages.Combine.ui.Continue.MouseButton1Click:Connect(function() end))
-
-	-- self.Janitor:Add(self.Pages.Random.ui.Continue.MouseButton1Click:Connect(function() end))
 
 	self.Janitor:Add(game:GetService("ProximityPromptService").PromptTriggered:Connect(function(prompt)
 		if prompt.Name == "EnchantingStation" then
@@ -368,10 +402,31 @@ function Enchanting:Update()
 	local SelectedItemTwoData = ItemController:GetItemFromId(self.SelectedItemTwo)
 	local SelectedItemOneData = ItemController:GetItemFromId(self.SelectedItemOne)
 
+	local SelectedItemOneItemData
+	local SelectedItemTwoItemData
+
+	if SelectedItemOneData then
+		SelectedItemOneItemData = ItemController:GetItemData(SelectedItemOneData.Item)
+	end
+	if SelectedItemTwoData then
+		SelectedItemTwoItemData = ItemController:GetItemData(SelectedItemTwoData.Item)
+	end
+
 	self.CraftedCombinedItem.UI.Visible = false
-	self.CraftedRandomItem.UI.Visible = true
 
 	--Update items displayed on positions
+	if not self.SelectedItemOne then
+		--Hide selected book displays
+		self.CombinedKnifeItemDisplay:UpdateData(SelectedItemOneData)
+		self.CombinedKnifeItemDisplay:UpdateStack(1)
+		self.CombinedKnifeItemDisplay.UI.Visible = false
+	else
+		--Show selected book displays
+		self.CombinedKnifeItemDisplay:UpdateData(SelectedItemOneData)
+		self.CombinedKnifeItemDisplay:UpdateStack(1)
+		self.CombinedKnifeItemDisplay.UI.Visible = true
+	end
+
 	if not self.SelectedItemTwo then
 		--Hide selected book displays
 		self.CombinedBookItemDisplay:UpdateData(SelectedItemTwoData)
@@ -384,34 +439,38 @@ function Enchanting:Update()
 		self.CombinedBookItemDisplay.UI.Visible = true
 	end
 
-	if not self.SelectedItemOne then
-		--Hide selected knife displays
-		self.RandomKnifeItemDisplay:UpdateData(SelectedItemOneData)
-		self.CombinedKnifeItemDisplay:UpdateData(SelectedItemOneData)
-		self.RandomKnifeItemDisplay:UpdateStack(1)
-		self.CombinedKnifeItemDisplay:UpdateStack(1)
-		self.RandomKnifeItemDisplay.UI.Visible = false
-		self.CombinedKnifeItemDisplay.UI.Visible = false
-	else
-		--Show selected knife displays
-		self.RandomKnifeItemDisplay:UpdateData(SelectedItemOneData)
-		self.CombinedKnifeItemDisplay:UpdateData(SelectedItemOneData)
-		self.RandomKnifeItemDisplay:UpdateStack(1)
-		self.CombinedKnifeItemDisplay:UpdateStack(1)
-		self.RandomKnifeItemDisplay.UI.Visible = true
-		self.CombinedKnifeItemDisplay.UI.Visible = true
-	end
-
 	if self.CurrentPage == "Default" then
 		return
 	end
 
 	if self.CurrentPage == "Combine" and (SelectedItemOneData and SelectedItemTwoData) then
 		--Get combined price
-		if not SelectedItemTwoData.Metadata[MetadataTypes.Types.Enchant] then
+		local book
+		local bookData
+
+		local item
+		local itemData
+
+		if SelectedItemOneItemData.ItemType == "Book" then
+			book = self.SelectedItemOne
+			bookData = SelectedItemOneData
+
+			item = self.SelectedItemTwo
+			itemData = SelectedItemTwoData
+		elseif SelectedItemTwoItemData.ItemType == "Book" then
+			book = self.SelectedItemTwo
+			bookData = SelectedItemTwoData
+
+			item = self.SelectedItemOne
+			itemData = SelectedItemOneData
+		else
 			return
 		end
-		local itemEnchant = SelectedItemTwoData.Metadata[MetadataTypes.Types.Enchant][1]
+
+		if not bookData.Metadata[MetadataTypes.Types.Enchant] then
+			return
+		end
+		local itemEnchant = bookData.Metadata[MetadataTypes.Types.Enchant][1]
 		if not itemEnchant then
 			return
 		end
@@ -426,59 +485,39 @@ function Enchanting:Update()
 		self.CombinePrice.Coin.Image = currencyData.Image
 
 		--Position enchanted item at other end
-		local data = table.clone(SelectedItemOneData)
-		data.Metadata = table.clone(SelectedItemOneData.Metadata)
+		local data = table.clone(itemData)
+		data.Metadata = table.clone(itemData.Metadata)
 
-		if SelectedItemOneData.Metadata[MetadataTypes.Types.Enchant] then
+		if itemData.Metadata[MetadataTypes.Types.Enchant] then
 			if
-				SelectedItemOneData.Metadata[MetadataTypes.Types.Enchant][1]
-				~= SelectedItemTwoData.Metadata[MetadataTypes.Types.Enchant][1]
+				itemData.Metadata[MetadataTypes.Types.Enchant][1]
+				~= bookData.Metadata[MetadataTypes.Types.Enchant][1]
 			then
 				return
 			else
 				if
-					SelectedItemTwoData.Metadata[MetadataTypes.Types.Enchant][2]
-					> SelectedItemOneData.Metadata[MetadataTypes.Types.Enchant][2]
+					bookData.Metadata[MetadataTypes.Types.Enchant][2]
+					> itemData.Metadata[MetadataTypes.Types.Enchant][2]
 				then
-					data.Metadata[MetadataTypes.Types.Enchant] =
-						SelectedItemTwoData.Metadata[MetadataTypes.Types.Enchant]
+					data.Metadata[MetadataTypes.Types.Enchant] = bookData.Metadata[MetadataTypes.Types.Enchant]
 				elseif
-					SelectedItemTwoData.Metadata[MetadataTypes.Types.Enchant][2]
-					== SelectedItemOneData.Metadata[MetadataTypes.Types.Enchant][2]
+					bookData.Metadata[MetadataTypes.Types.Enchant][2]
+					== itemData.Metadata[MetadataTypes.Types.Enchant][2]
 				then
 					data.Metadata[MetadataTypes.Types.Enchant] =
-						table.clone(SelectedItemTwoData.Metadata[MetadataTypes.Types.Enchant])
+						table.clone(bookData.Metadata[MetadataTypes.Types.Enchant])
 					data.Metadata[MetadataTypes.Types.Enchant][2] += 1
 				else
 					return
 				end
 			end
 		else
-			data.Metadata[MetadataTypes.Types.Enchant] = SelectedItemTwoData.Metadata[MetadataTypes.Types.Enchant]
+			data.Metadata[MetadataTypes.Types.Enchant] = bookData.Metadata[MetadataTypes.Types.Enchant]
 		end
 
 		self.CraftedCombinedItem:UpdateData(data)
 		self.CraftedCombinedItem:UpdateStack(1)
 		self.CraftedCombinedItem.UI.Visible = true
-	elseif self.CurrentPage == "Random" and SelectedItemOneData then
-		--Get random enchantment price
-		self.RandomEnchantPrice.Amount.Text = GeneralSettings.User.EnchantmentPrice.Amount
-		local CurrencyController = knit.GetController("CurrencyController")
-		local currencyData = CurrencyController:GetCurrencyData(GeneralSettings.User.EnchantmentPrice.Currency)
-
-		self.RandomEnchantPrice.Coin.Image = currencyData.Image
-
-		--Position enchanted item at other end
-		local data = table.clone(SelectedItemOneData)
-		data.Metadata = table.clone(SelectedItemOneData.Metadata)
-		data.Metadata[MetadataTypes.Types.Enchant] = {
-			CacheController.Cache.RandomEnchant,
-			1,
-		}
-
-		self.CraftedRandomItem:UpdateData(data)
-		self.CraftedRandomItem:UpdateStack(1)
-		self.CraftedRandomItem.UI.Visible = true
 	end
 end
 
@@ -507,10 +546,6 @@ function Enchanting:SelectItem(id)
 		self.SelectedItemOne = id
 	end
 
-	if (not self.SelectedItemTwo or not self.SelectedItemOne) and not data.Metadata[MetadataTypes.Types.Enchant] then
-		self:ChangePage("Random")
-		return
-	end
 	self:ChangePage("Combine")
 end
 

@@ -12,6 +12,8 @@ local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
+local deepCopy = require(ReplicatedStorage.Common.DeepCopy)
+
 local ItemData = ReplicatedStorage.Data.Items
 local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
 
@@ -173,8 +175,9 @@ function ItemService:GiveItemToInventory(inventory, item, quantity, metadata)
 	for _ = 1, quantity do
 		local id, data = ItemService:CreateData(item, metadata)
 
-		inventory[id] = data
-		items[id] = data
+		local copiedData = deepCopy(data)
+		inventory[id] = copiedData
+		items[id] = copiedData
 	end
 
 	ItemService.Signals.ItemCreated:Fire(item, quantity, metadata)

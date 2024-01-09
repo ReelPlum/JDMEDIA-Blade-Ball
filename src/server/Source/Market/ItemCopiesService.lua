@@ -68,6 +68,10 @@ function ItemCopiesService:SyncItemCopies()
 		if not ToShare[t] then
 			ToShare[t] = {}
 		end
+		if typeof(data) ~= "table" then
+			Cache[t] = nil
+			continue
+		end
 		if not data then
 			continue
 		end
