@@ -109,6 +109,7 @@ function ItemCustomizingService:ApplyNameTagToItem(user, itemId, nametagItemId, 
 	local filteredName = result:GetNonChatStringForBroadcastAsync()
 
 	--If name is filtered then deny the name
+	print(filteredName)
 	if filteredName ~= name then
 		return false
 	end
@@ -116,7 +117,7 @@ function ItemCustomizingService:ApplyNameTagToItem(user, itemId, nametagItemId, 
 	ItemService:TakeItemFromUser(user, nametagItemId)
 
 	--Apply name to item
-	item.Metadata[MetadataTypes.Types.Name] = filteredName
+	item.Metadata[MetadataTypes.Types.NameTag] = filteredName
 
 	--Sign item
 	ItemService:UpdateId(user, itemId, item)

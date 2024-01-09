@@ -63,6 +63,7 @@ function UIController:KnitStart()
 	self:RegisterUI(script.Parent.Modules.ItemSelection, ReplicatedStorage.Assets.UI.ItemSelection)
 	self:RegisterUI(script.Parent.Modules.UnboxedItem, ReplicatedStorage.Assets.UI.UnboxedItem)
 	self:RegisterUI(script.Parent.Modules.Leaderboards)
+	self:RegisterUI(script.Parent.Modules.TextPrompt, ReplicatedStorage.Assets.UI.TextPrompt)
 end
 
 function UIController:KnitInit()

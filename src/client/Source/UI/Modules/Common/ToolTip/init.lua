@@ -97,6 +97,7 @@ function ToolTip:Update(data)
 	local rankings = {
 		["Header"] = 1,
 		[MetadataTypes.Types.Autograph] = 1.5,
+		[MetadataTypes.Types.NameTag] = 1.75,
 		["Rarity"] = 2,
 		[MetadataTypes.Types.Enchant] = 3,
 		[MetadataTypes.Types.Strange] = 4,

@@ -13,6 +13,7 @@ local MetadataTypes = require(ReplicatedStorage.Data.MetadataTypes)
 local Rankings = { --Higher is better
 	[MetadataTypes.Types.Strange] = 10,
 	[MetadataTypes.Types.StrangeParts] = 10,
+	[MetadataTypes.Types.NameTag] = 5,
 	[MetadataTypes.Types.Autograph] = 15,
 	[MetadataTypes.Types.Untradeable] = -100,
 }

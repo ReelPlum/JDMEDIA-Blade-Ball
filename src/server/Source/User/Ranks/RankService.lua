@@ -4,6 +4,7 @@ RankService
 Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 ]]
 
+local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local knit = require(ReplicatedStorage.Packages.Knit)
@@ -54,6 +55,7 @@ end
 function RankService:KnitStart()
 	local UserService = knit.GetService("UserService")
 	local RankItemService = knit.GetService("RankItemService")
+	local ItemService = knit.GetService("ItemService")
 
 	local function HandleUser(user)
 		user:WaitForDataLoaded()
@@ -74,17 +76,71 @@ function RankService:KnitStart()
 			end
 			data.Execute(user)
 
+			local items = data.ItemCache
+			if not items then
+				items = {}
+				for _, item in data.Items do
+					if not item:IsA("ModuleScript") then
+						continue
+					end
+					if items[item.Name] then
+						error(`The item {item} was already created for rank {rank}. Please use the same module!`)
+					end
+
+					print(item)
+					local itemData = require(item)
+					items[item.Name] = itemData
+				end
+				data.ItemCache = items
+			end
+
 			--Give items
-			if user.Data.State[rank] then
+			if HttpService:JSONEncode(items) == user.Data.State[rank] then
 				continue
 			end
-			user.Data.State[rank] = true
-			for _, item in data.Items do
-				if not item:IsA("ModuleScript") then
-					continue
+
+			local itemsCache = user.Data.State[rank]
+			if not itemsCache then
+				itemsCache = {}
+			else
+				itemsCache = HttpService:JSONDecode(itemsCache)
+			end
+
+			user.Data.State[rank] = HttpService:JSONEncode(items)
+
+			for item, data in itemsCache do
+				if not items[item] then
+					--Remove items
+					if user.Data.RankItems[rank] then
+						for id, itm in user.Data.RankItems[rank] do
+							if item == itm then
+								--Remove item
+								ItemService:RemoveItemWithIdFromUsersInventory(user, id)
+								user.Data.RankItems[rank][id] = nil
+							end
+						end
+					end
 				end
-				local itemData = require(item)
-				RankItemService:GiveRankItem(user, rank, item.Name, itemData.Quantity, itemData.Metadata)
+			end
+
+			for item, itemData in items do
+				if itemData == itemsCache[item] then
+					continue
+				elseif itemsCache[item] ~= nil then
+					--Remove old items
+					print("Not equal")
+					if user.Data.RankItems[rank] then
+						for id, itm in user.Data.RankItems[rank] do
+							if item == itm then
+								--Remove item
+								ItemService:RemoveItemWithIdFromUsersInventory(user, id)
+								user.Data.RankItems[rank][id] = nil
+							end
+						end
+					end
+				end
+
+				RankItemService:GiveRankItem(user, rank, item, itemData.Quantity, itemData.Metadata)
 			end
 		end
 

@@ -22,6 +22,7 @@ return {
 		ItemSelectionUI:SetTitle("Name Item")
 		ItemSelectionUI:SetOnClick(function(selectedItemIds, selectedItemData)
 			--Open name item page.
+			TextPromptUI:SetVisible(true, InventoryUI)
 			TextPromptUI:AskInput(20, function(text)
 				local ItemCustomizingService = knit.GetService("ItemCustomizingService")
 				ItemCustomizingService:ApplyNameTagToItem(selectedItemIds[1], ids[1], text):andThen(function(success)
@@ -29,6 +30,7 @@ return {
 						return
 					end
 
+					TextPromptUI:SetVisible(false)
 					ItemSelectionUI:SetVisible(false)
 					InventoryUI:SetVisible(true)
 				end)
@@ -36,9 +38,12 @@ return {
 				return false
 			end)
 
-			return true
+			ItemSelectionUI:SetVisible(false)
+			InventoryUI:SetVisible(false)
+			return false
 		end)
 		ItemSelectionUI:SetVisible(true, InventoryUI)
+		InventoryUI:SetVisible(false)
 	end,
 	Interactions = {
 		{
@@ -56,6 +61,7 @@ return {
 				ItemSelectionUI:SetTitle("Name Item")
 				ItemSelectionUI:SetOnClick(function(selectedItemIds, selectedItemData)
 					--Open name item page.
+					TextPromptUI:SetVisible(true, InventoryUI)
 					TextPromptUI:AskInput(20, function(text)
 						local ItemCustomizingService = knit.GetService("ItemCustomizingService")
 						ItemCustomizingService:ApplyNameTagToItem(selectedItemIds[1], ids[1], text)
@@ -64,6 +70,7 @@ return {
 									return
 								end
 
+								TextPromptUI:SetVisible(false)
 								ItemSelectionUI:SetVisible(false)
 								InventoryUI:SetVisible(true)
 							end)
@@ -71,9 +78,12 @@ return {
 						return false
 					end)
 
-					return true
+					ItemSelectionUI:SetVisible(false)
+					InventoryUI:SetVisible(false)
+					return false
 				end)
 				ItemSelectionUI:SetVisible(true, InventoryUI)
+				InventoryUI:SetVisible(false)
 			end,
 			Check = function(data, itemData, ids, equipped)
 				return true

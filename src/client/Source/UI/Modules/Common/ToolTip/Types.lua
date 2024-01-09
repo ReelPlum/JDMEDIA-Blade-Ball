@@ -349,16 +349,37 @@ return {
 		params.Size = 14
 		params.Width = MAXWIDTH
 
-		local ClientController = knit.GetController("ClientController")
-		local playerInfo = ClientController:GetUserInfo(data.Data)
-		if not playerInfo then
-			return
-		end
-
 		label.Text = `{playerInfo.Username}`
 		if playerInfo.HasVerifiedBadge then
 			label.Text = `{utf8.char(0xE000)}{playerInfo.Username}`
 		end
+		local size = TextService:GetTextBoundsAsync(params)
+		--local size = TextService:GetTextSize(data.Text, 20, Enum.Font.SourceSans, Vector2.new(100, 1000))
+		label.Size = UDim2.new(0, size.X, 0, size.Y)
+
+		params:Destroy()
+		return label
+	end,
+
+	[MetadataTypes.Types.NameTag] = function(ToolTip, data, priority)
+		--Return a text label
+		local label = Instance.new("TextLabel")
+		label.AnchorPoint = Vector2.new(0.5, 0.5)
+		label.TextSize = 14
+		label.LayoutOrder = priority
+		label.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json")
+		label.TextColor3 = Color3.fromRGB(255, 136, 39)
+		label.BackgroundTransparency = 1
+		label.Text = ""
+		label.Size = UDim2.new(0, 0, 0, 0)
+
+		local params = Instance.new("GetTextBoundsParams")
+		params.Text = label.Text
+		params.Font = label.FontFace
+		params.Size = 14
+		params.Width = MAXWIDTH
+
+		label.Text = `{data.Data}`
 		local size = TextService:GetTextBoundsAsync(params)
 		--local size = TextService:GetTextSize(data.Text, 20, Enum.Font.SourceSans, Vector2.new(100, 1000))
 		label.Size = UDim2.new(0, size.X, 0, size.Y)

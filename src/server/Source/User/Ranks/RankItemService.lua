@@ -27,7 +27,7 @@ function RankItemService:CheckUser(user)
 	for rank, items in user.Data.RankItems do
 		if not RankService:UserHasRank(user, rank) then
 			--Remove items from users inventory
-			for _, id in items do
+			for id, item in items do
 				ItemService:RemoveItemWithIdFromUsersInventory(user, id)
 			end
 
@@ -49,13 +49,16 @@ function RankItemService:GiveRankItem(user, rank, item, quantity, metadata)
 
 	local ItemService = knit.GetService("ItemService")
 	local addedItems = ItemService:GiveUserItem(user, item, quantity, itemMetadata)
+	if not addedItems then
+		return
+	end
 
 	if not user.Data.RankItems[rank] then
 		user.Data.RankItems[rank] = {}
 	end
 
 	for id, _ in addedItems do
-		table.insert(user.Data.RankItems[rank], id)
+		user.Data.RankItems[rank][id] = item
 	end
 end
 
