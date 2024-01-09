@@ -198,6 +198,19 @@ function ItemController:GetItemFromId(id)
 	return inventory[tostring(id)]
 end
 
+function ItemController:GetEnchantData(name)
+	local enchant = ReplicatedStorage.Data.Enchants:FindFirstChild(name)
+	if not enchant then
+		return
+	end
+
+	if not enchant:IsA("ModuleScript") then
+		return
+	end
+
+	return require(enchant)
+end
+
 function ItemController:GetAllItemsWhichAreItem(item)
 	local inventory = ItemController:GetInventory()
 

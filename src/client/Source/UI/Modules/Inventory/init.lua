@@ -61,7 +61,7 @@ function Inventory.new(template, parent, testing)
 			Rank = 2,
 		},
 		["Cosmetics"] = {
-			ItemTypes = { "Tag", "Ball", "Unboxable", "Autograph", "NameTag" },
+			ItemTypes = { "Tag", "Ball", "Unboxable", "Autograph", "NameTag", "Book" },
 			Rank = 1,
 		},
 	}

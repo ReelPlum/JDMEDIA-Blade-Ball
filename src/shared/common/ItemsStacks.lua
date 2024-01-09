@@ -58,6 +58,8 @@ local function GenerateStacks(items)
 
 	local ItemController = knit.GetController("ItemController")
 
+	print(items)
+
 	for id, data in items do
 		--Check item etc.
 		local itemData = ItemController:GetItemData(data.Item)

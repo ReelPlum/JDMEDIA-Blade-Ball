@@ -68,6 +68,9 @@ function ItemCopiesService:SyncItemCopies()
 		if not ToShare[t] then
 			ToShare[t] = {}
 		end
+		if not data then
+			continue
+		end
 
 		for item, d in data do
 			if not ToShare[t][item] then

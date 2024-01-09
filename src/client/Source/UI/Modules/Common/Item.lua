@@ -102,6 +102,9 @@ function Item:Init()
 
 	self.Button.MouseEnter:Connect(function()
 		--Show tool tip
+		if not self.Enabled then
+			return
+		end
 		self.ToolTip:AddActor(self.ToolTipData)
 	end)
 
@@ -124,15 +127,13 @@ end
 
 function Item:UpdateStack(stackSize)
 	--Change stack size
-	if stackSize == self.StackSize and self.StackSize ~= nil then
-		return
-	end
+	print(stackSize)
 	if not self.Data then
 		return
 	end
 
 	self.StackSize = stackSize
-	
+
 	local ItemController = knit.GetController("ItemController")
 	local itemData = ItemController:GetItemData(self.Data.Item)
 	if not itemData then
@@ -186,6 +187,8 @@ function Item:UpdateData(newData)
 		self:SetEmpty()
 		return
 	end
+
+	print(newData)
 
 	self.Data = newData
 
@@ -291,7 +294,7 @@ function Item:SetEnabled(bool)
 		self.ItemImage.ImageColor3 = Color3.fromRGB(255, 255, 255)
 		self.ViewportFrame.ImageColor3 = Color3.fromRGB(255, 255, 255)
 
-		self.UI.LayoutOrder = 10000
+		self.UI.LayoutOrder = -10000
 	else
 		self.ItemImage.ImageColor3 = Color3.fromRGB(0, 0, 0)
 		self.ViewportFrame.ImageColor3 = Color3.fromRGB(0, 0, 0)

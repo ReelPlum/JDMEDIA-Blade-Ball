@@ -154,6 +154,19 @@ function ItemContainer:UpdateSearchTerm(newSearchTerm, calledByUpdateItemStacks)
 	end
 end
 
+function ItemContainer:UpdateStackSizes()
+	for id, stackData in self.Stacks do
+		local item = self.Items[id]
+		if item then
+			if self.GetStackSize then
+				item:UpdateStack(self.GetStackSize(stackData))
+			else
+				item:UpdateStack(#stackData.Hold)
+			end
+		end
+	end
+end
+
 function ItemContainer:UpdateWithStacks(stacks, lookup)
 	--Update with new stacks
 	self.Stacks = stacks or {}

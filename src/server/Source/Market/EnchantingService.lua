@@ -11,7 +11,7 @@ local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
 local MetaDataTypes = require(ReplicatedStorage.Data.MetadataTypes)
-local EnchantsData = require(ReplicatedStorage.Data.EnchantsData)
+local EnchantsData = ReplicatedStorage.Data.Enchants
 local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
 
 local EnchantingService = knit.CreateService({
@@ -42,18 +42,33 @@ function EnchantingService.Client:RandomlyEnchantItem(player, itemId)
 	return true
 end
 
-function EnchantingService:GetEnchantData(enchant)
-	return EnchantsData[enchant]
+function EnchantingService:GetEnchantData(name)
+	if not name then
+		return
+	end
+	local Enchant = EnchantsData:FindFirstChild(name)
+	if not Enchant then
+		return
+	end
+
+	if not Enchant:IsA("ModuleScript") then
+		return
+	end
+
+	return require(Enchant)
 end
 
 function EnchantingService:CanItemBeEnchanted(invItemData, enchant)
 	--Check if enchantment supports the item to be enchanted
-	if EnchantingService:GetEnchantOnInventoryItem(invItemData) then
+	local foundEnchant, foundLevel = EnchantingService:GetEnchantOnInventoryItem(invItemData)
+	if foundEnchant and foundEnchant ~= enchant then
+		warn("Enchant on item")
 		return false
 	end
 
 	local data = EnchantingService:GetEnchantData(enchant)
 	if not data then
+		warn("No data")
 		return false
 	end
 
@@ -61,10 +76,14 @@ function EnchantingService:CanItemBeEnchanted(invItemData, enchant)
 	local itemData = ItemService:GetDataForItem(invItemData.Item)
 
 	if not itemData then
+		warn("No item data")
 		return
 	end
 
+	print(data.SupportedItemTypes)
+	print(itemData.ItemType)
 	if not table.find(data.SupportedItemTypes, itemData.ItemType) then
+		warn("Not supported")
 		return false
 	end
 
@@ -104,21 +123,30 @@ function EnchantingService:ApplyEnchantOnItem(data, enchant, level)
 	end
 
 	if not EnchantingService:CanItemBeEnchanted(data, enchant) then
+		warn(enchant)
+		warn(data)
 		return
 	end
 
-	local _, foundLevel = EnchantingService:GetEnchantOnInventoryItem(data)
+	local foundEnchant, foundLevel = EnchantingService:GetEnchantOnInventoryItem(data)
+	if foundEnchant ~= enchant and foundEnchant then
+		warn("Fail")
+		return false
+	end
+
 	if foundLevel then
 		if level ~= tonumber(foundLevel) then
+			warn("Fail")
 			return false
 		end
 
 		if enchantData.Statistics[level + 1] then
 			--Add up 1 level
 			data.Metadata[MetaDataTypes.Types.Enchant][2] = level + 1
-			return true
+			return data
 		end
 
+		warn("Fail")
 		return
 	end
 
@@ -171,32 +199,51 @@ function EnchantingService:ApplyEnchantmentBookOnUsersItem(user, itemId, bookId)
 	local ItemService = knit.GetService("ItemService")
 	local data = ItemService:GetUsersDataFromId(user, itemId)
 	if not data then
+		return warn("No data")
+	end
+	local itemData = ItemService:GetDataForItem(data.Item)
+	if not itemData then
 		return
 	end
+
 	local book = ItemService:GetUsersDataFromId(user, bookId)
+	if not book then
+		return
+	end
 	local bookItemData = ItemService:GetDataForItem(book.Item)
 	if not bookItemData then
-		return
+		return warn("No item data")
 	end
 	if not bookItemData.ItemType == "Book" then
-		return
+		if itemData.ItemTyppe == "Book" then
+			--Swap
+			local bookIdCache = bookId
+			bookId = itemId
+			itemId = bookIdCache
+
+			local bookCache = book
+			book = data
+			data = bookCache
+		else
+			return
+		end
 	end
 
 	local enchant, level = EnchantingService:GetEnchantOnInventoryItem(book)
 
 	if not enchant or not level then
-		return
+		return warn("No level / enchant")
 	end
 
 	local EnchantData = EnchantingService:GetEnchantData(enchant)
 	if not EnchantData then
-		return
+		return warn("No enchant data")
 	end
 
 	--Check for price
 	local CurrencyService = knit.GetService("CurrencyService")
 	if not CurrencyService:UserHasEnough(user, EnchantData.Price.Currency, EnchantData.Price.Amount) then
-		return
+		return warn("User does not have enought :/")
 	end
 
 	local success = EnchantingService:ApplyEnchantOnItem(data, enchant, level)
@@ -242,6 +289,15 @@ end
 function EnchantingService:KnitStart()
 	local UserService = knit.GetService("UserService")
 
+	for _, user in UserService:GetUsers() do
+		user:WaitForDataLoaded()
+		if not user.Data.RandomEnchant then
+			user.Data.RandomEnchant = EnchantingService:GetRandomEnchant()
+		end
+
+		EnchantingService.Client.RandomEnchant:SetFor(user.Player, user.Data.RandomEnchant)
+	end
+
 	UserService.Signals.UserAdded:Connect(function(user)
 		user:WaitForDataLoaded()
 		if not user.Data.RandomEnchant then
@@ -253,9 +309,14 @@ function EnchantingService:KnitStart()
 end
 
 function EnchantingService:KnitInit()
-	for enchant, data in EnchantsData do
+	for _, enchant in EnchantsData:GetChildren() do
+		if not enchant:IsA("ModuleScript") then
+			continue
+		end
+		local data = require(enchant)
+
 		for _ = 1, data.Weight do
-			table.insert(WeightedTable, enchant)
+			table.insert(WeightedTable, enchant.Name)
 		end
 	end
 end
