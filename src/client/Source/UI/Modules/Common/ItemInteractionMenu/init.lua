@@ -7,6 +7,10 @@ Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerGUI = LocalPlayer:WaitForChild("PlayerGui")
 
 local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
@@ -29,6 +33,7 @@ function ItemInteractionMenu.new(template, parent)
 
 	self.Signals = {
 		Destroying = self.Janitor:Add(signal.new()),
+		VisibilityChanged = self.Janitor:Add(signal.new()),
 	}
 
 	self:Init()
@@ -57,15 +62,50 @@ function ItemInteractionMenu:Init()
 		Enum.UserInputType.Touch,
 	}
 	self.Janitor:Add(UserInputService.InputBegan:Connect(function(input, processed)
-		if self.EnteredElement then
+		if not processed then
 			return
 		end
 		if not self.Visible then
 			return
 		end
 
+		-- local pos = UserInputService:GetMouseLocation()
+		-- local objects = PlayerGUI:GetGuiObjectsAtPosition(pos.X, pos.Y)
+		-- for _, obj in objects do
+		-- 	print(obj)
+		-- 	if obj.Parent == self.Holder and obj:IsA("ImageButton") then
+		-- 		return
+		-- 	end
+		-- end
+
 		for _, i in mouseInputs do
 			if input.UserInputType == i then
+				task.wait(0.5)
+				self:SetVisible(false)
+				break
+			end
+		end
+	end))
+
+	self.Janitor:Add(UserInputService.InputChanged:Connect(function(input, processed)
+		if not processed then
+			return
+		end
+		if not self.Visible then
+			return
+		end
+
+		-- local pos = UserInputService:GetMouseLocation()
+		-- local objects = PlayerGUI:GetGuiObjectsAtPosition(pos.X, pos.Y)
+		-- for _, obj in objects do
+		-- 	if obj.Parent == self.Holder and obj:IsA("ImageButton") then
+		-- 		return
+		-- 	end
+		-- end
+
+		for _, i in mouseInputs do
+			if input.UserInputType == i then
+				task.wait(0.5)
 				self:SetVisible(false)
 				break
 			end
@@ -84,18 +124,12 @@ function ItemInteractionMenu:SetData(data, ids, position, d)
 	for _, interaction in self.Data do
 		--Create element
 		local element = self.ElementJanitor:Add(self.Element:Clone())
-		element.Text = interaction.DisplayName
+		element.Label.Text = interaction.DisplayName
 		element.Visible = true
 
 		self.ElementJanitor:Add(element.MouseButton1Click:Connect(function()
 			interaction.Use(ids, d)
 			self:SetVisible(false)
-		end))
-		self.ElementJanitor:Add(element.MouseEnter:Connect(function()
-			self.EnteredElement = true
-		end))
-		self.ElementJanitor:Add(element.MouseLeave:Connect(function()
-			self.EnteredElement = false
 		end))
 
 		element.Parent = self.Holder
@@ -118,6 +152,8 @@ function ItemInteractionMenu:SetVisible(bool)
 
 	self.Visible = bool
 	self.UI.Visible = self.Visible
+
+	self.Signals.VisibilityChanged:Fire(bool)
 end
 
 function ItemInteractionMenu:Destroy()

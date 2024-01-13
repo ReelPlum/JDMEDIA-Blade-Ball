@@ -25,6 +25,8 @@ local CacheController = knit.CreateController({
 		RandomEnchantChanged = signal.new(),
 		LeaderboardsChanged = signal.new(),
 		ItemCopiesChanged = signal.new(),
+		RebirthLevelChanged = signal.new(),
+		StatsChanged = signal.new(),
 	},
 	Cache = {},
 })
@@ -40,6 +42,8 @@ function CacheController:KnitStart()
 	local EnchantingService = knit.GetService("EnchantingService")
 	local LeaderboardsService = knit.GetService("LeaderboardsService")
 	local ItemCopiesService = knit.GetService("ItemCopiesService")
+	local RebirthService = knit.GetService("RebirthService")
+	local StatsService = knit.GetService("StatsService")
 
 	UserTagService.UserTags:Observe(function(tags)
 		self.Cache.Tags = tags
@@ -59,7 +63,7 @@ function CacheController:KnitStart()
 	ExperienceService.Level:Observe(function(levels)
 		local LocalPlayerLvl = tonumber(levels[tostring(LocalPlayer.UserId)]) or 1
 		CacheController.Cache.Level = LocalPlayerLvl
-		CacheController.Signals.LevelChanged:Fire()
+		CacheController.Signals.LevelChanged:Fire(LocalPlayerLvl)
 
 		CacheController.Cache.PlayersLevels = levels
 		CacheController.Signals.PlayersLevelChanged:Fire()
@@ -102,6 +106,18 @@ function CacheController:KnitStart()
 	ItemCopiesService.Copies:Observe(function(copies)
 		CacheController.Cache.ItemCopies = copies
 		CacheController.Signals.ItemCopiesChanged:Fire()
+	end)
+
+	StatsService.Stats:Observe(function(userStats)
+		CacheController.Cache.Stats = userStats
+		CacheController.Signals.StatsChanged:Fire(userStats)
+
+		warn(userStats)
+
+		if CacheController.Cache.Rebirth ~= userStats.Rebirth then
+			CacheController.Cache.Rebirth = userStats.Rebirth
+			CacheController.Signals.RebirthLevelChanged:Fire(userStats.Rebirth)
+		end
 	end)
 end
 

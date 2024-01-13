@@ -43,6 +43,10 @@ function Inventory.new(template, parent, testing)
 	self.InteractionMenu =
 		self.Janitor:Add(ItemInteractionMenu.new(ReplicatedStorage.Assets.UI.ItemInteractionMenu, self.Parent))
 
+	self.Janitor:Add(self.InteractionMenu.Signals.VisibilityChanged:Connect(function(bool)
+		self.ToolTip:Disable(bool)
+	end))
+
 	self.Testing = testing
 
 	self.Pages = {

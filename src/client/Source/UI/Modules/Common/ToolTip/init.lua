@@ -85,11 +85,19 @@ function ToolTip:CreateTextElement(data, priority)
 	return self.ElementJanitor:Add(label)
 end
 
+function ToolTip:Disable(bool)
+	self.Disabled = bool
+
+	if bool then
+		self:ClearAllActors()
+	end
+end
+
 function ToolTip:Update(data)
 	--Add elements
 	self.ElementJanitor:Cleanup()
 
-	if not data then
+	if not data or self.Disabled then
 		self:SetVisible(false)
 		return
 	end
@@ -141,6 +149,8 @@ function ToolTip:Update(data)
 		label.Parent = self.Holder
 	end
 	--Set border color
+
+	self:SetVisible(true)
 end
 
 function ToolTip:CheckForActor()
@@ -152,7 +162,6 @@ function ToolTip:CheckForActor()
 
 	local data = self.Actors[1]
 	self:Update(data)
-	self:SetVisible(true)
 end
 
 function ToolTip:AddActor(data)

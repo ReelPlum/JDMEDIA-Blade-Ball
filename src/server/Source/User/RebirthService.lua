@@ -55,12 +55,29 @@ function RebirthService:Rebirth(user)
 	--Rebirth user.
 	local ExperienceService = knit.GetService("ExperienceService")
 	if ExperienceService:GetNextLevel(user) then
-		return
+		return warn("Not max lvl")
 	end
 
 	local rebirthLevel = RebirthService:GetUsersRebirthLevel(user)
 	if not RebirthService:GetDataForRebirthLevel(rebirthLevel + 1) then
-		return
+		return warn("No level")
+	end
+
+	local rebirthData = RebirthService:GetDataForRebirthLevel(rebirthLevel + 1)
+
+	local CurrencyService = knit.GetService("CurrencyService")
+	local ItemService = knit.GetService("ItemService")
+
+	local Rewards = rebirthData.Rewards
+	for _, data in Rewards do
+		--Give to user
+		if data.Type == "Item" then
+			--Give item
+			ItemService:GiveUserItem(user, data.Item.Item, data.Quantity, data.Item.Metadata)
+		elseif data.Type == "Currency" then
+			--Give currency
+			CurrencyService:GiveCurrency(user, data.Currency, data.Amount)
+		end
 	end
 
 	--User can rebirth
@@ -68,10 +85,6 @@ function RebirthService:Rebirth(user)
 	StatsService:IncrementStat(user, "Rebirth", 1)
 
 	ExperienceService:SetLevel(user, 1)
-
-	--Open a rebirth crate
-	local ShopService = knit.GetService("ShopService")
-	ShopService:Unbox(user, "Rebirth")
 
 	RebirthService.Client.OnRebirth:Fire(user.Player, RebirthService:GetUsersRebirthLevel(user))
 	RebirthService.Signals.UserRebirthed:Fire(user, RebirthService:GetUsersRebirthLevel(user))

@@ -60,30 +60,30 @@ function Menu:Init()
 	self.Hits = Config.Hits.Value
 	self.ExclusiveShopButton = Config.ExclusiveShopButton.Value
 	self.ItemShopButton = Config.ItemShopButton.Value
-
+	self.PlayerLevel = Config.PlayerLevel
 
 	local GameController = knit.GetController("GameController")
 	--Listen for game start / end
-	GameController.Signals.GameChanged:Connect(function(id)
-		if not id then
-			--Set to lobby ui
-			self.InGame.Visible = false
-			self.Lobby.Visible = true
+	-- GameController.Signals.GameChanged:Connect(function(id)
+	-- 	if not id then
+	-- 		--Set to lobby ui
+	-- 		self.InGame.Visible = false
+	-- 		self.Lobby.Visible = true
 
-			return
-		end
+	-- 		return
+	-- 	end
 
-		--Set to ingame UI
-		self.InGame.Visible = true
-		self.Lobby.Visible = false
-	end)
-	if GameController.InGame then
-		self.InGame.Visible = true
-		self.Lobby.Visible = false
-	else
-		self.InGame.Visible = false
-		self.Lobby.Visible = true
-	end
+	-- 	--Set to ingame UI
+	-- 	self.InGame.Visible = true
+	-- 	self.Lobby.Visible = false
+	-- end)
+	-- if GameController.InGame then
+	-- 	self.InGame.Visible = true
+	-- 	self.Lobby.Visible = false
+	-- else
+	-- 	self.InGame.Visible = false
+	-- 	self.Lobby.Visible = true
+	-- end
 
 	local UIController = knit.GetController("UIController")
 
@@ -135,15 +135,15 @@ function Menu:Init()
 		ui:SetVisible()
 	end))
 
-	self.Janitor:Add(self.InGameCash.MouseButton1Click:Connect(function()
-		--Open coins shop
-		local ui = UIController:GetUI("Shop")
-		if not ui then
-			return
-		end
-		--ui:OpenPage("Coins")
-		ui:SetVisible()
-	end))
+	-- self.Janitor:Add(self.InGameCash.MouseButton1Click:Connect(function()
+	-- 	--Open coins shop
+	-- 	local ui = UIController:GetUI("Shop")
+	-- 	if not ui then
+	-- 		return
+	-- 	end
+	-- 	--ui:OpenPage("Coins")
+	-- 	ui:SetVisible()
+	-- end))
 
 	--Displays
 	local CacheController = knit.GetController("CacheController")
@@ -190,21 +190,21 @@ function Menu:UpdateCurrencies()
 	local cash = Currencies["Cash"] or 0
 	cash = math.floor(cash)
 
-	self.InGameCoins.Amount.Text = format:Format(cash)
-	self.LobbyCoins.Amount.Text = format:Format(cash)
+	-- self.InGameCash.Value.Text = format:Format(cash)
+	self.LobbyCash.Value.Text = format:Format(cash)
 end
 
 function Menu:UpdateStreaks()
-	local CacheController = knit.GetController("CacheController")
+	-- local CacheController = knit.GetController("CacheController")
 
-	local GameStreaks = CacheController.Cache.GameStreaks or {}
-	local hits = GameStreaks.Hits or 0
-	local kills = GameStreaks.Kills or 0
-	hits = math.floor(hits)
-	kills = math.floor(kills)
+	-- local GameStreaks = CacheController.Cache.GameStreaks or {}
+	-- local hits = GameStreaks.Hits or 0
+	-- local kills = GameStreaks.Kills or 0
+	-- hits = math.floor(hits)
+	-- kills = math.floor(kills)
 
-	self.Hits.Amount.Text = format:Format(hits)
-	self.Kills.Amount.Text = format:Format(kills)
+	-- self.Hits.Amount.Text = format:Format(hits)
+	-- self.Kills.Amount.Text = format:Format(kills)
 end
 
 function Menu:SetVisible(bool)
@@ -213,7 +213,7 @@ function Menu:SetVisible(bool)
 	end
 
 	self.Visible = bool
-	self.UI.Enabled = bool
+	self.UI.Visible = bool
 end
 
 function Menu:Destroy()

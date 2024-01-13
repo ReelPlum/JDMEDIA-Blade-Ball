@@ -135,12 +135,11 @@ function ItemService:GetMetadataFromItem(data)
 			for index, value in itemData.Metadata do
 				if metadata[index] then
 					continue
-				end 
+				end
 				metadata[index] = value
 			end
 		end
 	end
-
 
 	return metadata
 end
@@ -467,7 +466,7 @@ function ItemService:TransferMultipleItemsToUsersInventory(user, items)
 	local n = 0
 	for _, data in items do
 		n += 1
-		
+
 		if not ItemService:CanUserRecieveItem(data.Item) then
 			return false
 		end
@@ -601,6 +600,10 @@ function ItemService:KnitStart()
 	UserService.Signals.UserAdded:Connect(function(user)
 		InventoryChangeSignals[user] = signal.new()
 	end)
+
+	for _, user in UserService:GetUsers() do
+		InventoryChangeSignals[user] = signal.new()
+	end
 
 	UserService.Signals.UserRemoving:Connect(function(user)
 		InventoryCache[user] = nil

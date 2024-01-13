@@ -26,8 +26,16 @@ function WorldUnboxablesController:CreateModelForItem(data)
 	if data.Type == "Item" then
 		local ItemController = knit.GetController("ItemController")
 		local itemData = ItemController:GetItemData(data.Item.Item)
-		
-		return itemData.Model:Clone()
+		local model = itemData.Model:Clone()
+
+		for _, obj in model:GetDescendants() do
+			if obj:IsA("BasePart") then
+				obj.CanCollide = false
+				obj.Anchored = true
+			end
+		end
+
+		return model
 	end
 end
 

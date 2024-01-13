@@ -50,10 +50,22 @@ function ItemContainer.new(ui, itemTemplate, tooltip, testing)
 		Destroying = self.Janitor:Add(signal.new()),
 	}
 
+	self:Init()
+
 	return self
 end
 
-function ItemContainer:Init() end
+function ItemContainer:Init()
+	local uilayout = self.UI:FindFirstChildWhichIsA("UIGridStyleLayout")
+	if not uilayout then
+		return
+	end
+
+	self.UI.CanvasSize = UDim2.new(0, 0, 0, uilayout.AbsoluteContentSize.Y)
+	self.Janitor:Add(uilayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+		self.UI.CanvasSize = UDim2.new(0, 0, 0, uilayout.AbsoluteContentSize.Y)
+	end))
+end
 
 function ItemContainer:UpdateItemTypes(newItemTypes, calledByUpdateItemStacks)
 	self.ItemTypes = newItemTypes

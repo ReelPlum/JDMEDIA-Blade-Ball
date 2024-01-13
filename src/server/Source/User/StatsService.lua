@@ -89,6 +89,13 @@ function StatsService:KnitStart()
 		StatsService.Client.Stats:SetFor(user.Player, user.Data.Stats)
 		StatsService:UpdateLeaderstats(user)
 	end)
+
+	for _, user in UserService:GetUsers() do
+		user:WaitForDataLoaded()
+
+		StatsService.Client.Stats:SetFor(user.Player, user.Data.Stats)
+		StatsService:UpdateLeaderstats(user)
+	end
 end
 
 function StatsService:KnitInit() end

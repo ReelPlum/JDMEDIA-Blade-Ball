@@ -65,6 +65,8 @@ function UIController:KnitStart()
 	self:RegisterUI(script.Parent.Modules.Leaderboards)
 	self:RegisterUI(script.Parent.Modules.TextPrompt, ReplicatedStorage.Assets.UI.TextPrompt)
 	self:RegisterUI(script.Parent.Modules.Enchanting, ReplicatedStorage.Assets.UI.EnchantingTable)
+	self:RegisterUI(script.Parent.Modules.Rebirth, ReplicatedStorage.Assets.UI.Rebirth)
+	self:RegisterUI(script.Parent.Modules.Menu, ReplicatedStorage.Assets.UI.HUD)
 end
 
 function UIController:KnitInit()

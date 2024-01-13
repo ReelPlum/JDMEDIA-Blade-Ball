@@ -58,17 +58,6 @@ function Item:Init()
 		end
 	end
 
-	if self.Model:IsA("BasePart") then
-		self.Model.CanCollide = false
-		self.Model.Anchored = true
-	end
-	for _, i in self.Model:GetDescendants() do
-		if i:IsA("BasePart") then
-			i.CanCollide = false
-			i.Anchored = true
-		end
-	end
-
 	self.Model:PivotTo(CFrame.new(0, 0, 0))
 
 	self.Controller3D = self.Janitor:Add(Module3D:Attach3D(self.UI.Item, self.Model), "End")
@@ -130,7 +119,7 @@ function Item:Position(index)
 	for _, i in self.Holder.UI:GetChildren() do
 		if i:IsA("Frame") then
 			if i.Visible then
-				i.Size = UDim2.new(1, 0, math.min(size, .75), 0)
+				i.Size = UDim2.new(1, 0, math.min(size, 0.5), 0)
 			end
 		end
 	end

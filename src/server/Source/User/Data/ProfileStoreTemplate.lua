@@ -24,9 +24,11 @@ return {
 		Completed = {},
 	},
 	ItemIndex = {},
+	TemporaryItems = {},
 
 	RandomEnchant = nil,
 	LeaderboardRewards = {},
+	RedeemedCodes = {},
 
 	Moderation = {
 		CurrentBan = nil,

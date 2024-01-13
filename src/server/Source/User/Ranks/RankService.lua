@@ -54,8 +54,8 @@ end
 
 function RankService:KnitStart()
 	local UserService = knit.GetService("UserService")
-	local RankItemService = knit.GetService("RankItemService")
 	local ItemService = knit.GetService("ItemService")
+	local TemporaryItemsService = knit.GetService("TemporaryItemsService")
 
 	local function HandleUser(user)
 		user:WaitForDataLoaded()
@@ -112,11 +112,12 @@ function RankService:KnitStart()
 				if not items[item] then
 					--Remove items
 					if user.Data.RankItems[rank] then
-						for id, itm in user.Data.RankItems[rank] do
+						local TemporaryItems =
+							TemporaryItemsService:GetTemporaryItemsWithID(user, user.Data.RankItems[rank])
+						for id, itm in TemporaryItems do
 							if item == itm then
 								--Remove item
-								ItemService:RemoveItemWithIdFromUsersInventory(user, id)
-								user.Data.RankItems[rank][id] = nil
+								TemporaryItemsService:RemoveItemFromTemporaryItems(user, user.Data.RankItems[rank], id)
 							end
 						end
 					end
@@ -130,21 +131,58 @@ function RankService:KnitStart()
 					--Remove old items
 					print("Not equal")
 					if user.Data.RankItems[rank] then
-						for id, itm in user.Data.RankItems[rank] do
+						local TemporaryItems =
+							TemporaryItemsService:GetTemporaryItemsWithID(user, user.Data.RankItems[rank])
+						for id, itm in TemporaryItems do
 							if item == itm then
 								--Remove item
-								ItemService:RemoveItemWithIdFromUsersInventory(user, id)
-								user.Data.RankItems[rank][id] = nil
+								TemporaryItemsService:RemoveItemFromTemporaryItems(user, user.Data.RankItems[rank], id)
 							end
 						end
 					end
 				end
 
-				RankItemService:GiveRankItem(user, rank, item, itemData.Quantity, itemData.Metadata)
+				if user.Data.RankItems[rank] then
+					TemporaryItemsService:GiveTemporaryItem(
+						user,
+						item,
+						itemData.Quantity,
+						itemData.Metadata,
+						user.Data.RankItems[rank]
+					)
+					continue
+				end
+
+				local ID = TemporaryItemsService:GiveTemporaryItem(user, item, itemData.Quantity, itemData.Metadata)
+				user.Data.RankItems[rank] = ID
 			end
 		end
 
-		RankItemService:CheckUser(user)
+		--RankItemService:CheckUser(user)
+		for _, rank in RankData:GetChildren() do
+			if not rank:IsA("ModuleScript") then
+				continue
+			end
+
+			if not RankService:UserHasRank(user, rank.Name) then
+				if user.Data.RankItems[rank.Name] then
+					TemporaryItemsService:RemoveAllTemporaryItemsWithID(user, user.Data.RankItems[rank.Name])
+					user.Data.RankItems[rank.Name] = nil
+				end
+				continue
+			end
+
+			--Give items
+			local data = RankService:GetRankData(rank.Name)
+			for _, item in data.Items do
+				local d = require(item)
+				if not user.Data.RankItems[rank.Name] then
+					local ID = TemporaryItemsService:GiveTemporaryItem(user, item.Name, d.Quantity, d.Metadata)
+					user.Data.RankItems[rank.Name] = ID
+					continue
+				end
+			end
+		end
 	end
 
 	for _, user in UserService:GetUsers() do
