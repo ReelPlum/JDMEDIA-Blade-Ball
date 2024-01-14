@@ -211,21 +211,35 @@ function TradingService:AcceptTradeRequest(userB, tradeId)
 	table.remove(TradeRequests[userA].Sent, index)
 
 	TradingService.Client.TradeRequests:SetFor(userB.Player, TradeRequests[userB])
+	TradingService.Client.TradeRequests:SetFor(userA.Player, TradeRequests[userA])
 end
 
 function TradingService:DeclineTradeRequest(userB, tradeId)
 	--Declines trade request
 	if not TradeRequests[userB] then
+		return warn("No request found for userB")
+	end
+
+	if not TradeRequests[userB].Recieved[tradeId] then
+		return warn("TradeId not found...")
+	end
+
+	local UserService = knit.GetService("UserService")
+	local userA = UserService:GetUserFromUserId(TradeRequests[userB].Recieved[tradeId].RequestingUser)
+	if not userA then
+		TradeRequests[userB].Recieved[tradeId] = nil
+		return
+	end
+	local index = table.find(TradeRequests[userA].Sent, userB.Player.UserId)
+	if not index then
 		return
 	end
 
-	if not TradeRequests[userB][tradeId] then
-		return
-	end
-
-	TradeRequests[userB][tradeId] = nil
+	TradeRequests[userB].Recieved[tradeId] = nil
+	table.remove(TradeRequests[userA].Sent, index)
 
 	TradingService.Client.TradeRequests:SetFor(userB.Player, TradeRequests[userB])
+	TradingService.Client.TradeRequests:SetFor(userA.Player, TradeRequests[userA])
 end
 
 function TradingService:StartTrade(userA, userB)

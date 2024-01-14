@@ -33,6 +33,7 @@ function TradeRequest.new(template, parent)
 
 	self.Signals = {
 		Destroying = self.Janitor:Add(signal.new()),
+		FinishedUpdating = self.Janitor:Add(signal.new()),
 	}
 
 	self:Init()
@@ -57,6 +58,8 @@ function TradeRequest:Init()
 	self.Holder = Config.Holder.Value
 	self.PlayerElement = Config.PlayerElement.Value
 
+	local done = self:Update()
+
 	self.Janitor:Add(self.CloseButton.MouseButton1Click:Connect(function()
 		self:SetVisible(false)
 	end))
@@ -75,6 +78,11 @@ function TradeRequest:Init()
 		self:Update()
 	end))
 
+	local TradingController = knit.GetController("TradingController")
+	self.Janitor:Add(TradingController.Signals.TradeEnded:Connect(function()
+		self:Update()
+	end))
+
 	--Listen for when trading UI sets visibility to true
 	local UIController = knit.GetController("UIController")
 	local tradingUI = UIController:GetUI("Trading")
@@ -89,31 +97,39 @@ end
 
 function TradeRequest:Update()
 	--Update trade requests
+	if self.Working then
+		return
+	end
+
+	self.Working = true
 	local CacheController = knit.GetController("CacheController")
 	local tradeRequests = CacheController.Cache.TradeRequests or {
 		Sent = {},
 		Recieved = {},
 	}
 
+	warn(self.Requests)
 	for _, player in Players:GetPlayers() do
 		if player == LocalPlayer then
 			continue
 		end
-		if not self.Requests[player] then
-			self.Requests[player] = request.new(self, player, self.PlayerElement)
+		if not self.Requests[player.UserId] then
+			self.Requests[player.UserId] = request.new(self, player, self.PlayerElement)
 		end
 	end
+	warn(self.Requests)
 
-	for player, req in self.Requests do
+	for userId, req in self.Requests do
 		--Check if player is still in game
-		if not player:IsDescendantOf(Players) then
+		if not Players:GetPlayerByUserId(userId) then
 			--Not a player anymore :( Remove them
+			warn("Destroying!")
 			req:Destroy()
-			self.Requests[player] = nil
+			self.Requests[userId] = nil
 			continue
 		end
 
-		if not table.find(tradeRequests.Sent, player.UserId) then
+		if not table.find(tradeRequests.Sent, userId) then
 			req:SetSent(false)
 		else
 			req:SetSent(true)
@@ -122,21 +138,22 @@ function TradeRequest:Update()
 
 	local found = {}
 	for id, data in tradeRequests.Recieved do
-		local player = Players:GetPlayerByUserId(tonumber(data.RequestingUser))
-		table.insert(found, player)
+		table.insert(found, data.RequestingUser)
 
-		if self.Requests[player] then
-			self.Requests[player]:SetRecieved(true, id)
+		if self.Requests[data.RequestingUser] then
+			self.Requests[data.RequestingUser]:SetRecieved(true, id)
 			continue
 		end
 	end
 
-	for player, req in self.Requests do
-		if table.find(found, player) then
+	for userId, req in self.Requests do
+		if table.find(found, userId) then
 			continue
 		end
 		req:SetRecieved(false)
 	end
+
+	self.Working = false
 end
 
 function TradeRequest:SetVisible(bool)

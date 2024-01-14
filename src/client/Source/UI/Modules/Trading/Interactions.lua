@@ -20,6 +20,7 @@ return {
 				TradingService:AddItemsToTrade(itms)
 			end,
 			Check = function(data, itemData, ids)
+				print(#ids)
 				return #ids >= 1
 			end,
 		},
@@ -111,7 +112,7 @@ return {
 				TradingService:AddItemsToTrade(ids)
 			end,
 			Check = function(data, itemData, ids)
-				return #ids > 10
+				return #ids > 2
 			end,
 		},
 	},
@@ -225,7 +226,7 @@ return {
 				TradingService:RemoveItemsFromTrade(ids)
 			end,
 			Check = function(data, itemData, ids)
-				return #ids > 10
+				return #ids > 2
 			end,
 		},
 	},

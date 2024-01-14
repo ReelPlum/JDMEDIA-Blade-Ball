@@ -69,6 +69,7 @@ function UIController:KnitStart()
 	self:RegisterUI(script.Parent.Modules.Menu, ReplicatedStorage.Assets.UI.HUD)
 	self:RegisterUI(script.Parent.Modules.Trading, ReplicatedStorage.Assets.UI.Trading)
 	self:RegisterUI(script.Parent.Modules.TradeRequest, ReplicatedStorage.Assets.UI.TradeRequests)
+	self:RegisterUI(script.Parent.Modules.TradePrompt, ReplicatedStorage.Assets.UI.TradeReq)
 end
 
 function UIController:KnitInit()

@@ -63,7 +63,7 @@ function TradePrompt:Init()
 
 		TradingController:AcceptTradeRequest(self.CurrentTrade)
 		self.CurrentTrade = nil
-		self:CheckQueue()
+		self:SetVisible(false)
 	end))
 
 	self.Janitor:Add(self.DeclineButton.MouseButton1Click:Connect(function()
@@ -74,12 +74,12 @@ function TradePrompt:Init()
 
 		TradingController:DeclineTradeRequest(self.CurrentTrade)
 		self.CurrentTrade = nil
-		self:CheckQueue()
+		self:SetVisible(false)
 	end))
 
 	--Listen for events
 	self.Janitor:Add(TradingController.Signals.TradeRequestRecieved:Connect(function(id)
-		self:AddTradeToQueue(id)
+		self:PromptTrade(id)
 	end))
 
 	local UIController = knit.GetController("UIController")
@@ -96,26 +96,19 @@ function TradePrompt:Init()
 	end))
 end
 
-function TradePrompt:AddTradeToQueue(id)
-	--Adds a trade request to the queue
-	table.insert(self.Queue, id)
-
-	self:CheckQueue()
-end
-
-function TradePrompt:CheckQueue()
+function TradePrompt:PromptTrade(id)
 	--Go through requests in queue. If the trade is still valid then show it.
 	if self.CurrentTrade then
 		return
 	end
 
-	if not self.Queue[1] then
-		self:SetVisible(false)
+	local UIController = knit.GetController("UIController")
+	local tradingUI = UIController:GetUI("Trading")
+	if tradingUI.Visible then
 		return
 	end
 
-	table.remove(self.Queue, 1)
-	self:PopulateUI(self.Queue[1])
+	self:PopulateUI(id)
 end
 
 function TradePrompt:PopulateUI(id)
@@ -124,16 +117,19 @@ function TradePrompt:PopulateUI(id)
 	local CacheController = knit.GetController("CacheController")
 
 	--Get data for trade request
-	if not CacheController.TradeRequests then
-		self:CheckQueue()
+	if not CacheController.Cache.TradeRequests then
+		warn("No trade requests...")
 		return
 	end
 
-	local data = CacheController.TradeRequests.Recieved[id]
+	local data = CacheController.Cache.TradeRequests.Recieved[id]
 	if not data then
-		self:CheckQueue()
+		warn("Not found in recieved")
+		warn(CacheController.Cache.TradeRequests.Recieved)
 		return
 	end
+
+	self.CurrentTrade = id
 
 	local player = Players:GetPlayerByUserId(data.RequestingUser)
 

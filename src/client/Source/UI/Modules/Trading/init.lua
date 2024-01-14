@@ -96,6 +96,10 @@ function Trading:Init()
 
 	self.ItemsContainerLocal =
 		self.Janitor:Add(ItemContainer.new(self.LocalInventoryUI, ReplicatedStorage.Assets.UI.Item, self.ToolTip))
+	self.Janitor:Add(self.InteractionMenu.Signals.VisibilityChanged:Connect(function(bool)
+		self.ToolTip:Disable(bool)
+	end))
+
 	--
 	self.ItemsContainerLocal.GetItemInformation = function(item)
 		local ItemController = knit.GetController("ItemController")
@@ -189,7 +193,7 @@ function Trading:Init()
 		local newIds = {}
 
 		for _, id in ids do
-			if self.Inventories.Local then
+			if self.Inventories.Local[id] then
 				continue
 			end
 			table.insert(newIds, id)
@@ -204,8 +208,9 @@ function Trading:Init()
 			table.insert(interactions, interaction)
 		end
 
+		print(interactions)
 		--Show interaction frame
-		self.InteractionMenu:SetData(interactions, ids, UDim2.new(0, pos.X, 0, pos.Y), data)
+		self.InteractionMenu:SetData(interactions, newIds, UDim2.new(0, pos.X, 0, pos.Y), data)
 	end
 	self.Inventory.GetItemInformation = function(item)
 		local ItemController = knit.GetController("ItemController")

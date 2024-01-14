@@ -67,9 +67,9 @@ function Request:Init()
 	--Populate UI
 	self.DisplayName.Text = self.Player.DisplayName
 	if self.Player.HasVerifiedBadge then
-		self.UserName.Text = `@{self.Player.Name} {utf8.char(0xE000)} sent you a trade request!`
+		self.UserName.Text = `@{self.Player.Name} {utf8.char(0xE000)}`
 	else
-		self.UserName.Text = `@{self.Player.Name} sent you a trade request!`
+		self.UserName.Text = `@{self.Player.Name}`
 	end
 
 	self.PlayerImage.Image = Players:GetUserThumbnailAsync(
@@ -99,9 +99,11 @@ function Request:SetRecieved(bool, id)
 		--Show accept button
 		self.SendButton.Visible = false
 		self.AcceptButton.Visible = true
+		self.DeclineButton.Visible = true
 	else
 		--Hide accept button
 		self.AcceptButton.Visible = false
+		self.DeclineButton.Visible = false
 		self.SendButton.Visible = true
 	end
 end
@@ -112,6 +114,7 @@ function Request:SetSent(bool)
 	if bool then
 		--Hide send button
 		self.AcceptButton.Visible = false
+		self.DeclineButton.Visible = false
 		self.SendButton.Visible = false
 		self.SentButton.Visible = true
 	else

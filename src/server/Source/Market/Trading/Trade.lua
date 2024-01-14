@@ -164,6 +164,8 @@ function Trade:Complete()
 		return
 	end
 
+	warn("Completing trade!")
+
 	self.Completed = true
 	self.UserA:Lock()
 	self.UserB:Lock()
@@ -213,9 +215,11 @@ function Trade:Complete()
 	end
 
 	--Give items
+	local success = true
 	for user, inv in InventoryCopies do
 		local to = if user == self.UserA then self.UserB else self.UserA
-		ItemService:TransferMultipleItemsToUsersInventory(to, inv)
+
+		local success = ItemService:TransferMultipleItemsToUsersInventory(to, inv)
 	end
 
 	--Save trade in logs on both users. (In a compressed format so it doesnt take up much space)
@@ -227,6 +231,8 @@ function Trade:Complete()
 		self.Inventories[self.UserA],
 		self.Inventories[self.UserB]
 	)
+
+	warn("✅Completed TRADE!")
 
 	--Destroy trade
 	self:Destroy()
@@ -286,9 +292,14 @@ function Trade:AddItem(user, itemIds)
 		end
 
 		--Check if item can be added
-		if not ItemService:GetUsersDataFromId(user, itemId) then
+		local data = ItemService:GetUsersDataFromId(user, itemId)
+		if not data then
 			warn("❗Cannot be added because not in inv")
 			return
+		end
+
+		if not ItemService:CanUserRecieveItem(user, data.Item) then
+			warn("❗Cannot recieve item!")
 		end
 	end
 

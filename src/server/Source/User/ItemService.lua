@@ -467,12 +467,14 @@ function ItemService:TransferMultipleItemsToUsersInventory(user, items)
 	for _, data in items do
 		n += 1
 
-		if not ItemService:CanUserRecieveItem(data.Item) then
+		if not ItemService:CanUserRecieveItem(user, data.Item) then
+			warn("User cannot recieve item!")
 			return false
 		end
 	end
 
 	if not ItemService:DoesUserHaveSpaceForItems(user, n) then
+		warn("No space")
 		return false
 	end
 
@@ -487,6 +489,8 @@ function ItemService:TransferMultipleItemsToUsersInventory(user, items)
 	for _, data in items do
 		ItemService.Signals.ItemAdded:Fire(user, data.Item)
 	end
+
+	return true
 end
 
 function ItemService:RemoveItemWithIdFromUsersInventory(user, itemId)
