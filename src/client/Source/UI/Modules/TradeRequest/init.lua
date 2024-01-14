@@ -19,12 +19,13 @@ local TradeRequest = {}
 TradeRequest.ClassName = "TradeRequest"
 TradeRequest.__index = TradeRequest
 
-function TradeRequest.new(uiTemplate)
+function TradeRequest.new(template, parent)
 	local self = setmetatable({}, TradeRequest)
 
 	self.Janitor = janitor.new()
 
-	self.UITemplate = uiTemplate
+	self.Template = template
+	self.Parent = parent
 
 	self.Visible = false
 
@@ -40,11 +41,23 @@ function TradeRequest.new(uiTemplate)
 end
 
 function TradeRequest:Init()
-	--Create UI
-	self.UI = self.Janitor:Add(ReplicatedStorage.Assets.UI.TradeRequests:Clone())
-	self.UI.Parent = LocalPlayer:WaitForChild("PlayerGui")
+	--UI
+	local InputController = knit.GetController("InputController")
 
-	self.Janitor:Add(self.UI.Frame.Close.MouseButton1Click:Connect(function()
+	if self.Template:FindFirstChild(InputController.Platform) then
+		self.UI = self.Janitor:Add(self.Template:FindFirstChild(InputController.Platform):Clone())
+	else
+		self.UI = self.Janitor:Add(self.Template["Normal"]:Clone())
+	end
+
+	self.UI.Parent = self.Parent
+
+	local Config = self.UI.Config
+	self.CloseButton = Config.CloseButton.Value
+	self.Holder = Config.Holder.Value
+	self.PlayerElement = Config.PlayerElement.Value
+
+	self.Janitor:Add(self.CloseButton.MouseButton1Click:Connect(function()
 		self:SetVisible(false)
 	end))
 
@@ -61,7 +74,6 @@ function TradeRequest:Init()
 	self.Janitor:Add(CacheController.Signals.TradeRequestRecieved:Connect(function()
 		self:Update()
 	end))
-
 
 	--Listen for when trading UI sets visibility to true
 	local UIController = knit.GetController("UIController")
@@ -88,7 +100,7 @@ function TradeRequest:Update()
 			continue
 		end
 		if not self.Requests[player] then
-			self.Requests[player] = request.new(self, player)
+			self.Requests[player] = request.new(self, player, self.PlayerElement)
 		end
 	end
 
@@ -132,7 +144,7 @@ function TradeRequest:SetVisible(bool)
 		bool = not self.Visible
 	end
 
-	self.UI.Enabled = bool
+	self.UI.Visible = bool
 	self.Visible = bool
 end
 

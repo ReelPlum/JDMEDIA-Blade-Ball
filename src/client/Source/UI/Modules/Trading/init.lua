@@ -77,19 +77,25 @@ function Trading:Init()
 
 	self.ToolTip = self.Janitor:Add(ToolTip.new(self.Parent))
 
+	local Config = self.UI.Config
+	self.LocalInventoryUI = Config.LocalInventory.Value
+	self.OtherInventoryUI = Config.OtherInventory.Value
+	self.ItemInventory = Config.ItemInventory.Value
+	self.AcceptButton = Config.AcceptButton.Value
+	self.UnAcceptButton = Config.UnAcceptButton.Value
+	self.CancelButton = Config.CancelButton.Value
+	self.TimerLabel = Config.Timer.Value
+	self.OtherPlayerName = Config.OtherPlayerName.Value
+	self.OtherAccepted = Config.OtherAccepted.Value
+
 	self.InteractionMenu =
 		self.Janitor:Add(ItemInteractionMenu.new(ReplicatedStorage.Assets.UI.ItemInteractionMenu, self.Parent))
 
 	local TradingController = knit.GetController("TradingController")
 	local ItemController = knit.GetController("ItemController")
 
-	self.ItemsContainerLocal = self.Janitor:Add(
-		ItemContainer.new(
-			self.UI.Frame.Trade.Frame.LocalPlayer.Frame.ScrollingFrame,
-			ReplicatedStorage.Assets.UI.Item,
-			self.ToolTip
-		)
-	)
+	self.ItemsContainerLocal =
+		self.Janitor:Add(ItemContainer.new(self.LocalInventoryUI, ReplicatedStorage.Assets.UI.Item, self.ToolTip))
 	--
 	self.ItemsContainerLocal.GetItemInformation = function(item)
 		local ItemController = knit.GetController("ItemController")
@@ -140,26 +146,15 @@ function Trading:Init()
 		nil
 	]]
 	self.ItemsContainerB = self.Janitor:Add(
-		ItemContainer.new(
-			self.UI.Frame.Trade.Frame.OtherPlayer.Frame.ScrollingFrame,
-			ReplicatedStorage.Assets.UI.Item,
-			self.ToolTip,
-			false
-		)
+		ItemContainer.new(self.OtherInventoryUI, ReplicatedStorage.Assets.UI.Item, self.ToolTip, false)
 	)
 	self.ItemsContainerB.GetItemInformation = function(item)
 		local ItemController = knit.GetController("ItemController")
 		return ItemController:GetItemData(item)
 	end
 
-	self.Inventory = self.Janitor:Add(
-		ItemContainer.new(
-			self.UI.Frame.Inventory.Frame.Inventory.Holder.ScrollingFrame,
-			ReplicatedStorage.Assets.UI.Item,
-			self.ToolTip,
-			false
-		)
-	)
+	self.Inventory =
+		self.Janitor:Add(ItemContainer.new(self.ItemInventory, ReplicatedStorage.Assets.UI.Item, self.ToolTip, false))
 	self.Inventory.OnClick = function(ids, data)
 		--Add item to trade
 		for _, id in ids do
@@ -168,13 +163,13 @@ function Trading:Init()
 				break
 			end
 		end
+
+		self.Inventory:UpdateStackSizes(self.Inventory.GetStackSize)
 	end
 	self.Inventory:UpdateShouldBeEnabled(function(data)
-		if not TradingController:IsItemTradeable(data) then
-			return false
-		end
+		return TradingController:IsItemTradeable(data)
 	end)
-	self.Inventory:UpdateStackSizes(function(stackData)
+	self.Inventory.GetStackSize = function(stackData)
 		--Check if item has been added
 		local n = 0
 		for _, id in stackData.Hold do
@@ -182,9 +177,8 @@ function Trading:Init()
 				n += 1
 			end
 		end
-
 		return #stackData.Hold - n
-	end)
+	end
 	self.Inventory.OnRightClick = function(ids, data)
 		--Show interaction menu
 		local pos = UserInputService:GetMouseLocation()
@@ -213,19 +207,23 @@ function Trading:Init()
 		--Show interaction frame
 		self.InteractionMenu:SetData(interactions, ids, UDim2.new(0, pos.X, 0, pos.Y), data)
 	end
+	self.Inventory.GetItemInformation = function(item)
+		local ItemController = knit.GetController("ItemController")
+		return ItemController:GetItemData(item)
+	end
 
 	--Buttons
-	self.Janitor:Add(self.UI.Frame.Inventory.Frame.Buttons.Holder.Accept.MouseButton1Click:Connect(function()
+	self.Janitor:Add(self.AcceptButton.MouseButton1Click:Connect(function()
 		--Trade
 
 		TradingController:SetStatusForCurrentTrade(true)
 	end))
-	self.Janitor:Add(self.UI.Frame.Inventory.Frame.Buttons.Holder.Unaccept.MouseButton1Click:Connect(function()
+	self.Janitor:Add(self.UnAcceptButton.MouseButton1Click:Connect(function()
 		--UNaccept
 		TradingController:SetStatusForCurrentTrade(false)
 	end))
 
-	self.Janitor:Add(self.UI.Frame.Inventory.Frame.Buttons.Holder.Cancel.MouseButton1Click:Connect(function()
+	self.Janitor:Add(self.CancelButton.MouseButton1Click:Connect(function()
 		--Cancel trade
 
 		TradingController:CancelCurrentTrade()
@@ -340,38 +338,38 @@ function Trading:UpdateTimer()
 
 	if not t then
 		--Hide timer
-		self.UI.Frame.Trade.Frame.LocalPlayer.Frame.Time.Visible = false
+		self.TimerLabel.Visible = false
 
 		return
 	end
 	--Show timer and set text formatted
-	self.UI.Frame.Trade.Frame.LocalPlayer.Frame.Time.Text = string.format("%0.2fs", t)
-	self.UI.Frame.Trade.Frame.LocalPlayer.Frame.Time.Visible = true
+	self.TimerLabel.Text = string.format("%0.2fs", t)
+	self.TimerLabel.Visible = true
 end
 
 function Trading:UpdateStatus()
 	--Update the statuses for the traders
 	local TradingController = knit.GetController("TradingController")
 
-	self.UI.Frame.Trade.Frame.LocalPlayer.Frame.Time.Visible = false
+	self.TimerLabel.Visible = false
 
 	local statuses = TradingController:GetStatuses()
 	if statuses[1] then
 		--Localplayer accepted. Show unaccpet button
-		self.UI.Frame.Inventory.Frame.Buttons.Holder.Accept.Visible = false
-		self.UI.Frame.Inventory.Frame.Buttons.Holder.Unaccept.Visible = true
+		self.AcceptButton.Visible = false
+		self.UnAcceptButton.Visible = true
 	else
 		--Show accept button
-		self.UI.Frame.Inventory.Frame.Buttons.Holder.Accept.Visible = true
-		self.UI.Frame.Inventory.Frame.Buttons.Holder.Unaccept.Visible = false
+		self.AcceptButton.Visible = true
+		self.UnAcceptButton.Visible = false
 	end
 
 	if statuses[2] then
 		--Other player accepted
-		self.UI.Frame.Trade.Frame.OtherPlayer.Frame.Info.Accepted.Visible = true
+		self.OtherAccepted.Visible = true
 	else
 		--Hide accepted text
-		self.UI.Frame.Trade.Frame.OtherPlayer.Frame.Info.Accepted.Visible = false
+		self.OtherAccepted.Visible = false
 	end
 end
 
@@ -415,7 +413,7 @@ function Trading:SetVisible(bool)
 	end
 
 	self.Visible = bool
-	self.UI.Enabled = bool
+	self.UI.Visible = bool
 
 	self.Signals.VisibilityChanged:Fire(bool)
 end

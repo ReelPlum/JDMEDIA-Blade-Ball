@@ -67,6 +67,8 @@ function UIController:KnitStart()
 	self:RegisterUI(script.Parent.Modules.Enchanting, ReplicatedStorage.Assets.UI.EnchantingTable)
 	self:RegisterUI(script.Parent.Modules.Rebirth, ReplicatedStorage.Assets.UI.Rebirth)
 	self:RegisterUI(script.Parent.Modules.Menu, ReplicatedStorage.Assets.UI.HUD)
+	self:RegisterUI(script.Parent.Modules.Trading, ReplicatedStorage.Assets.UI.Trading)
+	self:RegisterUI(script.Parent.Modules.TradeRequest, ReplicatedStorage.Assets.UI.TradeRequests)
 end
 
 function UIController:KnitInit()

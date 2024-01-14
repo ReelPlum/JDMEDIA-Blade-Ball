@@ -131,6 +131,7 @@ function Item:UpdateStack(stackSize)
 		return
 	end
 
+	local oldSize = self.StackSize
 	self.StackSize = stackSize
 
 	local ItemController = knit.GetController("ItemController")
@@ -153,6 +154,10 @@ function Item:UpdateStack(stackSize)
 
 	if self.StackSize == 1 or itemData.OneCopyAllowed then
 		self.StackText.Visible = false
+		return
+	end
+
+	if self.StackSize == oldSize then
 		return
 	end
 

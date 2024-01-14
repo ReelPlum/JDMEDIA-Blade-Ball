@@ -5,6 +5,9 @@ Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+
+local LocalPlayer = Players.LocalPlayer
 
 local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
@@ -14,13 +17,14 @@ local Request = {}
 Request.ClassName = "Request"
 Request.__index = Request
 
-function Request.new(TradeRequests, player)
+function Request.new(TradeRequests, player, template)
 	local self = setmetatable({}, Request)
 
 	self.Janitor = janitor.new()
 
 	self.TradeRequests = TradeRequests
 	self.Player = player
+	self.Template = template
 
 	self.RequestId = nil
 	self.Sent = false
@@ -35,25 +39,53 @@ function Request.new(TradeRequests, player)
 end
 
 function Request:Init()
-	self.UI = self.Janitor:Add(self.TradeRequests.UI.PlayerTemplate:Clone())
-	self.UI.Parent = self.TradeRequests.UI.Frame.Frame.ScrollingFrame
-	self.UI.Visible = true
+	self.UI = self.Janitor:Add(self.Template:Clone())
+	self.UI.Parent = self.TradeRequests.Holder
+
+	local config = self.UI.Config
+	self.AcceptButton = config.AcceptButton.Value
+	self.DeclineButton = config.DeclineButton.Value
+	self.SendButton = config.SendButton.Value
+	self.SentButton = config.SentButton.Value
+	self.PlayerImage = config.PlayerImage.Value
+	self.UserName = config.UserName.Value
+	self.DisplayName = config.DisplayName.Value
+	self.Friend = config.Friend.Value
 
 	--Buttons
 	local TradingController = knit.GetController("TradingController")
 
-	self.Janitor:Add(self.UI.Accept.MouseButton1Click:Connect(function()
-		--Send trad
+	self.Janitor:Add(self.AcceptButton.MouseButton1Click:Connect(function()
+		--Send trade
 		TradingController:AcceptTradeRequest(self.RequestId)
 	end))
 
-	self.Janitor:Add(self.UI.Send.MouseButton1Click:Connect(function()
+	self.Janitor:Add(self.SendButton.MouseButton1Click:Connect(function()
 		TradingController:SendTradeRequest(self.Player)
 	end))
 
-	self.Janitor:Add(TradingController.Signals.TradeEnded:Connect(function()
-		self.UI.Send.Visible = true
-	end))
+	--Populate UI
+	self.DisplayName.Text = self.Player.DisplayName
+	if self.Player.HasVerifiedBadge then
+		self.UserName.Text = `@{self.Player.Name} {utf8.char(0xE000)} sent you a trade request!`
+	else
+		self.UserName.Text = `@{self.Player.Name} sent you a trade request!`
+	end
+
+	self.PlayerImage.Image = Players:GetUserThumbnailAsync(
+		self.Player.UserId,
+		Enum.ThumbnailType.AvatarThumbnail,
+		Enum.ThumbnailSize.Size100x100
+	)
+
+	self.Friend.Visible = false
+	task.spawn(function()
+		if self.Player:IsFriendsWith(LocalPlayer.UserId) then
+			self.Friend.Visible = true
+		end
+	end)
+
+	self.UI.Visible = true
 end
 
 function Request:SetRecieved(bool, id)
@@ -65,12 +97,12 @@ function Request:SetRecieved(bool, id)
 
 	if bool then
 		--Show accept button
-		self.UI.Send.Visible = false
-		self.UI.Accept.Visible = true
+		self.SendButton.Visible = false
+		self.AcceptButton.Visible = true
 	else
 		--Hide accept button
-		self.UI.Accept.Visible = false
-		self.UI.Send.Visible = true
+		self.AcceptButton.Visible = false
+		self.SendButton.Visible = true
 	end
 end
 
@@ -79,11 +111,13 @@ function Request:SetSent(bool)
 
 	if bool then
 		--Hide send button
-		self.UI.Accept.Visible = false
-		self.UI.Send.Visible = false
+		self.AcceptButton.Visible = false
+		self.SendButton.Visible = false
+		self.SentButton.Visible = true
 	else
 		--Show send button
-		self.UI.Send.Visible = true
+		self.SendButton.Visible = true
+		self.SentButton.Visible = false
 	end
 end
 

@@ -81,6 +81,19 @@ function TradePrompt:Init()
 	self.Janitor:Add(TradingController.Signals.TradeRequestRecieved:Connect(function(id)
 		self:AddTradeToQueue(id)
 	end))
+
+	local UIController = knit.GetController("UIController")
+	local tradingUI = UIController:GetUI("Trading")
+	self.Janitor:Add(tradingUI.Signals.VisibilityChanged:Connect(function(bool)
+		if bool then
+			self:SetVisible(false)
+			return
+		end
+
+		if self.CurrentTrade then
+			self:SetVisible(true)
+		end
+	end))
 end
 
 function TradePrompt:AddTradeToQueue(id)
@@ -124,14 +137,26 @@ function TradePrompt:PopulateUI(id)
 
 	local player = Players:GetPlayerByUserId(data.RequestingUser)
 
-	if player:IsVerified() then
+	if player.HasVerifiedBadge then
 		self.TextLabel.Text = `@{player.Name} {utf8.char(0xE000)} sent you a trade request!`
 	else
 		self.TextLabel.Text = `@{player.Name} sent you a trade request!`
 	end
 
-	self.PlayerImage.Image =
-		Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.AvatarThumbnail, Enum.ThumbnailSize.Size100x100)
+	if self.PlayerImage then
+		self.PlayerImage.Image = Players:GetUserThumbnailAsync(
+			player.UserId,
+			Enum.ThumbnailType.AvatarThumbnail,
+			Enum.ThumbnailSize.Size100x100
+		)
+	end
+
+	local UIController = knit.GetController("UIController")
+	local tradingUI = UIController:GetUI("Trading")
+	if tradingUI.Visible then
+		self:SetVisible(false)
+		return
+	end
 
 	self:SetVisible(true)
 end
