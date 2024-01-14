@@ -25,6 +25,8 @@ local TradingController = knit.CreateController({
 		TradeEnded = signal.new(),
 		StatusChanged = signal.new(),
 
+		TradeRequestRecieved = signal.new(),
+
 		ItemsAdded = signal.new(),
 		ItemsRemoved = signal.new(),
 		TimerUpdated = signal.new(),
@@ -51,6 +53,11 @@ local Timer = nil
 function TradingController:AcceptTradeRequest(id)
 	local TradingService = knit.GetService("TradingService")
 	TradingService:AcceptTradeRequest(id)
+end
+
+function TradingController:DeclineTradeRequest(id)
+	local TradingService = knit.GetService("TradingService")
+	TradingService:DeclineTradeRequest(id)
 end
 
 function TradingController:SendTradeRequest(targetPlayer)
@@ -227,6 +234,10 @@ function TradingController:KnitStart()
 		warn("ITem remove")
 		print(items)
 		TradingController.Signals.ItemsRemoved:Fire(player == LocalPlayer, items)
+	end)
+
+	TradingService.GotTradeRequest:Connect(function(id)
+		TradingController.Signals.TradeRequestRecieved:Fire(id)
 	end)
 
 	RunService.RenderStepped:Connect(function(deltaTime)

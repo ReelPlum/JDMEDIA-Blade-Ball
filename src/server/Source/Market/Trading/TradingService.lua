@@ -27,6 +27,7 @@ local TradingService = knit.CreateService({
 		ItemsAdded = knit.CreateSignal(),
 		ItemsRemoved = knit.CreateSignal(),
 
+		GotTradeRequest = knit.CreateSignal(),
 		TradeRequests = knit.CreateProperty({ Sent = {}, Recieved = {} }),
 		UntradeableUsers = knit.CreateProperty({}),
 	},
@@ -177,6 +178,8 @@ function TradingService:RequestTrade(userA, userB)
 
 	TradingService.Client.TradeRequests:SetFor(userB.Player, TradeRequests[userB])
 	TradingService.Client.TradeRequests:SetFor(userA.Player, TradeRequests[userA])
+
+	TradingService.Client.GotTradeRequest:Fire(userB.Player, id)
 end
 
 function TradingService:AcceptTradeRequest(userB, tradeId)
