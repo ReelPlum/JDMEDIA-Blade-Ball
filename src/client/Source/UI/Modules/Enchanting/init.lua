@@ -56,7 +56,8 @@ function Enchanting:Init()
 	end
 	self.PlatformUI.Visible = true
 
-	self.ToolTip = ToolTip.new(self.UI)
+	local UIController = knit.GetController("UIController")
+	self.ToolTip = UIController.ToolTip
 
 	--UI stuff
 	local Config = self.PlatformUI.Config
@@ -65,6 +66,7 @@ function Enchanting:Init()
 	local InventoryPage = Config.Inventory
 	self.InventoryPage = InventoryPage.InventoryPage.Value
 	self.InventoryHolder = InventoryPage.Holder.Value
+	self.SearchBar = InventoryPage.Search.Value
 
 	local NoSelectionPage = Config.NoSelection
 	self.NoSelectionPage = NoSelectionPage.NoSelectionPage.Value
@@ -237,97 +239,6 @@ function Enchanting:Init()
 
 		--Not found in page
 		return false
-
-		-- local page = self.Pages[self.CurrentPage]
-		-- if table.find(page.itemTypes, itemData.ItemType) then
-		-- 	if data.Metadata[MetadataTypes.Types.Enchant] and not page.shouldEnchantedItemsBeEnabled then
-		-- 		return false
-		-- 	end
-
-		-- 	if data.Metadata[MetadataTypes.Types.Enchant] then
-		-- 		local selectedItem
-		-- 		if self.SelectedItemOne then
-		-- 			selectedItem = self.SelectedItemOne
-		-- 		elseif self.SelectedItemTwo then
-		-- 			selectedItem = self.SelectedItemTwo
-		-- 		else
-		-- 			return true
-		-- 		end
-
-		-- 		local d = ItemController:GetItemFromId(selectedItem)
-		-- 		local itmd = ItemController:GetItemData(d.Item)
-
-		-- 		if itmd.ItemType == "Book" then
-		-- 			if d.Metadata[MetadataTypes.Types.Enchant] then
-		-- 				local EnchantData = ItemController:GetEnchantData(d.Metadata[MetadataTypes.Types.Enchant][1])
-		-- 				if not EnchantData then
-		-- 					return false
-		-- 				end
-
-		-- 				if
-		-- 					d.Metadata[MetadataTypes.Types.Enchant][1]
-		-- 					~= data.Metadata[MetadataTypes.Types.Enchant][1]
-		-- 				then
-		-- 					return false
-		-- 				end
-
-		-- 				if
-		-- 					d.Metadata[MetadataTypes.Types.Enchant][2]
-		-- 					< data.Metadata[MetadataTypes.Types.Enchant][2]
-		-- 				then
-		-- 					return false
-		-- 				end
-
-		-- 				if not EnchantData.Statistics[d.Metadata[MetadataTypes.Types.Enchant][2] + 1] then
-		-- 					return false
-		-- 				end
-
-		-- 				if not table.find(EnchantData.SupportedItemTypes, itemData.ItemType) then
-		-- 					return false
-		-- 				end
-		-- 			else
-		-- 				return false
-		-- 			end
-		-- 		else
-		-- 			if itmd.ItemType == itemData.ItemType then
-		-- 				return false
-		-- 			end
-
-		-- 			if d.Metadata[MetadataTypes.Types.Enchant] then
-		-- 				local EnchantData = ItemController:GetEnchantData(d.Metadata[MetadataTypes.Types.Enchant][1])
-		-- 				if not EnchantData then
-		-- 					return false
-		-- 				end
-
-		-- 				if
-		-- 					d.Metadata[MetadataTypes.Types.Enchant][1]
-		-- 					~= data.Metadata[MetadataTypes.Types.Enchant][1]
-		-- 				then
-		-- 					return false
-		-- 				end
-
-		-- 				if
-		-- 					d.Metadata[MetadataTypes.Types.Enchant][2]
-		-- 					== data.Metadata[MetadataTypes.Types.Enchant][2]
-		-- 				then
-		-- 					if not EnchantData.Statistics[d.Metadata[MetadataTypes.Types.Enchant][2] + 1] then
-		-- 						return false
-		-- 					end
-		-- 				end
-
-		-- 				if
-		-- 					d.Metadata[MetadataTypes.Types.Enchant][2]
-		-- 					> data.Metadata[MetadataTypes.Types.Enchant][2]
-		-- 				then
-		-- 					return false
-		-- 				end
-		-- 			end
-		-- 		end
-		-- 	end
-
-		-- 	return true
-		-- end
-		-- return false
 	end
 
 	self.ItemContainer:UpdateItemTypes({
@@ -343,6 +254,11 @@ function Enchanting:Init()
 
 	--Buttons
 	local EnchantingService = knit.GetService("EnchantingService")
+
+	--Search
+	self.Janitor:Add(self.SearchBar:GetPropertyChangedSignal("Text"):Connect(function()
+		self.ItemContainer:UpdateSearchTerm(self.SearchBar.ContentText)
+	end))
 
 	self.Janitor:Add(self.CombineButton.MouseButton1Click:Connect(function()
 		--Combine

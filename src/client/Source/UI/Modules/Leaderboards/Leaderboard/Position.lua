@@ -76,24 +76,24 @@ function Position:Update(userId, value)
 			result.DisplayName = result.Username
 		end
 
-		local name = result.DisplayName or result.Username
+		local name = result.Username
 		if result.HasVerifiedBadge then
-			name = utf8.char(0xE000) .. "" .. name
+			name = name .. "" .. utf8.char(0xE000)
 		end
 
-		self.UI.UserName.Text = "@" .. result.Username
+		self.UI.UserName.Text = "@" .. name
 		self.UI.DisplayName.Text = name
 		self.UI.Rank.Text = "#" .. self.Index
 		self.UI.Value.Text = value
 
 		if self.Index == 1 then
-			self.UI.DisplayName.Text = name .. " 🥇"
+			self.UI.DisplayName.Text = result.DisplayName .. " 🥇"
 		elseif self.Index == 2 then
-			self.UI.DisplayName.Text = name .. " 🥈"
+			self.UI.DisplayName.Text = result.DisplayName .. " 🥈"
 		elseif self.Index == 3 then
-			self.UI.DisplayName.Text = name .. " 🥉"
+			self.UI.DisplayName.Text = result.DisplayName .. " 🥉"
 		elseif self.Index >= 10 then
-			self.UI.DisplayName.Text = name .. " 🎖️"
+			self.UI.DisplayName.Text = result.DisplayName .. " 🎖️"
 		end
 
 		self.UI.PlayerImage.Image =

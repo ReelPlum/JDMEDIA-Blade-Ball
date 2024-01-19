@@ -18,10 +18,16 @@ local janitor = require(ReplicatedStorage.Packages.Janitor)
 local ItemStacksModule = require(ReplicatedStorage.Common.ItemsStacks)
 
 local Interactions = require(script.Interactions)
+local Pages = require(script.Pages)
 
 local ToolTip = require(script.Parent.Common.ToolTip)
 local ItemContainer = require(script.Parent.Common.ItemContainer)
 local ItemInteractionMenu = require(script.Parent.Common.ItemInteractionMenu)
+
+local SortFunctions = script.Parent.Common.SortFunctions
+local SortName = require(SortFunctions.SortName)
+local SortRarity = require(SortFunctions.SortRarity)
+local SortUniqueness = require(SortFunctions.SortUniqueness)
 
 local Trading = {}
 Trading.ClassName = "Trading"
@@ -75,7 +81,8 @@ function Trading:Init()
 
 	self.UI.Parent = self.Parent
 
-	self.ToolTip = self.Janitor:Add(ToolTip.new(self.Parent))
+	local UIController = knit.GetController("UIController")
+	self.ToolTip = UIController.ToolTip
 
 	local Config = self.UI.Config
 	self.LocalInventoryUI = Config.LocalInventory.Value
@@ -87,6 +94,8 @@ function Trading:Init()
 	self.TimerLabel = Config.Timer.Value
 	self.OtherPlayerName = Config.OtherPlayerName.Value
 	self.OtherAccepted = Config.OtherAccepted.Value
+	self.InventorySearch = Config.Search.Value
+	self.NavigationPanel = Config.NavigationPanel.Value
 
 	self.InteractionMenu =
 		self.Janitor:Add(ItemInteractionMenu.new(ReplicatedStorage.Assets.UI.ItemInteractionMenu, self.Parent))
@@ -216,6 +225,26 @@ function Trading:Init()
 		local ItemController = knit.GetController("ItemController")
 		return ItemController:GetItemData(item)
 	end
+
+	--Load navigation UI for pages
+	self.NavigationPanel.Button.Visible = false
+	for name, data in Pages do
+		local button = self.Janitor:Add(self.NavigationPanel.Button:Clone())
+		button.Name = name
+		button.Parent = self.NavigationPanel
+		button.LayoutOrder = -data.Rank
+		button.Visible = true
+
+		self.Janitor:Add(button.MouseButton1Click:Connect(function()
+			self:ChangeInventoryPage(name)
+		end))
+	end
+
+	--Search
+	self.Janitor:Add(self.InventorySearch:GetPropertyChangedSignal("ContentText"):Connect(function()
+		--Update search
+		self.Inventory:UpdateSearchTerm(self.InventorySearch.ContentText)
+	end))
 
 	--Buttons
 	self.Janitor:Add(self.AcceptButton.MouseButton1Click:Connect(function()
@@ -410,6 +439,38 @@ function Trading:Reset()
 
 	self.ItemsContainerLocal:UpdateWithStacks(self.ItemStacks.Local, self.ItemLookups.Local)
 	self.ItemsContainerB:UpdateWithStacks(self.ItemStacks.Other, self.ItemLookups.Other)
+end
+
+function Trading:ChangeInventoryPage(newPage)
+	--Change page
+	if not Pages[newPage] then
+		return
+	end
+
+	for page, _ in Pages do
+		local button = self.NavigationPanel:FindFirstChild(page)
+		if page == newPage then
+			if button then
+				local color = Vector3.new(
+					self.DefaultButtonColor.r * 255,
+					self.DefaultButtonColor.g * 255,
+					self.DefaultButtonColor.b * 255
+				) - Vector3.new(100, 100, 100)
+				color =
+					Vector3.new(math.clamp(color.X, 0, 255), math.clamp(color.Y, 0, 255), math.clamp(color.Z, 0, 255))
+
+				button.BackgroundColor3 = Color3.fromRGB(color.X, color.Y, color.Z)
+				continue
+			end
+		end
+
+		if button then
+			button.BackgroundColor3 = self.DefaultButtonColor
+		end
+	end
+
+	self.CurrentPage = newPage
+	self.Inventory:UpdateItemTypes(self.Pages[newPage].ItemTypes)
 end
 
 function Trading:SetVisible(bool)

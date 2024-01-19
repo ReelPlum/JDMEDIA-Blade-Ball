@@ -9,6 +9,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local LocalPlayer = Players.LocalPlayer
 
+local ToolTip = require(script.Parent.Modules.Common.ToolTip)
+
 local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 
@@ -25,6 +27,16 @@ ParentUI.IgnoreGuiInset = true
 ParentUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 ParentUI.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local ToolTipUI = Instance.new("ScreenGui")
+ToolTipUI.ResetOnSpawn = false
+ToolTipUI.IgnoreGuiInset = true
+ToolTipUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ToolTipUI.DisplayOrder = 2
+
+ToolTipUI.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+UIController.ToolTip = ToolTip.new(ToolTipUI)
 
 function UIController:GetUI(name)
 	--Returns registered UI with name

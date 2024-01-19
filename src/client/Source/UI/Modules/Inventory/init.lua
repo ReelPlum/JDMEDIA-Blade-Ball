@@ -91,7 +91,8 @@ function Inventory:Init()
 
 	self.UI.Parent = self.Parent
 
-	self.ToolTip = self.Janitor:Add(ToolTip.new(self.Parent))
+	local UIController = knit.GetController("UIController")
+	self.ToolTip = UIController.ToolTip
 
 	--Get ui
 	local config = self.UI.Config
