@@ -9,7 +9,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 
-local ShopData = require(ReplicatedStorage.Data.ShopData)
+local ShopData = ReplicatedStorage.Data.Shop
 
 local ShopController = knit.CreateController({
 	Name = "ShopController",
@@ -30,11 +30,37 @@ function ShopController:ConfirmUnbox(unboxable)
 end
 
 function ShopController:GetBundle(bundleId)
-	return ShopData.Bundles[bundleId]
+	if not bundleId then
+		return
+	end
+
+	local data = ShopData.Bundles:FindFirstChild(bundleId)
+	if not data then
+		return
+	end
+
+	if not data:IsA("ModuleScript") then
+		return
+	end
+
+	return require(data)
 end
 
 function ShopController:GetItem(shopItemId)
-	return ShopData.Items[shopItemId]
+	if not shopItemId then
+		return
+	end
+
+	local data = ShopData.Items:FindFirstChild(shopItemId)
+	if not data then
+		return
+	end
+
+	if not data:IsA("ModuleScript") then
+		return
+	end
+
+	return require(data)
 end
 
 function ShopController:PurchaseItem(shopItemId)

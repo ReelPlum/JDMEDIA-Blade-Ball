@@ -70,6 +70,7 @@ end
 
 function UIController:KnitStart()
 	--Register all UI here
+	self:RegisterUI(script.Parent.Modules.ConfirmationPrompt, ReplicatedStorage.Assets.UI.PopUpConfirm)
 	self:RegisterUI(script.Parent.Modules.Inventory, ReplicatedStorage.Assets.UI.Inventory)
 	self:RegisterUI(script.Parent.Modules.BallPointer, ReplicatedStorage.Assets.UI.BallPointer)
 	self:RegisterUI(script.Parent.Modules.ItemSelection, ReplicatedStorage.Assets.UI.ItemSelection)
@@ -82,6 +83,8 @@ function UIController:KnitStart()
 	self:RegisterUI(script.Parent.Modules.Trading, ReplicatedStorage.Assets.UI.Trading)
 	self:RegisterUI(script.Parent.Modules.TradeRequest, ReplicatedStorage.Assets.UI.TradeRequests)
 	self:RegisterUI(script.Parent.Modules.TradePrompt, ReplicatedStorage.Assets.UI.TradeReq)
+	self:RegisterUI(script.Parent.Modules.ItemShop, ReplicatedStorage.Assets.UI.AbilityShop)
+	self:RegisterUI(script.Parent.Modules)
 end
 
 function UIController:KnitInit()

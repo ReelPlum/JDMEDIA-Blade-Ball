@@ -14,7 +14,7 @@ local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 local promise = require(ReplicatedStorage.Packages.Promise)
 
-local ShopData = require(ReplicatedStorage.Data.ShopData)
+local ShopData = ReplicatedStorage.Data.Shop
 local MetadataTypes = require(ReplicatedStorage.Data.MetadataTypes)
 
 local ShopService = knit.CreateService({
@@ -33,7 +33,7 @@ function ShopService.Client:PurchaseItem(player, id)
 	local UserService = knit.GetService("UserService")
 	local user = UserService:WaitForUser(player)
 
-	ShopService:PurchaseItem(user, id)
+	return ShopService:PurchaseItem(user, id)
 end
 
 function ShopService.Client:PurchaseBundle(player, id)
@@ -43,19 +43,25 @@ function ShopService.Client:PurchaseBundle(player, id)
 	ShopService:PurchaseBundle(user, id)
 end
 
-function ShopService.Client:PurchaseUnboxable(player, id)
-	local UserService = knit.GetService("UserService")
-	local user = UserService:WaitForUser(player)
-
-	ShopService:PurchaseUnboxable(user, id)
-end
-
 function ShopService:GetBundle(bundleId)
 	return ShopData.Bundles[bundleId]
 end
 
 function ShopService:GetItem(itemShopId)
-	return ShopData.Items[itemShopId]
+	if not itemShopId then
+		return
+	end
+
+	local data = ShopData.Items:FindFirstChild(itemShopId)
+	if not data then
+		return
+	end
+
+	if not data:IsA("ModuleScript") then
+		return
+	end
+
+	return require(data)
 end
 
 function ShopService:GetUnboxable(unboxableId)
@@ -69,24 +75,26 @@ function ShopService:PurchaseBundle(user, bundleId)
 		return
 	end
 
-	if not data.Price then
-		return
-	end
-
 	local ItemService = knit.GetService("ItemService")
 	local n = 0
 
 	for _, itemData in data.Items do
+		if not ItemService:CanUserRecieveItem(user, itemData.Item.Item) then
+			return
+		end
+
 		n += itemData.Amount or 1
 	end
 
 	if not ItemService:DoesUserHaveSpaceForItems(user, n) then
-		return
+		return warn("No space...")
 	end
 
-	local CurrencyService = knit.GetService("CurrencyService")
-	if not CurrencyService:TakeCurrency(user, data.Price.Currency, data.Price.Amount) then
-		return
+	if data.Price then
+		local CurrencyService = knit.GetService("CurrencyService")
+		if not CurrencyService:TakeCurrency(user, data.Price.Currency, data.Price.Amount) then
+			return
+		end
 	end
 
 	ShopService:GiveBundle(user, bundleId)
@@ -96,24 +104,28 @@ function ShopService:PurchaseItem(user, itemShopId)
 	--Makes user purchase item
 	local data = ShopService:GetItem(itemShopId)
 	if not data then
-		return
-	end
-
-	if not data.Price then
-		return
+		return warn("No data")
 	end
 
 	local ItemService = knit.GetService("ItemService")
 	if not ItemService:DoesUserHaveSpaceForItems(user, data.Amount or 1) then
-		return
+		return warn("No space")
 	end
 
-	local CurrencyService = knit.GetService("CurrencyService")
-	if not CurrencyService:TakeCurrency(user, data.Price.Currency, data.Price.Amount) then
-		return
+	if not ItemService:CanUserRecieveItem(user, data.Item) then
+		return warn("Cannot recieve")
 	end
 
-	ShopService:GiveItem(user, itemShopId)
+	if data.Price then
+		local CurrencyService = knit.GetService("CurrencyService")
+		if not CurrencyService:TakeCurrency(user, data.Price.Currency, data.Price.Amount) then
+			return warn("Not enough money")
+		end
+	end
+
+	warn("Done!")
+
+	return ShopService:GiveItem(user, itemShopId)
 end
 
 function ShopService:ArePaidRandomItemsRestricted(user)
@@ -125,36 +137,6 @@ function ShopService:ArePaidRandomItemsRestricted(user)
 		return true
 	end
 	return result.ArePaidRandomItemsRestricted
-end
-
-function ShopService:PurchaseUnboxable(user, unboxableId)
-	--Unbox unboxable
-	local data = ShopService:GetUnboxable(unboxableId)
-	if not data then
-		return
-	end
-
-	if not data.Price then
-		return
-	end
-
-	local ItemService = knit.GetService("ItemService")
-	if not ItemService:DoesUserHaveSpaceForItems(user, 1) then
-		return
-	end
-
-	local CurrencyService = knit.GetService("CurrencyService")
-	if not CurrencyService:UserHasEnough(user, data.Price.Currency, data.Price.Amount) then
-		return
-	end
-
-	local unboxedItem = ShopService:Unbox(user, unboxableId)
-	if not unboxedItem then
-		return
-	end
-
-	CurrencyService:TakeCurrency(user, data.Price.Currency, data.Price.Amount)
-	return unboxedItem
 end
 
 function ShopService:GiveBundle(user, bundleId, priceInRobux)
@@ -194,95 +176,16 @@ function ShopService:GiveItem(user, itemShopId, priceInRobux)
 		[MetadataTypes.Types.Robux] = priceInRobux,
 	}
 
-	for t, v in data.Item.Metadata do
+	for t, v in data.Metadata or {} do
 		metadata[t] = v
 	end
 
 	local ItemService = knit.GetService("ItemService")
-	print(data.Amount)
-	ItemService:GiveUserItem(user, data.Item.Item, data.Amount or 1, metadata)
+	local items = ItemService:GiveUserItem(user, data.Item, data.Amount or 1, metadata)
 
 	ShopService.Client.ItemPurchased:Fire(user.Player, itemShopId)
 
-	return true
-end
-
-function ShopService:Unbox(user, unboxableId, priceInRobux)
-	if ShopService:ArePaidRandomItemsRestricted(user) then
-		return
-	end
-
-	local data = ShopService:GetUnboxable(unboxableId)
-	if not data then
-		return
-	end
-
-	if #data.DropList < 1 then
-		return warn("Not enought loot to make unbox " .. unboxableId)
-	end
-
-	local weightedTable = data.WeightedTable
-
-	if not data.WeightedTable then
-		weightedTable = {}
-		for index, data in data.DropList do
-			for i = 1, data.Weight do
-				table.insert(weightedTable, index)
-			end
-		end
-	end
-
-	data.WeightedTable = weightedTable
-
-	local unboxedItem = weightedTable[math.random(1, #weightedTable)]
-	local unboxedItemData = data.DropList[unboxedItem]
-
-	local IsStrange = false
-
-	if data.StrangeChance then
-		if math.random(0, 100) <= data.StrangeChance then
-			IsStrange = true
-		end
-	end
-
-	warn(unboxedItem)
-
-	if unboxedItemData.Type == "Item" then
-		local ItemService = knit.GetService("ItemService")
-
-		warn("Giving item")
-
-		local metadata = {
-			[MetadataTypes.Types.UnboxedBy] = user.Player.UserId,
-			[MetadataTypes.Types.Unboxable] = unboxableId,
-			[MetadataTypes.Types.Robux] = priceInRobux,
-		}
-
-		if IsStrange then
-			--Strange
-			metadata[MetadataTypes.Types.Strange] = 0
-		end
-
-		if unboxedItemData.Item.Metadata then
-			for t, v in unboxedItemData.Item.Metadata do
-				metadata[t] = v
-			end
-		end
-
-		ItemService:GiveUserItem(user, unboxedItemData.Item.Item, 1, metadata)
-	elseif unboxedItemData.Type == "Currency" then
-		local CurrencyService = knit.GetService("CurrencyService")
-		CurrencyService:GiveCurrency(user, unboxedItemData.Currency, unboxedItemData.Amount)
-	else
-		warn("Did not find unboxable type " .. unboxedItemData.Type)
-		return nil
-	end
-
-	ShopService.Client.UnboxablePurchased:Fire(user.Player, unboxableId, unboxedItem, IsStrange)
-
-	ShopService.Signals.UnboxedItem:Fire(user, unboxableId, unboxedItem, IsStrange)
-
-	return unboxedItem
+	return items
 end
 
 function ShopService:KnitStart() end

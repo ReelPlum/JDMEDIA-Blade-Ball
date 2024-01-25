@@ -368,13 +368,15 @@ function ItemController:KnitInit()
 			ItemController.Inventory = {}
 		end
 
+		local changes = {}
 		for _, id in items do
+			changes[id] = ItemController.Inventory[id]
 			ItemController.Inventory[id] = nil
 		end
 
 		ItemStacksModule.ItemsRemoved(ItemStacks, ItemLookup, items)
 
-		ItemController.Signals.ItemRemoved:Fire(items)
+		ItemController.Signals.ItemRemoved:Fire(changes)
 		ItemController.Signals.StacksUpdated:Fire()
 	end)
 end

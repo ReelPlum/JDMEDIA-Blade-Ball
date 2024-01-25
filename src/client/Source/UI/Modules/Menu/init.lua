@@ -90,11 +90,11 @@ function Menu:Init()
 	--Buttons
 	self.Janitor:Add(self.ItemShopButton.MouseButton1Click:Connect(function()
 		--Open shop
-		local ui = UIController:GetUI("Shop")
+		local ui = UIController:GetUI("ItemShop")
 		if not ui then
 			return
 		end
-		ui:ChangePage("FrontPage")
+		--ui:ChangePage("FrontPage")
 		ui:SetVisible()
 	end))
 
@@ -127,7 +127,7 @@ function Menu:Init()
 
 	self.Janitor:Add(self.LobbyCash.MouseButton1Click:Connect(function()
 		--Open coins shop
-		local ui = UIController:GetUI("Shop")
+		local ui = UIController:GetUI("ExclusiveShop")
 		if not ui then
 			return
 		end

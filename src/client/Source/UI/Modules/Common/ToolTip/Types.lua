@@ -229,7 +229,12 @@ return {
 			label.Position = UDim2.new(0.5, 0, 1, 0)
 			label.BackgroundTransparency = 1
 			label.TextScaled = true
+			label.TextColor3 = Color3.fromRGB(255, 255, 255)
 			label.Parent = f
+
+			local UIStroke = Instance.new("UIStroke")
+			UIStroke.Parent = label
+			UIStroke.Thickness = 3
 
 			f.Parent = frame
 		end
