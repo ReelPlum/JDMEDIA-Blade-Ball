@@ -14,7 +14,7 @@ local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
-local Types = require(script.Types)
+local Types = require(script:WaitForChild("Types"))
 local MetadataTypes = require(ReplicatedStorage.Data.MetadataTypes)
 
 local ToolTip = {}

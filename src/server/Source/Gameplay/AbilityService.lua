@@ -44,7 +44,7 @@ local function CheckCooldown(user)
 		return true
 	end
 
-	return tick() - user.LastAbilityUse >= GeneralSettings.Game.Cooldowns.Ability
+	return user.LastAbilityUse - tick() <= 0
 end
 
 function AbilityService:ExecuteAbility(user, cameraLookVector, characterLookVector)
@@ -69,9 +69,9 @@ function AbilityService:ExecuteAbility(user, cameraLookVector, characterLookVect
 	local finished = abilities[ability].ExecuteServer(user, cameraLookVector, characterLookVector)
 	if finished then
 		AbilityService.Client.UsedAbility:Fire(user.Player, ability)
-		user.LastAbilityUse = tick()
+		user.LastAbilityUse = tick() + abilities[ability].CooldownTime
 	end
-	return finished
+	return abilities[ability]
 end
 
 function AbilityService:KnitStart() end

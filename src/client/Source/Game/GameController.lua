@@ -65,13 +65,13 @@ function GameController:UseAbility()
 		return
 	end
 
-	AbilityService:UseAbility(Camera.CFrame.LookVector, rootPart.CFrame.LookVector):andThen(function(success)
-		if not success then
+	AbilityService:UseAbility(Camera.CFrame.LookVector, rootPart.CFrame.LookVector):andThen(function(abilityData)
+		if not abilityData then
 			return
 		end
 		--Get cooldown for current equipped ability
 
-		HitIndicator:SetCooldown(GeneralSettings.Game.Cooldowns.Hit)
+		HitIndicator:SetCooldown(abilityData.CooldownTime)
 	end)
 end
 

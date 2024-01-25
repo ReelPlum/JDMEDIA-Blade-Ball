@@ -113,6 +113,18 @@ function Item:Init()
 		self.ToolTip:RemoveActor(self.ToolTipData)
 	end)
 
+	self.Button.SelectionGained:Connect(function()
+		if not self.Enabled then
+			return
+		end
+		self.ToolTip:AddActor(self.ToolTipData)
+	end)
+
+	self.Button.SelectionLost:Connect(function()
+		--Hide tool tip
+		self.ToolTip:RemoveActor(self.ToolTipData)
+	end)
+
 	--Setup
 	self:SetEquipped(false)
 	self:SetVisible(true)
