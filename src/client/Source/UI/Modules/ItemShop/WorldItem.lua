@@ -190,11 +190,18 @@ function WorldItem:Init()
 		prompt:InputHoldEnd()
 	end)
 
+	local buttonSize = self.Button.Size
+	self.Janitor:Add(prompt.TriggerEnded:Connect(function()
+		--self.Button:TweenSize(buttonSize, "Out", "Back", 0.1, true)
+	end))
+
 	local UIController = knit.GetController("UIController")
 	self.Janitor:Add(prompt.Triggered:Connect(function()
 		if not self.Enabled then
 			return
 		end
+
+		--self.Button:TweenSize(buttonSize - UDim2.new(0.2, 0, 0.2, 0), "Out", "Back", 0.05, true)
 
 		warn("Hi")
 		--Purchase item
@@ -205,7 +212,7 @@ function WorldItem:Init()
 		ShopService:PurchaseItem(self.ShopId):andThen(function(items)
 			if not items then
 				--prompt.Enabled = true
-				self.Enabled = false
+				self.Enabled = true
 				return
 			end
 

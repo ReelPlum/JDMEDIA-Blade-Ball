@@ -16,7 +16,7 @@ local force = 2500
 return {
 	DisplayName = "Dash",
 
-	CooldownTime = 5,
+	CooldownTime = 1,
 
 	Levels = {
 		[1] = {

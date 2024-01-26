@@ -22,15 +22,12 @@ return function(user)
 		track:Play()
 
 		user.ExtendedCharacter:EquipKnife()
-		warn("trying to equip knife again..")
 
 		return
 	end
 
 	track:GetMarkerReachedSignal("Equip"):Connect(function()
-		warn("Equip")
 		if not user.Player.Character then
-			warn("No character")
 			return
 		end
 
@@ -40,9 +37,7 @@ return function(user)
 
 		local ItemService = knit.GetService("ItemService")
 		local data = ItemService:GetItemData(knife)
-		warn(knife)
 		if not data then
-			warn("No data")
 			return
 		end
 
@@ -64,10 +59,8 @@ return function(user)
 		)
 		j:Add(jan)
 
-		print("Hit")
 		for _, i in knf:GetDescendants() do
 			if i:IsA("Trail") then
-				print("Enabled")
 				i.Enabled = true
 			end
 		end

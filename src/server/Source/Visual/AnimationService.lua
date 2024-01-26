@@ -16,7 +16,7 @@ local AnimationService = knit.CreateService({
 	Signals = {},
 })
 
-function AnimationService:PlayDeflectAnimation(user, animation)
+function AnimationService:PlayMissAnimation(user)
 	--Plays deflect animation on user
 	if not user.Player.Character then
 		return
@@ -38,7 +38,32 @@ function AnimationService:PlayDeflectAnimation(user, animation)
 	--Spawn slash effect in
 
 	--Play sound for knife if a sound is attached
-	require(ReplicatedStorage.Common.Animations[data.Animation])(user)
+	require(ReplicatedStorage.Common.Animations[data.MissAnimation])(user)
+end
+
+function AnimationService:PlayDeflectAnimation(user)
+	--Plays deflect animation on user
+	if not user.Player.Character then
+		return
+	end
+
+	--Get equipped knife
+	local EquipmentService = knit.GetService("EquipmentService")
+	local knife = EquipmentService:GetEquippedItemOfType(user, "Knife")
+
+	local ItemService = knit.GetService("ItemService")
+	local data = ItemService:GetItemData(knife)
+	if not data then
+		warn(`❗Failed to get {user.Player.Name}'s knife {knife}`)
+		return
+	end
+
+	--Spawn dust effect in
+
+	--Spawn slash effect in
+
+	--Play sound for knife if a sound is attached
+	require(ReplicatedStorage.Common.Animations[data.DeflectAnimation])(user)
 end
 
 function AnimationService:KnitStart() end

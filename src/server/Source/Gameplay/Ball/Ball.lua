@@ -353,9 +353,14 @@ function Ball:Hit(user, cameraLookVector, characterLookVector)
 		return
 	end
 
+	local AnimationService = knit.GetService("AnimationService")
+
 	--Check distance
 	local distance = self:GetDistanceToTarget()
 	if distance > BALLHITDISTANCE then
+		--Play failed to hit animation
+		AnimationService:PlayMissAnimation(user)
+
 		return
 	end
 
@@ -376,8 +381,7 @@ function Ball:Hit(user, cameraLookVector, characterLookVector)
 	SoundService:PlaySoundOnPart(ReplicatedStorage.Assets.Sounds.BallHit, self.BallModel)
 
 	--Play hit animation
-	local AnimationService = knit.GetService("AnimationService")
-	AnimationService:PlayDeflectAnimation(user, ReplicatedStorage.Assets.Animations.DefaultDeflect)
+	AnimationService:PlayDeflectAnimation(user)
 
 	--Count hits by user on ball
 	if not self.Hits[user] then
