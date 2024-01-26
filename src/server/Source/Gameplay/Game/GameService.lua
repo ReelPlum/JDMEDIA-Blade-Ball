@@ -60,29 +60,29 @@ local GameSections = {
 			votedMap = nil
 		end,
 	},
-	{ --Voting
-		Title = "Voting",
-		Time = GeneralSettings.Game.GameTimes.Voting,
-		CheckUsers = true,
-		OnStart = function()
-			--Start voting
-			if nextMap then
-				--A map has already been set
-				votedMap = nextMap
-				nextMap = nil
+	-- { --Voting
+	-- 	Title = "Voting",
+	-- 	Time = GeneralSettings.Game.GameTimes.Voting,
+	-- 	CheckUsers = true,
+	-- 	OnStart = function()
+	-- 		--Start voting
+	-- 		if nextMap then
+	-- 			--A map has already been set
+	-- 			votedMap = nextMap
+	-- 			nextMap = nil
 
-				return
-			end
+	-- 			return
+	-- 		end
 
-			--Start vote
-			local VotingService = knit.GetService("VotingService")
-			currentVote = VotingService:StartVote({ --Get all maps and an image of them here
-				[1] = 1,
-			})
+	-- 		--Start vote
+	-- 		local VotingService = knit.GetService("VotingService")
+	-- 		currentVote = VotingService:StartVote({ --Get all maps and an image of them here
+	-- 			[1] = 1,
+	-- 		})
 
-			return
-		end,
-	},
+	-- 		return
+	-- 	end,
+	-- },
 	{ --Intermission
 		Title = "Intermission",
 		Time = GeneralSettings.Game.GameTimes.Intermission,

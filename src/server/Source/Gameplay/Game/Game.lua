@@ -213,14 +213,14 @@ function Game:Leave(user)
 			rewards[currency] = 0
 
 			if self.Ball.Hits[user] then
-				rewards[currency] += self.Ball.Hits[user] * data.Hit * boosts.Hit
+				rewards[currency] += self.Ball.Hits[user] * data.Hit * (boosts.Hit or 1)
 			end
 
 			if self.Ball.Kills[user] then
-				rewards[currency] += self.Ball.Kills[user] * data.Kill * boosts.Kill
+				rewards[currency] += self.Ball.Kills[user] * data.Kill * (boosts.Kill or 1)
 			end
 
-			rewards[currency] += (tick() - self.StartTime) * data.Second * boosts.Time
+			rewards[currency] += (tick() - self.StartTime) * data.Second * (boosts.Time or 1)
 		end
 	end
 	--Add reward to users cash
@@ -342,7 +342,7 @@ function Game:End()
 	local boosts = BoostService:GetUsersBoosts(winner)
 
 	for currency, data in GeneralSettings.Game.Rewards.Currency do
-		CurrencyService:GiveCurrency(winner, currency, data.Win * boosts.Win)
+		CurrencyService:GiveCurrency(winner, currency, data.Win * (boosts.Win or 1))
 	end
 
 	--Save win to winners stats

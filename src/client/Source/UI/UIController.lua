@@ -88,7 +88,7 @@ function UIController:KnitStart()
 end
 
 function UIController:KnitInit()
-	--self:RegisterUI(script.Parent.Modules.Loading, ReplicatedStorage.Assets.UI.LoadingScreen)
+	self:RegisterUI(script.Parent.Modules.Loading, ReplicatedStorage.Assets.UI.LoadingScreen)
 end
 
 return UIController

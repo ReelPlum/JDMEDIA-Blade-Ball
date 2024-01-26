@@ -42,6 +42,10 @@ function BoostService:GetUsersRebirthBoosts(user)
 	local rebirthLevel = RebirthService:GetUsersRebirthLevel(user)
 	local data = RebirthService:GetDataForRebirthLevel(rebirthLevel)
 
+	if not data then
+		return {}
+	end
+
 	return data.Boosts
 end
 

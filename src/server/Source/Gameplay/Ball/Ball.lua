@@ -373,7 +373,7 @@ function Ball:Hit(user, cameraLookVector, characterLookVector)
 
 	self.Signals.Hit:Fire(user, mixedLookVector)
 
-	self.Speed *= 1.05
+	self.Speed *= 1.2
 	self:GetNextTarget(self.TargetCallback(), characterLookVector)
 
 	--Play hit sound
