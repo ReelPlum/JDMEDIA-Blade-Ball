@@ -13,7 +13,7 @@ local LocalPlayer = Players.LocalPlayer
 local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
-local moonlite = require(ReplicatedStorage.Common.moonlite)
+local moonlite = require(ReplicatedStorage.Common:WaitForChild("Moonlite"))
 
 local WorldUnboxable = {}
 WorldUnboxable.ClassName = "WorldUnboxable"
@@ -48,12 +48,14 @@ function WorldUnboxable:Init()
 	self.Object = self.Janitor:Add(data.Model:Clone())
 	self.Object.Parent = workspace
 
-	local Animator = self.Janitor:Add(Instance.new("AnimationController"))
-	Animator.Parent = self.Object
+	--local Animator = self.Janitor:Add(Instance.new("AnimationController"))
+	--Animator.Parent = self.Object
 
-	self.Anim = self.Janitor:Add(Animator:LoadAnimation(data.Animation))
+	--self.Anim = self.Janitor:Add(Animator:LoadAnimation(data.Animation))
 
-	self.Janitor:Add(self.Anim.Ended:Connect(function()
+	self.Anim = moonlite.CreatePlayer(data.Animation, self.Object)
+
+	self.Janitor:Add(self.Anim.Completed:Connect(function()
 		self:FinishedUnboxing()
 	end))
 
@@ -90,6 +92,7 @@ function WorldUnboxable:AnimateUnboxing()
 	--Animate the unboxing
 	--Use moonlite to animate a moon animator 2 animation
 	--self.Anim:Play()
+	self.Anim:Play()
 end
 
 function WorldUnboxable:FinishedUnboxing()

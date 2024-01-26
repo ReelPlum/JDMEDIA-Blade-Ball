@@ -21,7 +21,6 @@ export type MoonAnimPath = {
 }
 
 export type MoonAnimItem = {
-	Override: Instance?,
 	Path: MoonAnimPath,
 }
 
