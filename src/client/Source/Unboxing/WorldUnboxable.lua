@@ -13,7 +13,7 @@ local LocalPlayer = Players.LocalPlayer
 local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
-local moonlite = require(ReplicatedStorage.Packages.moonlite)
+local moonlite = require(ReplicatedStorage.Common.moonlite)
 
 local WorldUnboxable = {}
 WorldUnboxable.ClassName = "WorldUnboxable"
@@ -89,7 +89,7 @@ end
 function WorldUnboxable:AnimateUnboxing()
 	--Animate the unboxing
 	--Use moonlite to animate a moon animator 2 animation
-	self.Anim:Play()
+	--self.Anim:Play()
 end
 
 function WorldUnboxable:FinishedUnboxing()
