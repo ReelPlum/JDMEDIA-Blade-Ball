@@ -47,6 +47,7 @@ end
 
 function WorldItem:Init()
 	--Create in world
+
 	local ItemController = knit.GetController("ItemController")
 	local UnboxingController = knit.GetController("UnboxingController")
 
@@ -88,6 +89,7 @@ function WorldItem:Init()
 	--Listen for proximity
 	local prompt = self.WorldInstance:FindFirstChildOfClass("ProximityPrompt")
 	prompt.Style = Enum.ProximityPromptStyle.Custom
+	self.Prompt = prompt
 
 	self.UI = self.Janitor:Add(ReplicatedStorage.Assets.UI.WorldItem:Clone())
 	self.UI.Parent = LocalPlayer:WaitForChild("PlayerGui")
@@ -203,7 +205,6 @@ function WorldItem:Init()
 
 		--self.Button:TweenSize(buttonSize - UDim2.new(0.2, 0, 0.2, 0), "Out", "Back", 0.05, true)
 
-		warn("Hi")
 		--Purchase item
 		--prompt.Enabled = false
 		self.Enabled = false
@@ -242,13 +243,11 @@ function WorldItem:Init()
 
 	self.Janitor:Add(prompt.PromptShown:Connect(function()
 		--Show billboard gui with price, purchase & rarities
-		warn("Show")
 		self.UI.Enabled = true
 	end))
 
 	self.Janitor:Add(prompt.PromptHidden:Connect(function()
 		--Hide billboard gui with price, purchase & rarities
-		warn("Hide")
 		self.UI.Enabled = false
 	end))
 
@@ -274,6 +273,39 @@ function WorldItem:Init()
 				* CFrame.Angles(math.rad(x * dx), -math.rad(y * dy), -math.rad(z * dz))
 		)
 	end))
+
+	local InputController = knit.GetController("InputController")
+	self.Janitor:Add(InputController.Signals.InputModeChanged:Connect(function()
+		--warn("Change")
+		self:UpdateInputMode()
+	end))
+	self:UpdateInputMode()
+end
+
+function WorldItem:UpdateInputMode()
+	local InputController = knit.GetController("InputController")
+	local inputType = InputController.CurrentInputMode
+
+	local UserInputService = game:GetService("UserInputService")
+
+	warn(inputType)
+
+	if inputType == "Touch" then
+		--Show touch icon
+		self.Button.InputIcon.Image = ReplicatedStorage.Assets.InputIcons.Touch.Texture
+		self.Button.TextLabel.Visible = false
+	elseif inputType == "Keyboard" then
+		--Show key
+		self.Button.InputIcon.Image = ""
+
+		self.Button.TextLabel.Text = UserInputService:GetStringForKeyCode(self.Prompt.KeyboardKeyCode)
+		self.Button.TextLabel.Visible = true
+	elseif inputType == "Gamepad" then
+		--Show gamepad icon
+		self.Button.InputIcon.Image = UserInputService:GetImageForKeyCode(self.Prompt.GamepadKeyCode)
+
+		self.Button.TextLabel.Visible = false
+	end
 end
 
 function WorldItem:Destroy()

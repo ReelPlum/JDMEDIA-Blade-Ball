@@ -39,8 +39,6 @@ local requiredLoaded = {
 --Rewrite this to be non dependent on cachecontroller and instead call IsLoaded on all the controllers instead.
 
 function LoadingController:KnitStart()
-	LoadingController:PreloadGame()
-
 	local CacheController = knit.GetController("CacheController")
 	local j = janitor.new()
 	--Listen for cache loads
@@ -58,6 +56,8 @@ function LoadingController:KnitStart()
 	end))
 end
 
-function LoadingController:KnitInit() end
+function LoadingController:KnitInit()
+	LoadingController:PreloadGame()
+end
 
 return LoadingController

@@ -45,6 +45,8 @@ function WorldUnboxable:Init()
 	local UnboxingController = knit.GetController("UnboxingController")
 	local data = UnboxingController:GetUnboxable(self.Unboxable)
 
+	self.Data = data
+
 	self.Object = self.Janitor:Add(data.Model:Clone())
 	self.Object.Parent = workspace
 
@@ -52,12 +54,6 @@ function WorldUnboxable:Init()
 	--Animator.Parent = self.Object
 
 	--self.Anim = self.Janitor:Add(Animator:LoadAnimation(data.Animation))
-
-	self.Anim = moonlite.CreatePlayer(data.Animation, self.Object)
-
-	self.Janitor:Add(self.Anim.Completed:Connect(function()
-		self:FinishedUnboxing()
-	end))
 
 	--Emit
 	task.spawn(function()
@@ -92,6 +88,12 @@ function WorldUnboxable:AnimateUnboxing()
 	--Animate the unboxing
 	--Use moonlite to animate a moon animator 2 animation
 	--self.Anim:Play()
+	self.Anim = moonlite.CreatePlayer(self.Data.Animation, self.Object)
+
+	self.Janitor:Add(self.Anim.Completed:Connect(function()
+		self:FinishedUnboxing()
+	end))
+
 	self.Anim:Play()
 end
 

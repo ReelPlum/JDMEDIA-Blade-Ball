@@ -392,7 +392,7 @@ end
 function Moonlite.CreatePlayer(
 	save: StringValue,
 	-- originalCenter: CFrame,
-	-- newCenter: CFrame,
+	--newCenter: CFrame,
 	StartInstance: Instance
 ): MoonTrack
 	local saveData: MoonAnimSave = HttpService:JSONDecode(save.Value)
@@ -503,7 +503,11 @@ function Moonlite.CreatePlayer(
 						--CFrames are relative values in my modifed version of moonlite
 
 						local relCFrame = default:ToObjectSpace(cf)
+
+						--return CFrame.new()
+
 						return target:GetPivot() * relCFrame
+						--return cf
 					end
 				end
 
@@ -537,7 +541,7 @@ function Moonlite.CreatePlayer(
 		_tweens = {},
 
 		-- originalCenter = originalCenter,
-		-- newCenter = newCenter,
+		--newCenter = newCenter,
 	}, MoonTrack)
 end
 
