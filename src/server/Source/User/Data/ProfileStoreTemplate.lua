@@ -29,6 +29,7 @@ return {
 	RandomEnchant = nil,
 	LeaderboardRewards = {},
 	RedeemedCodes = {},
+	BoughtRobuxPacks = {},
 
 	Moderation = {
 		CurrentBan = nil,
