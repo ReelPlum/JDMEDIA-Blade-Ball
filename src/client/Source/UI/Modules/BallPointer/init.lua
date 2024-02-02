@@ -15,6 +15,7 @@ local Arrow = require(script.Arrow)
 local BallPointer = {}
 BallPointer.ClassName = "BallPointer"
 BallPointer.__index = BallPointer
+BallPointer.UIType = "HUD"
 
 function BallPointer.new(uiTemplate)
 	local self = setmetatable({}, BallPointer)

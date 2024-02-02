@@ -40,6 +40,7 @@ end
 local Rebirth = {}
 Rebirth.ClassName = "Rebirth"
 Rebirth.__index = Rebirth
+Rebirth.UIType = "Menu"
 
 function Rebirth.new(template, parent)
 	local self = setmetatable({}, Rebirth)

@@ -16,11 +16,28 @@ local janitor = require(ReplicatedStorage.Packages.Janitor)
 local PositionClass = require(script.Position)
 
 local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
-local LeaderboardsData = require(ReplicatedStorage.Data.LeaderboardsData)
+local LeaderboardsData = ReplicatedStorage.Data.Leaderboards
 
 local Leaderboard = {}
 Leaderboard.ClassName = "Leaderboard"
 Leaderboard.__index = Leaderboard
+
+local function GetLeaderboardData(leaderboard)
+	if not leaderboard then
+		return
+	end
+
+	local data = LeaderboardsData:FindFirstChild(leaderboard)
+	if not data then
+		return
+	end
+
+	if not data:IsA("ModuleScript") then
+		return
+	end
+
+	return require(data)
+end
 
 function Leaderboard.new(instance, leaderboard)
 	local self = setmetatable({}, Leaderboard)
@@ -29,7 +46,7 @@ function Leaderboard.new(instance, leaderboard)
 
 	self.Instance = instance
 	self.Leaderboard = leaderboard
-	self.Data = LeaderboardsData[self.Leaderboard]
+	self.Data = GetLeaderboardData(self.Leaderboard)
 
 	self.Positions = {}
 

@@ -64,9 +64,9 @@ end
 
 function ToolTip:Loop()
 	self.Janitor:Add(RunService.RenderStepped:Connect(function()
-		if not self.Visible then
-			return
-		end
+		-- if not self.Visible then
+		-- 	return
+		-- end
 		--Position UI
 		local position = UserInputService:GetMouseLocation()
 		self.UI.Position = UDim2.new(0, position.X, 0, position.Y)
@@ -150,6 +150,8 @@ function ToolTip:Update(data)
 	end
 	--Set border color
 
+	local size = self.Holder:WaitForChild("UIListLayout").AbsoluteContentSize
+	self.UI.Size = UDim2.new(0, size.X + 10, 0, size.Y + 10)
 	self:SetVisible(true)
 end
 

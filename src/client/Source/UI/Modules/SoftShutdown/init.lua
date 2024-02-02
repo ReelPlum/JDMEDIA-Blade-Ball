@@ -12,6 +12,7 @@ local janitor = require(ReplicatedStorage.Packages.Janitor)
 
 local SoftShutdown = {}
 SoftShutdown.__index = SoftShutdown
+SoftShutdown.UIType = "Fullscreen"
 
 function SoftShutdown.new(UI)
 	local self = setmetatable({}, SoftShutdown)

@@ -68,6 +68,21 @@ function UIController:HideAllUI()
 	end
 end
 
+function UIController:GetVisibleUIOfType(t)
+	local found = {}
+
+	for name, ui in UI do
+		if not ui.Visible then
+			continue
+		end
+		if ui.UIType == t then
+			found[name] = ui
+		end
+	end
+
+	return found
+end
+
 function UIController:KnitStart()
 	--Register all UI here
 	self:RegisterUI(script.Parent.Modules.ConfirmationPrompt, ReplicatedStorage.Assets.UI.PopUpConfirm)
@@ -85,6 +100,7 @@ function UIController:KnitStart()
 	self:RegisterUI(script.Parent.Modules.TradePrompt, ReplicatedStorage.Assets.UI.TradeReq)
 	self:RegisterUI(script.Parent.Modules.ItemShop, ReplicatedStorage.Assets.UI.AbilityShop)
 	self:RegisterUI(script.Parent.Modules.IndicatorList, ReplicatedStorage.Assets.UI.IndicatorList)
+	self:RegisterUI(script.Parent.Modules.Notifications, ReplicatedStorage.Assets.UI.Notification)
 end
 
 function UIController:KnitInit()

@@ -6,13 +6,13 @@ Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local MapData = require(ReplicatedStorage.Data.MapData)
+local MapData = ReplicatedStorage.Data.Maps
 
 return function(registry)
 	local maps = {}
 
-	for name, _ in MapData do
-		table.insert(maps, name)
+	for _, module in MapData:GetChildren() do
+		table.insert(maps, module.Name)
 	end
 
 	registry:RegisterType("map", registry.Cmdr.Util.MakeEnumType("Map", maps))

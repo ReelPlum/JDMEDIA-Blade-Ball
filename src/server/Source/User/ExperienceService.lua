@@ -10,7 +10,7 @@ local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
-local ExperienceLevelsData = require(ReplicatedStorage.Data.ExperienceLevels)
+local ExperienceLevelsData = ReplicatedStorage.Data.Levels
 
 local ExperienceService = knit.CreateService({
 	Name = "ExperienceService",
@@ -56,8 +56,25 @@ function ExperienceService:SetLevel(user, level)
 	ExperienceService.Signals.UserLevelledUp:Fire(user)
 end
 
+function ExperienceService:GetLevelData(level)
+	if not level then
+		return
+	end
+
+	local data = ExperienceLevelsData:FindFirstChild(level)
+	if not data then
+		return
+	end
+
+	if not data:IsA("ModuleScript") then
+		return
+	end
+
+	return require(data)
+end
+
 function ExperienceService:GetNextLevel(user)
-	return ExperienceLevelsData[ExperienceService:GetUsersLevel(user) + 1]
+	return ExperienceLevelsData:GetLevelData(ExperienceService:GetUsersLevel(user) + 1)
 end
 
 function ExperienceService:GetUsersExperience(user)

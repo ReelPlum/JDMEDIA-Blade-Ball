@@ -18,6 +18,7 @@ local request = require(script.Request)
 local TradeRequest = {}
 TradeRequest.ClassName = "TradeRequest"
 TradeRequest.__index = TradeRequest
+TradeRequest.UIType = "Main"
 
 function TradeRequest.new(template, parent)
 	local self = setmetatable({}, TradeRequest)

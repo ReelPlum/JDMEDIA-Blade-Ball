@@ -13,6 +13,7 @@ local janitor = require(ReplicatedStorage.Packages.Janitor)
 local ConfirmationPrompt = {}
 ConfirmationPrompt.ClassName = "ConfirmationPrompt"
 ConfirmationPrompt.__index = ConfirmationPrompt
+ConfirmationPrompt.UIType = "Main"
 
 function ConfirmationPrompt.new(template, parent)
 	local self = setmetatable({}, ConfirmationPrompt)

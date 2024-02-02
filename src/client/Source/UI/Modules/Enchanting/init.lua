@@ -19,11 +19,29 @@ local ToolTip = require(script.Parent.Common.ToolTip)
 
 local MetadataTypes = require(ReplicatedStorage.Data.MetadataTypes)
 local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
-local EnchantsData = require(ReplicatedStorage.Data.EnchantsData)
+local EnchantsData = ReplicatedStorage.Data.Enchants
 
 local Enchanting = {}
 Enchanting.ClassName = "Enchanting"
 Enchanting.__index = Enchanting
+Enchanting.UIType = "Main"
+
+local function GetEnchantData(enchant)
+	if not enchant then
+		return
+	end
+
+	local data = EnchantsData:FindFirstChild(enchant)
+	if not data then
+		return
+	end
+
+	if not data:IsA("ModuleScript") then
+		return
+	end
+
+	return require(data)
+end
 
 function Enchanting.new(uiTemplate)
 	local self = setmetatable({}, Enchanting)
@@ -390,7 +408,7 @@ function Enchanting:Update()
 		if not itemEnchant then
 			return
 		end
-		local enchantData = EnchantsData[itemEnchant]
+		local enchantData = GetEnchantData(itemEnchant)
 
 		local price = enchantData.Price
 

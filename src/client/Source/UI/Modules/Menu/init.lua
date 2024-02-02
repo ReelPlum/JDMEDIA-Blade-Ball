@@ -19,6 +19,7 @@ local format = formatNumber.Main.NumberFormatter.with()
 local Menu = {}
 Menu.ClassName = "Menu"
 Menu.__index = Menu
+Menu.UIType = "HUD"
 
 function Menu.new(template, parent)
 	local self = setmetatable({}, Menu)

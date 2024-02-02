@@ -20,6 +20,7 @@ local janitor = require(ReplicatedStorage.Packages.Janitor)
 local Loading = {}
 Loading.ClassName = "Loading"
 Loading.__index = Loading
+Loading.UIType = "Fullscreen"
 
 function Loading.new(uiTemplate)
 	local self = setmetatable({}, Loading)

@@ -21,6 +21,7 @@ local SortUniqueness = require(SortFunctions.SortUniqueness)
 local ItemSelection = {}
 ItemSelection.ClassName = "ItemSelection"
 ItemSelection.__index = ItemSelection
+ItemSelection.UIType = "Main"
 
 function ItemSelection.new(template, parent)
 	local self = setmetatable({}, ItemSelection)

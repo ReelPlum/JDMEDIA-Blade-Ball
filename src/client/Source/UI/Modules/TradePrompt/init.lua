@@ -14,6 +14,7 @@ local janitor = require(ReplicatedStorage.Packages.Janitor)
 local TradePrompt = {}
 TradePrompt.ClassName = "TradePrompt"
 TradePrompt.__index = TradePrompt
+TradePrompt.UIType = "Main"
 
 function TradePrompt.new(template, parent)
 	local self = setmetatable({}, TradePrompt)

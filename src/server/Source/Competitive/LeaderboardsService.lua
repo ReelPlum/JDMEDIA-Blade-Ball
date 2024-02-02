@@ -16,7 +16,7 @@ local janitor = require(ReplicatedStorage.Packages.Janitor)
 
 local LocalLeaderboard = require(script.Parent.LocalLeaderboard)
 
-local LeaderboardsData = require(ReplicatedStorage.Data.LeaderboardsData)
+local LeaderboardsData = ReplicatedStorage.Data.Leaderboards
 
 local LeaderboardsService = knit.CreateService({
 	Name = "LeaderboardsService",
@@ -28,8 +28,24 @@ local LeaderboardsService = knit.CreateService({
 
 local LocalLeaderboards = {}
 
+function LeaderboardsService:GetLeaderboardData(leaderboard)
+	if not leaderboard then
+		return
+	end
+
+	local data = LeaderboardsData:FindFirstChild(leaderboard)
+	if not data then
+		return
+	end
+	if not data:IsA("ModuleScript") then
+		return
+	end
+
+	return require(data)
+end
+
 function LeaderboardsService:GetTimeTillExpiration(leaderboard)
-	local data = LeaderboardsData[leaderboard]
+	local data = LeaderboardsService:GetLeaderboardData(leaderboard)
 	if not data then
 		return
 	end
@@ -54,7 +70,7 @@ function LeaderboardsService:GetTimeTillExpiration(leaderboard)
 end
 
 function LeaderboardsService:GetLeaderboard(leaderboard)
-	local data = LeaderboardsData[leaderboard]
+	local data = LeaderboardsService:GetLeaderboardData(leaderboard)
 	if not data then
 		return
 	end
@@ -227,7 +243,10 @@ end
 function LeaderboardsService:KnitStart()
 	local StatsService = knit.GetService("StatsService")
 
-	for leaderboard, data in LeaderboardsData do
+	for _, module in LeaderboardsData:GetChildren() do
+		local leaderboard = module.Name
+		local data = LeaderboardsService:GetLeaderboardData(leaderboard)
+
 		if data.Type == "ServerOnly" then
 			LocalLeaderboards[leaderboard] = LocalLeaderboard.new(leaderboard)
 
@@ -257,7 +276,8 @@ function LeaderboardsService:KnitStart()
 			--Update
 			lastUpdate = tick()
 
-			for leaderboard, _ in LeaderboardsData do
+			for _, module in LeaderboardsData:GetChildren() do
+				local leaderboard = module.Name
 				LeaderboardsService:SyncLeaderboard(leaderboard)
 			end
 		end

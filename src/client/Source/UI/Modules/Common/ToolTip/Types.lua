@@ -26,8 +26,24 @@ local formatter = FormatNumber.Main.NumberFormatter.with():Notation(abbreviation
 -- If you prefer rounding to certain decimal places change it to something like Precision.maxFraction(1) to round it to 1 decimal place
 
 local MetadataTypes = require(ReplicatedStorage.Data.MetadataTypes)
-local EnchantsData = require(ReplicatedStorage.Data.EnchantsData)
+local EnchantsData = ReplicatedStorage.Data.Enchants
 local IntToRomanNumerals = require(ReplicatedStorage.Common.IntToRomanNumerals)
+
+local function GetEnchantData(enchant)
+	if not enchant then
+		return
+	end
+
+	local data = EnchantsData:FindFirstChild(enchant)
+	if not data then
+		return
+	end
+	if not data:IsA("ModuleScript") then
+		return
+	end
+
+	return require(data)
+end
 
 local MAXWIDTH = 1000
 
@@ -140,7 +156,8 @@ return {
 		if not data.Data then
 			return
 		end
-		local enchant = EnchantsData[data.Data[1]]
+
+		local enchant = GetEnchantData(data.Data[1])
 		if not enchant then
 			return
 		end

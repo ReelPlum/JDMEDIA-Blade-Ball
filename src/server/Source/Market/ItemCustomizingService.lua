@@ -114,6 +114,9 @@ function ItemCustomizingService:ApplyNameTagToItem(user, itemId, nametagItemId, 
 	--If name is filtered then deny the name
 	print(filteredName)
 	if filteredName ~= name then
+		local NotificationService = knit.GetService("NotificationService")
+		NotificationService:SendNotification(user, "You cannot name your item that :(")
+
 		return false
 	end
 

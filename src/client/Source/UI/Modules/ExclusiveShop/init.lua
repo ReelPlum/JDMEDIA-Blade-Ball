@@ -13,6 +13,7 @@ local janitor = require(ReplicatedStorage.Packages.Janitor)
 local ExclusiveShop = {}
 ExclusiveShop.ClassName = "ExclusiveShop"
 ExclusiveShop.__index = ExclusiveShop
+ExclusiveShop.UIType = "Main"
 
 function ExclusiveShop.new(template, parent)
 	local self = setmetatable({}, ExclusiveShop)

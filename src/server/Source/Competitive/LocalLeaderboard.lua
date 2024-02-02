@@ -10,7 +10,7 @@ local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
-local LeaderboardsData = require(ReplicatedStorage.Data.LeaderboardsData)
+local LeaderboardsData = ReplicatedStorage.Data.Leaderboards
 
 local LocalLeaderboard = {}
 LocalLeaderboard.ClassName = "LocalLeaderboard"
@@ -44,7 +44,9 @@ function LocalLeaderboard.new(leaderboard)
 end
 
 function LocalLeaderboard:UpdateUser(user)
-	local data = LeaderboardsData[self.Leaderboard]
+	local LeaderboardsService = knit.GetService("LeaderboardsService")
+
+	local data = LeaderboardsService:GetLeaderboardData(self.Leaderboard)
 	if not data then
 		return
 	end

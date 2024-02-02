@@ -80,6 +80,9 @@ function ShopService:PurchaseBundle(user, bundleId)
 
 	for _, itemData in data.Items do
 		if not ItemService:CanUserRecieveItem(user, itemData.Item.Item) then
+			local NotificationService = knit.GetService("NotificationService")
+			NotificationService:SendNotification(user, "You cannot recieve this bundle for some reason?")
+
 			return
 		end
 
@@ -87,12 +90,18 @@ function ShopService:PurchaseBundle(user, bundleId)
 	end
 
 	if not ItemService:DoesUserHaveSpaceForItems(user, n) then
+		local NotificationService = knit.GetService("NotificationService")
+		NotificationService:SendNotification(user, "You do not have space in your inventory for this bundle!")
+
 		return warn("No space...")
 	end
 
 	if data.Price then
 		local CurrencyService = knit.GetService("CurrencyService")
 		if not CurrencyService:TakeCurrency(user, data.Price.Currency, data.Price.Amount) then
+			local NotificationService = knit.GetService("NotificationService")
+			NotificationService:SendNotification(user, `You do not have enough {data.Price.Currency} for this bundle!`)
+
 			return
 		end
 	end
@@ -109,16 +118,25 @@ function ShopService:PurchaseItem(user, itemShopId)
 
 	local ItemService = knit.GetService("ItemService")
 	if not ItemService:DoesUserHaveSpaceForItems(user, data.Amount or 1) then
+		local NotificationService = knit.GetService("NotificationService")
+		NotificationService:SendNotification(user, "You do not have enough space for this item!")
+
 		return warn("No space")
 	end
 
 	if not ItemService:CanUserRecieveItem(user, data.Item) then
+		local NotificationService = knit.GetService("NotificationService")
+		NotificationService:SendNotification(user, "You cannot recieve this item?")
+
 		return warn("Cannot recieve")
 	end
 
 	if data.Price then
 		local CurrencyService = knit.GetService("CurrencyService")
 		if not CurrencyService:TakeCurrency(user, data.Price.Currency, data.Price.Amount) then
+			local NotificationService = knit.GetService("NotificationService")
+			NotificationService:SendNotification(user, `You do not have enough {data.Price.Currency} for this item!`)
+
 			return warn("Not enough money")
 		end
 	end

@@ -10,7 +10,7 @@ local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
-local StrangeItemData = require(ReplicatedStorage.Data.StrangeItemData)
+local StrangeItemData = ReplicatedStorage.Data.Strange
 local MetadataTypes = require(ReplicatedStorage.Data.MetadataTypes)
 
 local StrangeItemsService = knit.CreateService({
@@ -64,7 +64,14 @@ function StrangeItemsService:KnitStart()
   ]]
 
 	StatsService.Signals.StatIncremented:Connect(function(user, stat, amount)
-		for itemType, data in StrangeItemData.ItemTypes do
+		for _, module in StrangeItemData.ItemTypes:GetChildren() do
+			if not module:IsA("ModuleScript") then
+				continue
+			end
+
+			local itemType = module.Name
+			local data = require(module)
+
 			local equippedItem = EquipmentService:GetIdOfEquippedItemOfType(user, itemType)
 			if not equippedItem then
 				warn("No equipped item?")
@@ -87,7 +94,14 @@ function StrangeItemsService:KnitStart()
 				itemData.Metadata[MetadataTypes.Types.Strange] += amount
 			end
 
-			for part, partData in StrangeItemData.Parts do
+			for _, module in StrangeItemData.Parts:GetChildren() do
+				if not module:IsA("ModuleScript") then
+					continue
+				end
+
+				local part = module.Name
+				local partData = require(module)
+
 				if not partData.Stat == stat then
 					continue
 				end

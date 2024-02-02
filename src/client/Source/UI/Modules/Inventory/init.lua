@@ -26,6 +26,7 @@ local ItemTypes = script.ItemTypes
 local Inventory = {}
 Inventory.ClassName = "Inventory"
 Inventory.__index = Inventory
+Inventory.UIType = "Main"
 
 function Inventory.new(template, parent, testing)
 	local self = setmetatable({}, Inventory)

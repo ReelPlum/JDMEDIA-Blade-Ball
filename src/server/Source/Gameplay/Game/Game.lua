@@ -13,7 +13,7 @@ local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
 local GeneralSettings = require(ReplicatedStorage.Data.GeneralSettings)
-local MapData = require(ReplicatedStorage.Data.MapData)
+local MapData = ReplicatedStorage.Data.Maps
 
 local Game = {}
 Game.__index = Game
@@ -138,9 +138,26 @@ function Game:UserHit(user)
 	self.Ball:Respawn()
 end
 
+local function GetMapData(map)
+	if not map then
+		return
+	end
+
+	local data = MapData:FindFirstChild(map)
+	if not data then
+		return
+	end
+
+	if not data:IsA("ModuleScript") then
+		return
+	end
+
+	return require(data)
+end
+
 function Game:CreateMap()
 	--Creates the map for the game.
-	local data = MapData[self.Map]
+	local data = GetMapData(self.Map)
 	if not data then
 		warn("❗Could not find map " .. self.Map)
 		return

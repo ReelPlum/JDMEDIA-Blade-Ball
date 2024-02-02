@@ -10,7 +10,7 @@ local knit = require(ReplicatedStorage.Packages.Knit)
 local signal = require(ReplicatedStorage.Packages.Signal)
 local janitor = require(ReplicatedStorage.Packages.Janitor)
 
-local StatData = require(ReplicatedStorage.Data.StatData)
+local StatData = ReplicatedStorage.Data.Stats
 
 local StatsService = knit.CreateService({
 	Name = "StatsService",
@@ -23,15 +23,30 @@ local StatsService = knit.CreateService({
 	},
 })
 
-function StatsService:GetStat(user, stat)
-	--Returns the given stat for user
-	user:WaitForDataLoaded()
+function StatsService:GetStatData(stat)
+	if not stat then
+		return
+	end
 
-	local data = StatData[stat]
+	local data = StatData:FindFirstChild(stat)
 	if not data then
 		warn("❗could not find stat " .. stat)
 		return
 	end
+
+	if not data:IsA("ModuleScript") then
+		return
+	end
+
+	return require(data)
+end
+
+function StatsService:GetStat(user, stat)
+	--Returns the given stat for user
+	user:WaitForDataLoaded()
+
+	local data = StatsService:GetStatData(stat)
+
 	local default = data.Default or 0
 
 	return user.Data.Stats[stat] or default
@@ -66,7 +81,13 @@ function StatsService:UpdateLeaderstats(user)
 		leaderstats.Parent = user.Player
 	end
 
-	for stat, data in StatData do
+	for _, module in StatData:GetChildren() do
+		local stat = module.Name
+		local data = StatsService:GetStatData(stat)
+		if not data then
+			continue
+		end
+
 		if data.DisplayOnLeaderstats then
 			local val = leaderstats:FindFirstChild(stat)
 			if not val then

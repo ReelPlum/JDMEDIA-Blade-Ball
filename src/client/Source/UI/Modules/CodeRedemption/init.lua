@@ -13,6 +13,7 @@ local janitor = require(ReplicatedStorage.Packages.Janitor)
 local CodeRedemption = {}
 CodeRedemption.ClassName = "CodeRedemption"
 CodeRedemption.__index = CodeRedemption
+CodeRedemption.UIType = "Main"
 
 function CodeRedemption.new(template, parent)
 	local self = setmetatable({}, CodeRedemption)

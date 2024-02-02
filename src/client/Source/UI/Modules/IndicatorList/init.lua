@@ -19,6 +19,7 @@ local InputData = require(ReplicatedStorage.Data.InputData)
 
 local IndicatorList = {}
 IndicatorList.__index = IndicatorList
+IndicatorList.UIType = "HUD"
 
 function IndicatorList.new(UITemplate, Parent)
 	local self = setmetatable({}, IndicatorList)

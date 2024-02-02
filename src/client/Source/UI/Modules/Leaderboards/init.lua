@@ -17,7 +17,7 @@ local janitor = require(ReplicatedStorage.Packages.Janitor)
 
 local LeaderboardClass = require(script.Leaderboard)
 
-local LeaderboardsData = require(ReplicatedStorage.Data.LeaderboardsData)
+local LeaderboardsData = ReplicatedStorage.Data.Leaderboards
 
 local Leaderboards = {}
 Leaderboards.ClassName = "Leaderboards"
@@ -41,7 +41,14 @@ end
 
 function Leaderboards:Init()
 	--Listen for leaderboard creations / destructions
-	for leaderboard, data in LeaderboardsData do
+	for _, module in LeaderboardsData:GetChildren() do
+		if not module:IsA("ModuleScript") then
+			continue
+		end
+
+		local leaderboard = module.Name
+		local data = require(module)
+
 		self.Janitor:Add(CollectionService:GetInstanceAddedSignal(data.Tag):Connect(function(instance)
 			self:CreateLeaderboard(instance, leaderboard)
 		end))

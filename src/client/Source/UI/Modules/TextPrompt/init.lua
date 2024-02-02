@@ -16,6 +16,7 @@ local janitor = require(ReplicatedStorage.Packages.Janitor)
 local TextPrompt = {}
 TextPrompt.ClassName = "TextPrompt"
 TextPrompt.__index = TextPrompt
+TextPrompt.UIType = "Main"
 
 function TextPrompt.new(template, parent)
 	local self = setmetatable({}, TextPrompt)

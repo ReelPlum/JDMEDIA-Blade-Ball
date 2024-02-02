@@ -13,6 +13,7 @@ local janitor = require(ReplicatedStorage.Packages.Janitor)
 local Voting = {}
 Voting.ClassName = "Voting"
 Voting.__index = Voting
+Voting.UIType = "Main"
 
 function Voting.new()
 	local self = setmetatable({}, Voting)

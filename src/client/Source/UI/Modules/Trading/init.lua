@@ -32,6 +32,7 @@ local SortUniqueness = require(SortFunctions.SortUniqueness)
 local Trading = {}
 Trading.ClassName = "Trading"
 Trading.__index = Trading
+Trading.UIType = "Main"
 
 function Trading.new(template, parent)
 	local self = setmetatable({}, Trading)
@@ -478,9 +479,16 @@ function Trading:SetVisible(bool)
 		bool = not self.Visible
 	end
 
+	local TradingController = knit.GetController("TradingController")
+	if not TradingController:GetCurrentTrade() then
+		self.Visible = false
+		self.UI.Visible = false
+		self.Signals.VisibilityChanged:Fire(false)
+		return
+	end
+
 	self.Visible = bool
 	self.UI.Visible = bool
-
 	self.Signals.VisibilityChanged:Fire(bool)
 end
 

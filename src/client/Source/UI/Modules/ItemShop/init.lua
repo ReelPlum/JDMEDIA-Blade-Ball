@@ -18,6 +18,7 @@ local WorldItems = require(script.WorldItems)
 local ItemShop = {}
 ItemShop.ClassName = "ItemShop"
 ItemShop.__index = ItemShop
+ItemShop.UIType = "Main"
 
 function ItemShop.new(template, parent)
 	local self = setmetatable({}, ItemShop)

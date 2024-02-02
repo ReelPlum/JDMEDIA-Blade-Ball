@@ -6,13 +6,13 @@ Created by ReelPlum (https://www.roblox.com/users/60083248/profile)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local CurrencyData = require(ReplicatedStorage.Data.CurrencyData)
+local CurrencyData = ReplicatedStorage.Data.Currencies
 
 return function(registry)
 	local currencies = {}
 
-	for name, _ in CurrencyData do
-		table.insert(currencies, name)
+	for _, module in CurrencyData:GetChildren() do
+		table.insert(currencies, module.Name)
 	end
 
 	local itemEnum = registry.Cmdr.Util.MakeEnumType("Currency", currencies)

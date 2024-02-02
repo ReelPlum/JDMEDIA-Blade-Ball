@@ -15,6 +15,7 @@ local Item = require(script.Item)
 local UnboxedItem = {}
 UnboxedItem.ClassName = "UnboxedItem"
 UnboxedItem.__index = UnboxedItem
+UnboxedItem.UIType = "Fullscreen"
 
 function UnboxedItem.new(template, parent)
 	local self = setmetatable({}, UnboxedItem)
@@ -23,7 +24,7 @@ function UnboxedItem.new(template, parent)
 
 	self.Template = template
 	self.Parent = parent
-	
+
 	self.Items = {}
 
 	self.Signals = {
@@ -75,7 +76,7 @@ function UnboxedItem:UpdateItems()
 
 	for _, i in self.UI:GetChildren() do
 		if tonumber(i.Name) then
-			if tonumber(i.Name) > math.ceil(#self.Items/4) then
+			if tonumber(i.Name) > math.ceil(#self.Items / 4) then
 				i:Destroy()
 			end
 		end
